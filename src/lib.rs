@@ -35,11 +35,18 @@ mod tests {
                 Err(e) => panic!("Error reading record {}", e),
             };
             //println!("bed name: {}", record.name().expect("Error reading name"))
-            let name = match record.name() {
-                Some(x) => x,
-                None => panic!("Error reading name"),
-            };
-            println!("bed name: {}", name)
+            
+            //let name = match record.name() {
+            //    Some(x) => x,
+            //    None => panic!("Error reading name"),
+            //};
+            //println!("bed name: {}", name)
+
+            if let Some(name) = record.name() {
+                println!("bed name: {}", name);
+            } else {
+                panic!("Error reading name")
+            }
             /*assert_eq!(record.chrom(), chroms[i]);
             assert_eq!(record.start(), starts[i]);
             assert_eq!(record.end(), ends[i]);
