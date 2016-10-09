@@ -1,6 +1,7 @@
 extern crate bio;
 
 pub mod rider;
+pub mod fasta;
 
 #[cfg(test)]
 mod tests {
