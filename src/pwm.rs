@@ -3,7 +3,6 @@ use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::File;
 use std::iter::Iterator;
-use std::io::Lines;
 
 /*struct matrix_ll_ {
     double **ll;
@@ -17,19 +16,24 @@ const BASES: usize = 4;
 #[derive(Debug)]
 pub struct Matrix {
     pub name: String,
-    pub ll: Vec<Vec<f64>>,
-    pub llrc: Vec<Vec<f64>>,
-    pub freq: Vec<Vec<f64>>
+    pub ll: Vec<f64>,
+    pub llrc: Vec<f64>,
+    pub freq: Vec<f64>
 }
 
 pub struct MatrixReader {
-    reader: BufReader<File>
+    reader: BufReader<File>,
+    buffer: String
 }
 
 impl MatrixReader {
     pub fn open(file: File) -> io::Result<MatrixReader> {
-        let r = BufReader::new(file);
-        return Ok(MatrixReader { reader: r });
+        let mut b = String::new();
+        let mut r = BufReader::new(file);
+        return match r.read_line(&mut b) {
+            Ok(_) => Ok(MatrixReader { reader: r, buffer: b }),
+            Err(e) => Err(e)
+        }
     }
 
     pub fn open_path(path: &str) -> io::Result<MatrixReader> {
@@ -44,30 +48,36 @@ impl Iterator for MatrixReader {
     type Item = Matrix;
 
     fn next(&mut self) -> Option<Matrix> {
-        let mut name = "";
-        let mut old_name = "";
-        let mut freq : Vec<Vec<f64>> = Vec::new();
-        let mut ll : Vec<Vec<f64>> = Vec::new();
-        let mut llrc : Vec<Vec<f64>> =  Vec::new();;
-        for line in self.reader.lines() {
-            let mut tokens = line.unwrap().split("\t");
-            name = tokens.nth(0).unwrap();
+        if self.buffer.is_empty() {
+            return None;
+        }
+        let mut name;
+        let mut old_name = "".to_owned();
+        let mut freq : Vec<f64> = Vec::new();
+        let mut finished = false;
+        while !finished {
+            let line = self.buffer.trim_right().to_owned();
+            self.buffer.clear();
+            let mut tokens = line.split("\t");
+            name = tokens.nth(0).unwrap().to_owned();
+            tokens.next(); // We skip the second column with position.
             if old_name != "" && name != old_name {
                 // finished processing a matrix
-                let result = Some(Matrix { name: old_name.to_owned(), ll: ll, llrc: llrc, freq: freq });
-                freq = Vec::new();
-                ll = Vec::new();
-                llrc = Vec::new();
-                return result;
+                finished = true;
+            } else {
+                for _i in 0..BASES {
+                    let count: f64 = tokens.next().unwrap().parse::<f64>().unwrap();
+                    freq.push(count);
+                }
+                old_name = name;
             }
-            let mut counts : Vec<f64> = Vec::with_capacity(BASES);
-            for i in 0..BASES {
-                let count: f64 = tokens.next().unwrap().parse::<f64>().unwrap();
-                counts.push(count);
+            if self.reader.read_line(&mut self.buffer).unwrap() == 0 {
+                finished = true;
+                self.buffer.clear();
             }
-            freq.push(counts);
-            old_name = name;
         }
-        return Some(Matrix {name: old_name.to_owned(), ll: ll, llrc: llrc, freq: freq });
+        let ll : Vec<f64> = Vec::with_capacity(freq.len());
+        let llrc : Vec<f64> =  Vec::with_capacity(freq.len());;
+        Some(Matrix {name: old_name.to_owned(), ll: ll, llrc: llrc, freq: freq })
     }
 }

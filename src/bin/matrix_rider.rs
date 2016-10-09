@@ -3,7 +3,6 @@ extern crate vcf_rider;
 //use std::io::BufReader;
 //use std::fs::File;
 use std::env;
-use std::io::Lines;
 use vcf_rider::fasta;
 use vcf_rider::pwm;
 
@@ -22,6 +21,7 @@ fn main() {
     }
     for m in matrixes {
         println!("name {}", m.name);
+        println!("freq {:?}", m.freq);
     }
     if let Ok(reader) = fasta::FastaReader::open_path(&fasta_filename) {
         for f in reader {
