@@ -4,7 +4,6 @@ use std::io::BufReader;
 use std::fs::File;
 use std::iter::Iterator;
 
-
 /*struct fas {
     int *seq;
     char *id;
@@ -12,11 +11,12 @@ use std::iter::Iterator;
     int length;
     int n_portions;
 };
-*/
+*/  
 #[derive(Debug)]
 pub struct Fasta {
     pub id: String,
-    pub sequence: Vec<u8>
+    pub sequence: Vec<u8>,
+    pub background: Vec<f64>
 }
 
 pub struct FastaReader {
@@ -65,6 +65,18 @@ impl Iterator for FastaReader {
                 sequence_complete = true;
             }
         }
-        return Some(Fasta { id: id, sequence: sequence.into_bytes() })
+        let mut encoded_sequence: Vec<u8> = Vec::with_capacity(sequence.len());
+        for nuc in sequence.into_bytes() {
+            encoded_sequence.push( match nuc {
+                b'A' => 0u8,
+                b'C' => 1u8,
+                b'G' => 2u8,
+                b'T' => 3u8,
+                b'N' => 4u8,
+                _ => panic!("Fasta with a not allowed char {}", nuc as char), // here we cannot access id
+            });
+        }
+        // TODO FIXME read bg from file/fasta
+        return Some(Fasta { id: id, sequence: encoded_sequence, background : vec!(0.298947240099661, 0.200854143743417, 0.200941012710477, 0.299257603446445)})
     }
 }
