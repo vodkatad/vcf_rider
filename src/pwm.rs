@@ -13,47 +13,83 @@ use std::iter::Iterator;
 };*/
 const BASES: usize = 4;
 
+// The matrix is kept rows by columns, i.e. elements at indices 0-3 are the
+// first row, 4-7 the second and so on. This makes it easier to append rows
+// while reading them from a file.
+
 #[derive(Debug)]
 pub struct Matrix {
-    pub name: String,
-    pub ll: Vec<f64>,
-    pub llrc: Vec<f64>,
-    pub freq: Vec<f64>
+    rows: Vec<f64>
 }
 
-pub struct MatrixReader {
+impl Matrix {
+    pub fn new() -> Matrix {
+        Matrix { rows: Vec::<f64>::new() }
+    }
+    
+    pub fn with_capacity(len: usize) -> Matrix {
+        Matrix { rows: Vec::<f64>::with_capacity(len) }
+    }
+
+    pub fn len(&self) -> usize {
+        (self.rows.len() / BASES) as usize
+    }
+
+    pub fn push_row(&mut self, a: f64, c: f64, t: f64, g: f64) {
+        self.rows.push(a);
+        self.rows.push(c);
+        self.rows.push(t);
+        self.rows.push(g);
+    }
+
+    #[inline]
+    pub fn get(&self, row: usize, col: usize) -> f64 {
+        self.rows[row * BASES + col]
+    }
+}
+
+
+#[derive(Debug)]
+pub struct PWM {
+    pub name: String,
+    pub ll: Matrix,
+    pub llrc: Matrix,
+    pub freq: Matrix
+}
+
+pub struct PWMReader {
     reader: BufReader<File>,
     buffer: String
 }
 
-impl MatrixReader {
-    pub fn open(file: File) -> io::Result<MatrixReader> {
+impl PWMReader {
+    pub fn open(file: File) -> io::Result<PWMReader> {
         let mut b = String::new();
         let mut r = BufReader::new(file);
-        return match r.read_line(&mut b) {
-            Ok(_) => Ok(MatrixReader { reader: r, buffer: b }),
+        match r.read_line(&mut b) {
+            Ok(_) => Ok(PWMReader { reader: r, buffer: b }),
             Err(e) => Err(e)
         }
     }
 
-    pub fn open_path(path: &str) -> io::Result<MatrixReader> {
-        return match File::open(path) {
-            Ok(file) => MatrixReader::open(file),
+    pub fn open_path(path: &str) -> io::Result<PWMReader> {
+        match File::open(path) {
+            Ok(file) => PWMReader::open(file),
             Err(e) => Err(e)
-        };
+        }
     }
 }
 
-impl Iterator for MatrixReader {
-    type Item = Matrix;
+impl Iterator for PWMReader {
+    type Item = PWM;
 
-    fn next(&mut self) -> Option<Matrix> {
+    fn next(&mut self) -> Option<PWM> {
         if self.buffer.is_empty() {
             return None;
         }
         let mut name;
         let mut old_name = "".to_owned();
-        let mut freq : Vec<f64> = Vec::new();
+        let mut freq = Matrix::new();
         let mut finished = false;
         while !finished {
             let line = self.buffer.trim_right().to_owned();
@@ -65,10 +101,11 @@ impl Iterator for MatrixReader {
                 // finished processing a matrix
                 finished = true;
             } else {
-                for _i in 0..BASES {
-                    let count: f64 = tokens.next().unwrap().parse::<f64>().unwrap();
-                    freq.push(count);
-                }
+                let a: f64 = tokens.next().unwrap().parse::<f64>().unwrap();     
+                let c: f64 = tokens.next().unwrap().parse::<f64>().unwrap();
+                let t: f64 = tokens.next().unwrap().parse::<f64>().unwrap();
+                let g: f64 = tokens.next().unwrap().parse::<f64>().unwrap();
+                freq.push_row(a, c, t, g);
                 old_name = name;
             }
             if self.reader.read_line(&mut self.buffer).unwrap() == 0 {
@@ -76,8 +113,8 @@ impl Iterator for MatrixReader {
                 self.buffer.clear();
             }
         }
-        let ll : Vec<f64> = Vec::with_capacity(freq.len());
-        let llrc : Vec<f64> =  Vec::with_capacity(freq.len());;
-        Some(Matrix {name: old_name.to_owned(), ll: ll, llrc: llrc, freq: freq })
+        let ll = Matrix::with_capacity(freq.len());
+        let llrc =  Matrix::with_capacity(freq.len());;
+        Some(PWM {name: old_name.to_owned(), ll: ll, llrc: llrc, freq: freq })
     }
 }

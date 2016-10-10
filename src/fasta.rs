@@ -28,17 +28,17 @@ impl FastaReader {
     pub fn open(file: File) -> io::Result<FastaReader> {
         let mut b = String::new();
         let mut r = BufReader::new(file);
-        return match r.read_line(&mut b) {
+        match r.read_line(&mut b) {
             Ok(_) => Ok(FastaReader { reader: r, buffer: b }),
             Err(e) => Err(e)
         }
     }
 
     pub fn open_path(path: &str) -> io::Result<FastaReader> {
-        return match File::open(path) {
+        match File::open(path) {
             Ok(file) => FastaReader::open(file),
             Err(e) => Err(e)
-        };
+        }
     }
 }
 
@@ -77,6 +77,6 @@ impl Iterator for FastaReader {
             });
         }
         // TODO FIXME read bg from file/fasta
-        return Some(Fasta { id: id, sequence: encoded_sequence, background : vec!(0.298947240099661, 0.200854143743417, 0.200941012710477, 0.299257603446445)})
+        Some(Fasta { id: id, sequence: encoded_sequence, background : vec!(0.298947240099661, 0.200854143743417, 0.200941012710477, 0.299257603446445)})
     }
 }

@@ -13,8 +13,8 @@ fn main() {
     let pwms_filename = get_next_arg(&mut args, "Missing pwm file argument".to_owned(), &binary_name);
     println!("fasta: {}", fasta_filename);
     println!("pwms: {}", pwms_filename);
-    let mut matrixes : Vec<pwm::Matrix> = Vec::new();
-    if let Ok(pwm_reader) = pwm::MatrixReader::open_path(&pwms_filename) {
+    let mut matrixes : Vec<pwm::PWM> = Vec::new();
+    if let Ok(pwm_reader) = pwm::PWMReader::open_path(&pwms_filename) {
         for pwm in pwm_reader {
             matrixes.push(pwm);
         }
