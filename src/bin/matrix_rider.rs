@@ -19,14 +19,19 @@ fn main() {
             matrixes.push(pwm);
         }
     }
-    for m in matrixes {
-        println!("name {}", m.name);
-        println!("freq {:?}", m.freq);
-    }
     if let Ok(reader) = fasta::FastaReader::open_path(&fasta_filename) {
         for f in reader {
             println!("id: {}", f.id);
             println!("seq: {:?}", f.sequence);
+
+            for i in 0..matrixes.len() { // the iterator here does not work
+                let mut m = matrixes.get_mut(i).unwrap();
+                println!("name {}", m.name);
+                println!("freq {:?}", m.freq);
+                m.compute_ll(&f.background);
+                println!("freq {:?}", m.ll);
+                println!("freq {:?}", m.llrc);
+            }
         }
     }
 }

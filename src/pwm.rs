@@ -12,6 +12,12 @@ use std::iter::Iterator;
     char *name;
 };*/
 const BASES: usize = 4;
+const NN: f64 = 0f64;
+const A: usize = 0;
+const C: usize = 1;
+const G: usize = 2;
+const T: usize = 3;
+const N: usize = 4;
 
 // The matrix is kept rows by columns, i.e. elements at indices 0-3 are the
 // first row, 4-7 the second and so on. This makes it easier to append rows
@@ -49,13 +55,83 @@ impl Matrix {
     }
 }
 
+//TODO Matrix<usize> -> usize is NCOL.
+
+#[derive(Debug)]
+pub struct MatrixN {
+    rows: Vec<f64>
+}
+
+impl MatrixN {
+    pub fn new() -> MatrixN {
+        MatrixN { rows: Vec::<f64>::new() }
+    }
+    
+    pub fn with_capacity(len: usize) -> MatrixN {
+        MatrixN { rows: Vec::<f64>::with_capacity(len) }
+    }
+
+    #[inline]
+    pub fn len(&self) -> usize {
+        (self.rows.len() / (BASES+1)) as usize
+    }
+
+    pub fn push_row(&mut self, a: f64, c: f64, t: f64, g: f64, n: f64) {
+        self.rows.push(a);
+        self.rows.push(c);
+        self.rows.push(t);
+        self.rows.push(g);
+        self.rows.push(n);
+    }
+
+    #[inline]
+    pub fn get(&self, row: usize, col: usize) -> f64 {
+        self.rows[row * (BASES+1) + col]
+    }
+}
+
+
 
 #[derive(Debug)]
 pub struct PWM {
     pub name: String,
-    pub ll: Matrix,
-    pub llrc: Matrix,
+    pub ll: MatrixN,
+    pub llrc: MatrixN,
     pub freq: Matrix
+}
+
+impl PWM {
+    pub fn compute_ll(&mut self, bg: &Vec<f64>) {
+        let mut frac : Vec<f64> = Vec::with_capacity(4);
+        let matrix_len = self.freq.len(); // useful?
+    	for j in 0..matrix_len {
+	    	for i in 0..BASES {
+                frac.push(self.freq.get(j, i) / bg[i]);
+                //m->ll[j][i] = log2_ratio(m->freq[j][i], bg[i], info);
+
+		    }
+		    frac.push(NN);
+            self.ll.push_row(frac[0], frac[1], frac[2], frac[3], frac[4]);
+            frac.clear();
+	    }
+    	for j in 0..matrix_len {
+	    	for i in 0..BASES {
+                frac.push(self.ll.get(matrix_len-j-1, match i {
+                    A => T,
+                    C => G,
+                    G => C,
+                    T => A,
+                    N => N,
+                    _ => panic!("The programmer this time screwed up big time!")
+                }))
+			    //m->llrc[j][i] = m->ll[(m->length) - j - 1][encoded_rc(i)];
+		    }
+		    frac.push(NN);
+            //m->llrc[j][N] = NN;
+            self.llrc.push_row(frac[0], frac[1], frac[2], frac[3], frac[4]);
+            frac.clear();
+	    }
+    }
 }
 
 pub struct PWMReader {
@@ -116,8 +192,8 @@ impl Iterator for PWMReader {
                 self.buffer.clear();
             }
         }
-        let ll = Matrix::with_capacity(freq.len());
-        let llrc =  Matrix::with_capacity(freq.len());;
+        let ll = MatrixN::with_capacity(freq.rows.len());
+        let llrc =  MatrixN::with_capacity(freq.rows.len());;
         Some(PWM {name: old_name.to_owned(), ll: ll, llrc: llrc, freq: freq })
     }
 }
