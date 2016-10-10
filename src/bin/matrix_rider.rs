@@ -26,8 +26,9 @@ fn main() {
 
             for i in 0..matrixes.len() { // the iterator here does not work
                 let mut m = matrixes.get_mut(i).unwrap();
-                println!("name {}", m.name);
-                println!("freq {:?}", m.freq);
+                //println!("name {}", m.name);
+                //println!("freq {:?}", m.freq);
+                //println!("len {}", m.freq.len());
                 m.compute_ll(&f.background);
                 //println!("freq {:?}", m.ll);
                 //println!("freq {:?}", m.llrc);

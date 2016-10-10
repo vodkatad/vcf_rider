@@ -187,7 +187,6 @@ impl Iterator for PWMReader {
         let mut finished = false;
         while !finished {
             let line = self.buffer.trim_right().to_owned();
-            self.buffer.clear();
             let mut tokens = line.split("\t");
             name = tokens.nth(0).unwrap().to_owned();
             tokens.next(); // We skip the second column with position.
@@ -204,9 +203,12 @@ impl Iterator for PWMReader {
                 freq.push_row(a as f64/ tot, c  as f64/ tot, t  as f64/ tot, g  as f64/ tot);
                 old_name = name;
             }
-            if self.reader.read_line(&mut self.buffer).unwrap() == 0 {
-                finished = true;
+            if !finished {
                 self.buffer.clear();
+                if self.reader.read_line(&mut self.buffer).unwrap() == 0 {
+                    finished = true;
+                    self.buffer.clear();
+                }
             }
         }
         let ll = MatrixN::with_capacity(freq.rows.len());
