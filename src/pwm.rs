@@ -31,6 +31,7 @@ impl Matrix {
         Matrix { rows: Vec::<f64>::with_capacity(len) }
     }
 
+    #[inline]
     pub fn len(&self) -> usize {
         (self.rows.len() / BASES) as usize
     }
@@ -101,11 +102,13 @@ impl Iterator for PWMReader {
                 // finished processing a matrix
                 finished = true;
             } else {
-                let a: f64 = tokens.next().unwrap().parse::<f64>().unwrap();     
-                let c: f64 = tokens.next().unwrap().parse::<f64>().unwrap();
-                let t: f64 = tokens.next().unwrap().parse::<f64>().unwrap();
-                let g: f64 = tokens.next().unwrap().parse::<f64>().unwrap();
-                freq.push_row(a, c, t, g);
+                let a: u64 = tokens.next().unwrap().parse::<u64>().unwrap();     
+                let c: u64 = tokens.next().unwrap().parse::<u64>().unwrap();
+                let t: u64 = tokens.next().unwrap().parse::<u64>().unwrap();
+                let g: u64 = tokens.next().unwrap().parse::<u64>().unwrap();
+                let tot: f64 = (a + c + t + g) as f64;
+                // TODO ADD error checking, this is get_fraction_from_pcounts
+                freq.push_row(a as f64/ tot, c  as f64/ tot, t  as f64/ tot, g  as f64/ tot);
                 old_name = name;
             }
             if self.reader.read_line(&mut self.buffer).unwrap() == 0 {
