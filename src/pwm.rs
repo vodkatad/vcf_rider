@@ -132,6 +132,23 @@ impl PWM {
             frac.clear();
 	    }
     }
+
+    pub fn get_affinity(&self, sequence: &[u8]) -> f64 {
+        let mut res1: f64 = 1f64;
+        let mut res2: f64 = 1f64;
+        let mut j = 0;
+        for i in 0..self.freq.len() {
+            res1 *= self.ll.get(i, sequence[j] as usize);
+            res2 *= self.llrc.get(i, sequence[j] as usize);
+            j += 1;
+        }
+        if res1 > res2 {
+            res1
+        }
+        else {
+            res2
+        }
+    }
 }
 
 pub struct PWMReader {
