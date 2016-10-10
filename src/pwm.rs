@@ -26,22 +26,24 @@ const N: usize = 4;
 #[derive(Debug)]
 pub struct Matrix {
     rows: Vec<f64>
+    ncols: usize;
 }
 
 impl Matrix {
-    pub fn new() -> Matrix {
-        Matrix { rows: Vec::<f64>::new() }
+    pub fn new(n: usize) -> Matrix {
+        Matrix { rows: Vec::<f64>::new(), ncols: n }
     }
     
-    pub fn with_capacity(len: usize) -> Matrix {
-        Matrix { rows: Vec::<f64>::with_capacity(len) }
+    pub fn with_capacity(n: usize, len: usize) -> Matrix {
+        Matrix { rows: Vec::<f64>::with_capacity(len), ncols: n }
     }
 
     #[inline]
     pub fn len(&self) -> usize {
-        (self.rows.len() / BASES) as usize
+        (self.rows.len() / self.n) as usize
     }
 
+    // How do we generalize it without losing efficiency(?)?
     pub fn push_row(&mut self, a: f64, c: f64, t: f64, g: f64) {
         self.rows.push(a);
         self.rows.push(c);
@@ -51,11 +53,9 @@ impl Matrix {
 
     #[inline]
     pub fn get(&self, row: usize, col: usize) -> f64 {
-        self.rows[row * BASES + col]
+        self.rows[row * self.ncols + col]
     }
 }
-
-//TODO Matrix<usize> -> usize is NCOL.
 
 #[derive(Debug)]
 pub struct MatrixN {
