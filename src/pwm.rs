@@ -25,8 +25,8 @@ const N: usize = 4;
 
 #[derive(Debug)]
 pub struct Matrix {
-    rows: Vec<f64>
-    ncols: usize;
+    rows: Vec<f64>,
+    ncols: usize
 }
 
 impl Matrix {
@@ -34,49 +34,26 @@ impl Matrix {
         Matrix { rows: Vec::<f64>::new(), ncols: n }
     }
     
+    // Here instead a check on len % n could be done, maybe.
     pub fn with_capacity(n: usize, len: usize) -> Matrix {
         Matrix { rows: Vec::<f64>::with_capacity(len), ncols: n }
     }
 
     #[inline]
     pub fn len(&self) -> usize {
-        (self.rows.len() / self.n) as usize
+        (self.rows.len() / self.ncols) as usize
     }
 
-    // How do we generalize it without losing efficiency(?)?
-    pub fn push_row(&mut self, a: f64, c: f64, t: f64, g: f64) {
+    // We do not do an if to check if we are breaking up
+    // our 2d matrix calling the wrong function for efficiency's sake.
+    pub fn push_row_4(&mut self, a: f64, c: f64, t: f64, g: f64) {
         self.rows.push(a);
         self.rows.push(c);
         self.rows.push(t);
         self.rows.push(g);
     }
 
-    #[inline]
-    pub fn get(&self, row: usize, col: usize) -> f64 {
-        self.rows[row * self.ncols + col]
-    }
-}
-
-#[derive(Debug)]
-pub struct MatrixN {
-    rows: Vec<f64>
-}
-
-impl MatrixN {
-    pub fn new() -> MatrixN {
-        MatrixN { rows: Vec::<f64>::new() }
-    }
-    
-    pub fn with_capacity(len: usize) -> MatrixN {
-        MatrixN { rows: Vec::<f64>::with_capacity(len) }
-    }
-
-    #[inline]
-    pub fn len(&self) -> usize {
-        (self.rows.len() / (BASES+1)) as usize
-    }
-
-    pub fn push_row(&mut self, a: f64, c: f64, t: f64, g: f64, n: f64) {
+    pub fn push_row_5(&mut self, a: f64, c: f64, t: f64, g: f64, n: f64) {
         self.rows.push(a);
         self.rows.push(c);
         self.rows.push(t);
@@ -86,17 +63,15 @@ impl MatrixN {
 
     #[inline]
     pub fn get(&self, row: usize, col: usize) -> f64 {
-        self.rows[row * (BASES+1) + col]
+        self.rows[row * self.ncols + col]
     }
 }
-
-
 
 #[derive(Debug)]
 pub struct PWM {
     pub name: String,
-    pub ll: MatrixN,
-    pub llrc: MatrixN,
+    pub ll: Matrix,
+    pub llrc: Matrix,
     pub freq: Matrix
 }
 
@@ -111,7 +86,7 @@ impl PWM {
 
 		    }
 		    frac.push(NN);
-            self.ll.push_row(frac[0], frac[1], frac[2], frac[3], frac[4]);
+            self.ll.push_row_5(frac[0], frac[1], frac[2], frac[3], frac[4]);
             frac.clear();
 	    }
     	for j in 0..matrix_len {
@@ -128,7 +103,7 @@ impl PWM {
 		    }
 		    frac.push(NN);
             //m->llrc[j][N] = NN;
-            self.llrc.push_row(frac[0], frac[1], frac[2], frac[3], frac[4]);
+            self.llrc.push_row_5(frac[0], frac[1], frac[2], frac[3], frac[4]);
             frac.clear();
 	    }
     }
@@ -183,7 +158,7 @@ impl Iterator for PWMReader {
         }
         let mut name;
         let mut old_name = "".to_owned();
-        let mut freq = Matrix::new();
+        let mut freq = Matrix::new(BASES);
         let mut finished = false;
         while !finished {
             let line = self.buffer.trim_right().to_owned();
@@ -200,7 +175,7 @@ impl Iterator for PWMReader {
                 let g: u64 = tokens.next().unwrap().parse::<u64>().unwrap();
                 let tot: f64 = (a + c + t + g) as f64;
                 // TODO ADD error checking, this is get_fraction_from_pcounts
-                freq.push_row(a as f64/ tot, c  as f64/ tot, t  as f64/ tot, g  as f64/ tot);
+                freq.push_row_4(a as f64/ tot, c  as f64/ tot, t  as f64/ tot, g  as f64/ tot);
                 old_name = name;
             }
             if !finished {
@@ -211,8 +186,8 @@ impl Iterator for PWMReader {
                 }
             }
         }
-        let ll = MatrixN::with_capacity(freq.rows.len());
-        let llrc =  MatrixN::with_capacity(freq.rows.len());;
+        let ll = Matrix::with_capacity(BASES, freq.rows.len());
+        let llrc =  Matrix::with_capacity(BASES, freq.rows.len());;
         Some(PWM {name: old_name.to_owned(), ll: ll, llrc: llrc, freq: freq })
     }
 }
