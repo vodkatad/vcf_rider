@@ -1,6 +1,7 @@
-- get MinMax to work
-- map for Vec<PWM>
+[- get MinMax to work]
+[- map for Vec<PWM>]
 - crate for parameters
+- lifetimes!!
 - read vcf by myself or use lib?
 - how to have +/min/max/mean in RiderParameters and use it
 - capire iterator cosa fa il for
@@ -8,3 +9,51 @@
 - implementare i controlli minimali ?
 
 - comments/real docs about code flow
+
+
+min_max
+    #[unstable(feature = "core", reason = "return type may change")]
+    fn min_max(mut self) -> MinMaxResult<Self::Item> where Self: Sized, Self::Item: Ord
+    {
+        let (mut min, mut max) = match self.next() {
+            None => return NoElements,
+            Some(x) => {
+                match self.next() {
+                    None => return OneElement(x),
+                    Some(y) => if x <= y {(x, y)} else {(y, x)}
+                }
+            }
+        };
+
+        loop {
+            // `first` and `second` are the two next elements we want to look
+            // at.  We first compare `first` and `second` (#1). The smaller one
+            // is then compared to current minimum (#2). The larger one is
+            // compared to current maximum (#3). This way we do 3 comparisons
+            // for 2 elements.
+            let first = match self.next() {
+                None => break,
+                Some(x) => x
+            };
+            let second = match self.next() {
+                None => {
+                    if first < min {
+                        min = first;
+                    } else if first >= max {
+                        max = first;
+                    }
+                    break;
+                }
+                Some(x) => x
+            };
+            if first <= second {
+                if first < min { min = first }
+                if second >= max { max = second }
+            } else {
+                if second < min { min = second }
+                if first >= max { max = first }
+            }
+        }
+
+        MinMax(min, max)
+    }

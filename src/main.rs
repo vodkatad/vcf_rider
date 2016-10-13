@@ -13,6 +13,7 @@ fn main() {
     let vcf_filename = get_next_arg(&mut args, "Missing vcf file argument".to_owned(), &binary_name);
     let pwms_filename = get_next_arg(&mut args, "Missing pwm file argument".to_owned(), &binary_name);
     let bed_filename = get_next_arg(&mut args, "Missing bed file argument".to_owned(), &binary_name);
+    let ref_filename = get_next_arg(&mut args, "Missing reference chr argument".to_owned(), &binary_name);
     //println!("fasta: {}", fasta_filename);
     //println!("pwms: {}", pwms_filename);
     let mut matrixes : Vec<pwm::PWM> = Vec::new();
@@ -21,25 +22,26 @@ fn main() {
             matrixes.push(pwm);
         }
     }
-    let min = {
-        let pwm_lengths = matrixes.iter().map(|pwm| pwm.get_length());
-        pwm_lengths.min().unwrap()
-    };
-    /*let mut min = usize::max_value();
-    let mut max = 0usize;
-    for i in 0..matrixes.len() { 
-        let len = matrixes.get(i).unwrap().get_length();
-        if len < min {
-            min = len;
+    let (min, max) = {
+        let mut pwm_lengths = matrixes.iter().map(|pwm| pwm.get_length());
+        // It seems to me that min_max is not there anymore, it is more efficient, if needed the code is in TODO.txt.
+        let mut min = pwm_lengths.next().unwrap();
+        let mut max = pwm_lengths.next().unwrap();
+        for len in pwm_lengths {
+            if len < min {
+                min = len;
+            }
+            else if len > max {
+                max = len;
+            }        
         }
-        else if len > max {
-            max = len
-        }        
-    }*/
-    //let min = 0usize;
-    let max = 0usize;
+        (min, max)        
+    };
+    // Do not understand: http://hermanradtke.com/2015/06/22/effectively-using-iterators-in-rust.html
+    // why here is different?
+
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
-        get_scores(RiderParameters {min_len: min, max_len: max, parameters: matrixes}, &vcf_filename, bed_reader);
+        get_scores(RiderParameters {min_len: min, max_len: max, parameters: matrixes}, &vcf_filename, bed_reader, &ref_filename);
     } else {
         panic!("Could not open bed file!");
     }
@@ -50,7 +52,7 @@ fn get_next_arg(args: &mut env::Args, error: String, binary_name: &String) -> St
     match args.next() {
         Some(x) => x,
         None => {
-            println!("Usage: {} <vcf_filename> <pwm_filename> <bed filename>", binary_name);
+            println!("Usage: {} <vcf_filename> <pwm_filename> <bed filename> <fasta ref filename>", binary_name);
             println!("{}", error);
             std::process::exit(1);
         }
