@@ -1,0 +1,10 @@
+- get MinMax to work
+- map for Vec<PWM>
+- crate for parameters
+- read vcf by myself or use lib?
+- how to have +/min/max/mean in RiderParameters and use it
+- capire iterator cosa fa il for
+- capire come mettere print di debug
+- implementare i controlli minimali ?
+
+- comments/real docs about code flow
