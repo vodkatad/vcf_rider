@@ -21,8 +21,11 @@ fn main() {
             matrixes.push(pwm);
         }
     }
-    //let mut pwm_lengths = matrixes.map(|x| x.get_length());
-    let mut min = usize::max_value();
+    let min = {
+        let pwm_lengths = matrixes.iter().map(|pwm| pwm.get_length());
+        pwm_lengths.min().unwrap()
+    };
+    /*let mut min = usize::max_value();
     let mut max = 0usize;
     for i in 0..matrixes.len() { 
         let len = matrixes.get(i).unwrap().get_length();
@@ -32,7 +35,9 @@ fn main() {
         else if len > max {
             max = len
         }        
-    }
+    }*/
+    //let min = 0usize;
+    let max = 0usize;
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
         get_scores(RiderParameters {min_len: min, max_len: max, parameters: matrixes}, &vcf_filename, bed_reader);
     } else {
