@@ -1,33 +1,47 @@
-/// A human being is represented here
-pub struct Person {
-    /// A person must have a name, no matter how much Juliet may hate it
-    name: String,
-}
+extern crate bio;
 
-impl Person {
-    /// Returns a person with the name given them
+use bio::io::bed;
+use std::iter::MinMaxResult::{self, NoElements, OneElement, MinMax};
+
+/// Our vcf_rider main function will receive a Vec<T: CanScoreSequence>
+/// and call it for every T on subsequences of the genomes of the samples 
+/// doing it only for each variant subsequence once. 
+/// This trait will need to be able to compute a score on a given sequence,
+/// represented by a splice of an array of u8 [TODO] starting for a given
+/// position (it is guaranteed by the lib that the used position will be given
+/// inside the sequence, i.e. sequence.len() - self.get_length() >= 0).
+pub trait CanScoreSequence {
+    /// Returns a score for the given sequence starting at position pos.
     ///
     /// # Arguments
     ///
-    /// * `name` - A string slice that holds the name of the person
-    ///
-    /// # Example
-    ///r
-    /// ```
-    /// // You can have rust code between fences inside the comments
-    /// // If you pass --test to Rustdoc, it will even test it for you!
-    /// let person = Person::new("name");
-    /// ```
-    pub fn new(name: &str) -> Person {
-        Person {
-            name: name.to_string(),
-        }
-    }
+    /// * `self` - the object with trait CanScoreSequence.
+    /// * `pos` - the position in the sequence where the score will be calculated.
+    ///           The check that sequence.len() - self.get_length() >= 0 IS NOT DONE HERE. 
+    /// * `sequence`- the sequence that needs to be scored, encoded as [ACGTN]-[01234]
+    fn get_score(&self, pos: usize, sequence: &[u8]) -> f64;
 
-    /// Gives a friendly hello!
+    /// Returns the length of sequence that this object can score.
     ///
-    /// Says "Hello, [name]" to the `Person` it is called on.
-    pub fn hello(& self) {
-        println!("Hello, {}!", self.name);
-    }
+    /// # Arguments
+    ///
+    /// * `self` - the object with trait CanScoreSequence.
+    fn get_length(&self) -> usize;
+}
+
+pub struct RiderParameters<T : CanScoreSequence> {
+    min_max_len: MinMaxResult,
+    parameters: Vec<T>
+    // TODO the operation to be used to manage scores
+
+}
+
+// TODO -> (but without an iterator it would not be lazy?)
+pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &str, bed::Reader: bed_reader) {
+    println!("I would use {}", vcf_path);
+    println!("With parameters {:?}", params.min_max_len);
+    for r in bed_reader.records() {
+        let record = r.ok().expect("Error reading record");
+        println!("bed name: {}", record.name().expect("Error reading name"));
+    }   
 }

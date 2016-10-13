@@ -4,7 +4,9 @@ extern crate vcf_rider;
 //use std::fs::File;
 use std::env;
 use vcf_rider::fasta;
+use vcf_rider::rider::CanScoreSequence;
 use vcf_rider::pwm;
+
 
 fn main() {
     let mut args = env::args();
@@ -32,12 +34,12 @@ fn main() {
                 m.compute_ll(&f.background);
                 //println!("freq {:?}", m.ll);
                 //println!("freq {:?}", m.llrc);
-                let mut windows = f.sequence.as_slice().windows(m.freq.len());
+                let mut windows = f.sequence.as_slice().windows(m.get_length());
                 let mut done = false;
                 let mut tot = 0f64;
                 while !done {
                     if let Some(window) = windows.next() {
-                        tot += m.get_affinity(window);
+                        tot += m.get_score(0usize, window);
                     } else {
                         done = true;
                     }
@@ -45,6 +47,7 @@ fn main() {
                 println!("{}\t{}\t{}", f.id, m.name, tot);
             }
         }
+
     }
 }
 

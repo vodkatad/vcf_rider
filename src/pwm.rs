@@ -3,6 +3,7 @@ use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::File;
 use std::iter::Iterator;
+use rider::CanScoreSequence;
 
 /*struct matrix_ll_ {
     double **ll;
@@ -75,6 +76,33 @@ pub struct PWM {
     pub freq: Matrix
 }
 
+impl CanScoreSequence for PWM {
+    fn get_length(&self) -> usize {
+        self.freq.len()
+    }
+
+    // pub here is unnecessary? Why?
+
+    // We do not need checks on lengths here because we will
+    // perform then in the library at a (hopefully) least repeated step.
+    fn get_score(&self, pos: usize, sequence: &[u8]) -> f64 {
+        let mut res1: f64 = 1f64;
+        let mut res2: f64 = 1f64;
+        let mut j = pos;
+        for i in 0..self.freq.len() {
+            res1 *= self.ll.get(i, sequence[j] as usize);
+            res2 *= self.llrc.get(i, sequence[j] as usize);
+            j += 1;
+        }
+        if res1 > res2 {
+            res1
+        }
+        else {
+            res2
+        }
+    }
+}
+
 impl PWM {
     pub fn compute_ll(&mut self, bg: &Vec<f64>) {
         let mut frac : Vec<f64> = Vec::with_capacity(4);
@@ -106,23 +134,6 @@ impl PWM {
             self.llrc.push_row_5(frac[0], frac[1], frac[2], frac[3], frac[4]);
             frac.clear();
 	    }
-    }
-
-    pub fn get_affinity(&self, sequence: &[u8]) -> f64 {
-        let mut res1: f64 = 1f64;
-        let mut res2: f64 = 1f64;
-        let mut j = 0;
-        for i in 0..self.freq.len() {
-            res1 *= self.ll.get(i, sequence[j] as usize);
-            res2 *= self.llrc.get(i, sequence[j] as usize);
-            j += 1;
-        }
-        if res1 > res2 {
-            res1
-        }
-        else {
-            res2
-        }
     }
 }
 
