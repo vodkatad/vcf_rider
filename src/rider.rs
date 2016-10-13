@@ -1,7 +1,5 @@
-extern crate bio;
-
 use bio::io::bed;
-use std::iter::MinMaxResult::{self, NoElements, OneElement, MinMax};
+use std::fs;
 
 /// Our vcf_rider main function will receive a Vec<T: CanScoreSequence>
 /// and call it for every T on subsequences of the genomes of the samples 
@@ -30,16 +28,17 @@ pub trait CanScoreSequence {
 }
 
 pub struct RiderParameters<T : CanScoreSequence> {
-    min_max_len: MinMaxResult,
-    parameters: Vec<T>
+    pub min_len: usize,
+    pub max_len: usize,
+    pub parameters: Vec<T>
     // TODO the operation to be used to manage scores
 
 }
 
 // TODO -> (but without an iterator it would not be lazy?)
-pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &str, bed::Reader: bed_reader) {
+pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &str, mut bed_reader: bed::Reader<fs::File>) {
     println!("I would use {}", vcf_path);
-    println!("With parameters {:?}", params.min_max_len);
+    println!("With parameters {} {}", params.min_len, params.max_len);
     for r in bed_reader.records() {
         let record = r.ok().expect("Error reading record");
         println!("bed name: {}", record.name().expect("Error reading name"));

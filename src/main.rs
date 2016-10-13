@@ -6,7 +6,6 @@ use std::env;
 use vcf_rider::pwm;
 use bio::io::bed;
 use std::path::Path;
-use std::iter::MinMaxResult::{self, NoElements, OneElement, MinMax};
 
 fn main() {
     let mut args = env::args();
@@ -22,9 +21,23 @@ fn main() {
             matrixes.push(pwm);
         }
     }
-    let pwm_lengths = matrixes.map(|x| x.get_length());
-    let min_max = pwm_lengths.min_max();
-    rider::get_scores(RiderParameters {matrixes, min_max}, vcf_filename, bed::Reader::from_file(Path::new(bed_filename)));
+    //let mut pwm_lengths = matrixes.map(|x| x.get_length());
+    let mut min = usize::max_value();
+    let mut max = 0usize;
+    for i in 0..matrixes.len() { 
+        let len = matrixes.get(i).unwrap().get_length();
+        if len < min {
+            min = len;
+        }
+        else if len > max {
+            max = len
+        }        
+    }
+    if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
+        get_scores(RiderParameters {min_len: min, max_len: max, parameters: matrixes}, &vcf_filename, bed_reader);
+    } else {
+        panic!("Could not open bed file!");
+    }
 }
 
 // TODO: use a meaningful crate for args management.
