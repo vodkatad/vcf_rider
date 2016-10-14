@@ -10,10 +10,11 @@ use std::path::Path;
 fn main() {
     let mut args = env::args();
     let binary_name =  args.nth(0).unwrap();
-    let vcf_filename = get_next_arg(&mut args, "Missing vcf file argument".to_owned(), &binary_name);
-    let pwms_filename = get_next_arg(&mut args, "Missing pwm file argument".to_owned(), &binary_name);
-    let bed_filename = get_next_arg(&mut args, "Missing bed file argument".to_owned(), &binary_name);
-    let ref_filename = get_next_arg(&mut args, "Missing reference chr argument".to_owned(), &binary_name);
+    let vcf_filename = get_next_arg(&mut args, "Missing vcf file argument", &binary_name);
+    let pwms_filename = get_next_arg(&mut args, "Missing pwm file argument", &binary_name);
+    let bed_filename = get_next_arg(&mut args, "Missing bed file argument", &binary_name);
+    let ref_filename = get_next_arg(&mut args, "Missing reference chr argument", &binary_name);
+    // TODO argument bg
     //println!("fasta: {}", fasta_filename);
     //println!("pwms: {}", pwms_filename);
     let mut matrixes : Vec<pwm::PWM> = Vec::new();
@@ -25,17 +26,21 @@ fn main() {
     let (min, max) = {
         let mut pwm_lengths = matrixes.iter().map(|pwm| pwm.get_length());
         // It seems to me that min_max is not there anymore, it is more efficient, if needed the code is in TODO.txt.
-        let mut min = pwm_lengths.next().unwrap();
-        let mut max = pwm_lengths.next().unwrap();
-        for len in pwm_lengths {
-            if len < min {
-                min = len;
+        if let Some(mut min) = pwm_lengths.next() {
+            let mut max = min;
+            for len in pwm_lengths {
+                if len < min {
+                    min = len;
+                }
+                else if len > max {
+                    max = len;
+                }        
             }
-            else if len > max {
-                max = len;
-            }        
-        }
-        (min, max)        
+            (min, max)
+        } 
+        else {
+            panic!("No PWM were found in the matrixes file!");
+        }        
     };
     // Do not understand: http://hermanradtke.com/2015/06/22/effectively-using-iterators-in-rust.html
     // why here is different?
@@ -48,7 +53,7 @@ fn main() {
 }
 
 // TODO: use a meaningful crate for args management.
-fn get_next_arg(args: &mut env::Args, error: String, binary_name: &String) -> String {
+fn get_next_arg(args: &mut env::Args, error: &str, binary_name: &str) -> String {
     match args.next() {
         Some(x) => x,
         None => {

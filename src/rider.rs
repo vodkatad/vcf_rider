@@ -70,18 +70,35 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
 
         // let mut pos = r.start
         // while pos + params.max_len < r.end
-            // obtain_seq(r.chr, r.start, params.max_len, VcfReader)
+            // obtain_seq(r.chr, r.start, params.max_len, VcfReader, snps_on_seq)
             // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len 
-            // seqs will be ordered in a specific order: the first one is the reference one and TODO
+            // seqs will be ordered in a specific order: the first one is the reference one and the last one 
+            // the one with all mutated alleles.  Every SNP status is encoded by 0 if it is reference and 1 if it is
+            // mutated. The first snp in the seq is encoded by the least significant position.
+            // In this way it will be easy to build for each individual chr the indexes linking
+            // them to their sequences. There will be two vectors of usize fot this.
             // for every p params.parameters
-                // p.get_score(0usize, seq)
-                // this will give us a vector  
-
-        // find_overlapping_snps(r.chr, r.start, r.end, VcfReader, snps_on_bed)
-        // We assume to receive ordered vcf and bed therefore we can skip vcf entries < bed,
-        // if vcf > bed break and go to next bed
-        // otherwise we have to renew the given snps_on_bed parameter according to bed coords if we decide to allow bed overlaps.
-        // Without overlapping bed snp_on_bed param is not needed, it will always be renewed
+                // for every index present in the two vectors:
+                    // p.get_score(0usize, seq)
+                    // now we need to sum (or smt else) the scores assigning them to the right individuals.  
 
     }   
 }
+
+// find_overlapping_snps(r.start, r.end, VcfReader, snps_on_seq) - to pass coords use bed struct or a struct by me to easily add chr.
+// We assume to receive ordered vcf and bed therefore we can skip vcf entries < r.start,
+// if vcf > r.start+r.end empty snps_on_seq and return ---> not empty! leave them there but return false to avoid loosing vcf info
+// otherwise we have to renew the given snps_on_seq parameter according to coords
+// return true if there are overlapping snps and false otherwise
+
+// obtain_seq(r.chr, r.start, params.max_len, VcfReader, snps_on_seq) 
+// snps_on_seq will be empty or contain snps found in the previous window
+// we will call find_overlapping_snps 
+// if it returns false we get the reference sequence and return only it --- we need a struct for the return type of obtain_seq
+// otherwise we need to build the sequences and the individual vectors
+
+// Needed structs:
+// coords and comparisons methods
+// return type of obtain_seq with sequences and individual info
+// return type of get scores with bed info, n of snps, [len of individuals seqs], scores for both alleles for individuals and individual ids
+// vcf entry ?

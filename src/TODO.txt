@@ -1,6 +1,9 @@
 [- get MinMax to work]
 [- map for Vec<PWM>]
-- crate for parameters
+- crate for parameters: https://doc.rust-lang.org/getopts/getopts/index.html   - cargo still do not
+ support separate deps for lib and binaries (https://github.com/rust-lang/cargo/issues/1982) - move out the binary in future?
+ I do not like the lib very much to tell the truth... will see in the future if n.of arguments gets too cumbersome
+ to be managed with the code that I already have.
 - lifetimes!!
 - read vcf by myself or use lib?
 - how to have +/min/max/mean in RiderParameters and use it
