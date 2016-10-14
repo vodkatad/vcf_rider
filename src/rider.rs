@@ -26,12 +26,19 @@ pub trait CanScoreSequence {
     ///
     /// * `self` - the object with trait CanScoreSequence.
     fn get_length(&self) -> usize;
+
+    /// Returns the name of this.
+    ///
+    /// # Arguments
+    ///
+    /// * `self` - the object with trait CanScoreSequence.
+    fn get_name(&self) -> &str;
 }
 
-pub struct RiderParameters<T : CanScoreSequence> {
+pub struct RiderParameters<'a, T : CanScoreSequence + 'a> {
     pub min_len: usize,
     pub max_len: usize,
-    pub parameters: Vec<T>
+    pub parameters: &'a Vec<T>
     // TODO the operation to be used to manage scores
 }
 
@@ -78,6 +85,9 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             // In this way it will be easy to build for each individual chr the indexes linking
             // them to their sequences. There will be two vectors of usize fot this.
             // for every p params.parameters
+            for i in 0..(*params.parameters).len() {
+                println!("pwm {}", (*params.parameters).get(i).unwrap().get_name());
+            }
                 // for every index present in the two vectors:
                     // p.get_score(0usize, seq)
                     // now we need to sum (or smt else) the scores assigning them to the right individuals.  

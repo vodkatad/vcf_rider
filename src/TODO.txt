@@ -4,14 +4,17 @@
  support separate deps for lib and binaries (https://github.com/rust-lang/cargo/issues/1982) - move out the binary in future?
  I do not like the lib very much to tell the truth... will see in the future if n.of arguments gets too cumbersome
  to be managed with the code that I already have.
-- lifetimes!!
+[- lifetimes!!]
 - read vcf by myself or use lib?
 - how to have +/min/max/mean in RiderParameters and use it
+
 - capire iterator cosa fa il for
 - capire come mettere print di debug
-- implementare i controlli minimali ?
+- implementare i controlli minimali?
 
-- comments/real docs about code flow
+- comments/real docs about code flow: *
+
+- indagare differenza array Vec
 
 
 min_max
@@ -60,3 +63,33 @@ min_max
 
         MinMax(min, max)
     }
+
+
+wtf
+
+    // A `ref` borrow on the left side of an assignment is equivalent to
+    // an `&` borrow on the right side.
+    let ref ref_c1 = c;
+    let ref_c2 = &c;
+
+    println!("ref_c1 equals ref_c2: {}", *ref_c1 == *ref_c2);
+
+    let point = Point { x: 0, y: 0 };
+
+    // `ref` is also valid when destructuring a struct.
+    let _copy_of_x = {
+        // `ref_to_x` is a reference to the `x` field of `point`.
+        let Point { x: ref ref_to_x, y: _ } = point;
+
+        // Return a copy of the `x` field of `point`.
+        *ref_to_x
+    };
+
+    non ho mica capito il destructuring direi...da solo dei nomi per lo scope?
+
+            // Make a `string` literal and print it:
+        let static_string = "I'm in read-only memory";
+        println!("static_string: {}", static_string);
+
+        // When `static_string` goes out of scope, the reference
+        // can no longer be used, but the data remains in the binary.

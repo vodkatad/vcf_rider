@@ -23,9 +23,9 @@ fn main() {
             matrixes.push(pwm);
         }
     }
+    let mut pwm_lengths = matrixes.iter().map(|pwm| pwm.get_length());
+    // It seems to me that min_max is not there anymore, it is more efficient, if needed the code is in TODO.txt.
     let (min, max) = {
-        let mut pwm_lengths = matrixes.iter().map(|pwm| pwm.get_length());
-        // It seems to me that min_max is not there anymore, it is more efficient, if needed the code is in TODO.txt.
         if let Some(mut min) = pwm_lengths.next() {
             let mut max = min;
             for len in pwm_lengths {
@@ -42,11 +42,16 @@ fn main() {
             panic!("No PWM were found in the matrixes file!");
         }        
     };
+
     // Do not understand: http://hermanradtke.com/2015/06/22/effectively-using-iterators-in-rust.html
     // why here is different?
+    // If you want to explore why matrixes.iter.map moves  matrixes to pwm_lengths (its scope) uncomment:
+    // for m in matrixes {
+    //     println!("{}", m.name);
+    // }
 
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
-        get_scores(RiderParameters {min_len: min, max_len: max, parameters: matrixes}, &vcf_filename, bed_reader, &ref_filename);
+        get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename);
     } else {
         panic!("Could not open bed file!");
     }

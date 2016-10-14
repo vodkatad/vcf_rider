@@ -70,7 +70,7 @@ impl Matrix {
 
 #[derive(Debug)]
 pub struct PWM {
-    pub name: String,
+    pub name: String, // &str here?
     pub ll: Matrix,
     pub llrc: Matrix,
     pub freq: Matrix
@@ -79,6 +79,10 @@ pub struct PWM {
 impl CanScoreSequence for PWM {
     fn get_length(&self) -> usize {
         self.freq.len()
+    }
+
+    fn get_name(&self) -> &str {
+        &self.name
     }
 
     // pub here is unnecessary? Why?
