@@ -5,14 +5,15 @@
  I do not like the lib very much to tell the truth... will see in the future if n.of arguments gets too cumbersome
  to be managed with the code that I already have.
 [- lifetimes!!]
-- read vcf by myself or use lib?
+- read vcf by myself or use lib? gvcf
 - how to have +/min/max/mean in RiderParameters and use it
 
 - capire iterator cosa fa il for
-- capire come mettere print di debug: https://users.rust-lang.org/t/conditional-compilation-for-debug-release/1098
+[- capire come mettere print di debug: https://users.rust-lang.org/t/conditional-compilation-for-debug-release/1098]
 - implementare i controlli minimali?
 
 - comments/real docs about code flow: *
+- structs!
 
 - indagare differenza array Vec
 

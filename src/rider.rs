@@ -1,7 +1,8 @@
 use bio::io::bed;
+//use rust_htslib::bcf; // unresolved import `rust_htslib::bcf` ?
 use std::fs;
 use super::fasta;
-
+ 
 /// Our vcf_rider main function will receive a Vec<T: CanScoreSequence>
 /// and call it for every T on subsequences of the genomes of the samples 
 /// doing it only for each variant subsequence once. 
@@ -51,6 +52,15 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
     println!("With parameters {} {}", params.min_len, params.max_len);
     //}
 
+    // We read vcf here because I am not sure that we will use the lib (bed::Reader is certain).
+    // let vcf_reader = match bcf::Reader::new(vcf_path) {
+    //     Ok(x) => x,
+    //     Err(e) => panic!("Could not open vcf file {}", e)
+    // };
+    // for sample in vcf_reader.header.samples() {
+    //     println!("{:?}", sample);
+    // }
+    
     let referenceseq: fasta::Fasta = {
         if let Ok(mut reader) = fasta::FastaReader::open_path(ref_path) {
             let referenceseq = match reader.next() {
