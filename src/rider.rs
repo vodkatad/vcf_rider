@@ -44,8 +44,12 @@ pub struct RiderParameters<'a, T : CanScoreSequence + 'a> {
 
 // TODO ->
 pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &str, mut bed_reader: bed::Reader<fs::File>, ref_path: &str) {
+    
+    // #[cfg(debug_assertions)]   attributes on non-item statements and expressions are experimental. (see issue #15701)
+    //{
     println!("I would use {}", vcf_path);
     println!("With parameters {} {}", params.min_len, params.max_len);
+    //}
 
     let referenceseq: fasta::Fasta = {
         if let Ok(mut reader) = fasta::FastaReader::open_path(ref_path) {

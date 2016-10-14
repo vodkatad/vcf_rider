@@ -9,7 +9,7 @@
 - how to have +/min/max/mean in RiderParameters and use it
 
 - capire iterator cosa fa il for
-- capire come mettere print di debug
+- capire come mettere print di debug: https://users.rust-lang.org/t/conditional-compilation-for-debug-release/1098
 - implementare i controlli minimali?
 
 - comments/real docs about code flow: *
