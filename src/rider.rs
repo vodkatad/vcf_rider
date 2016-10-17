@@ -1,8 +1,9 @@
 use bio::io::bed;
-//use rust_htslib::bcf; // unresolved import `rust_htslib::bcf` ?
 use std::fs;
 use super::fasta;
- 
+use rust_htslib::bcf;
+use itertools::Itertools;
+
 /// Our vcf_rider main function will receive a Vec<T: CanScoreSequence>
 /// and call it for every T on subsequences of the genomes of the samples 
 /// doing it only for each variant subsequence once. 
@@ -52,14 +53,42 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
     println!("With parameters {} {}", params.min_len, params.max_len);
     //}
 
-    // We read vcf here because I am not sure that we will use the lib (bed::Reader is certain).
-    // let vcf_reader = match bcf::Reader::new(vcf_path) {
-    //     Ok(x) => x,
-    //     Err(e) => panic!("Could not open vcf file {}", e)
-    // };
-    // for sample in vcf_reader.header.samples() {
-    //     println!("{:?}", sample);
-    // }
+    // We read vcf here right now because I am not sure that we will use the lib (bed::Reader is certain).
+    let vcf_reader = match bcf::Reader::new(&vcf_path) {
+        Ok(x) => x,
+        Err(e) => panic!("Could not open vcf file {}", e)
+    };
+    for sample in vcf_reader.header.samples() {
+        let name = sample.into_iter().map(|a| a.to_owned()).map(|x| x as char).collect_vec();
+        println!("{:?}", name); // it is ['H', 'G', '0', '0', '1', '0', '5']  -> woooa.
+    }
+    let mut record = bcf::Record::new();
+    loop {
+        if let Err(e) = vcf_reader.read(&mut record) {
+            if e.is_eof() {
+                break;
+            } 
+        }
+        let alleles = record.alleles().into_iter().map(|a| a.to_owned()).collect_vec(); // I do not like this to_owned...
+        for allele in alleles[1..].iter() { // why skip the first? The first is the reference. Then are listed all the alternative ones.
+            println!("rid2name {:?}" , vcf_reader.header.rid2name(record.rid().unwrap())); // dunno what this is
+            println!("record.pos {}" , record.pos() as i32); // Manually checked: the lib converts 1 based coords of vcf to 0 based.
+            println!("alleles[0] {}" , alleles[0][0] as char); // this is the reference
+            println!("allele {}" , allele[0] as char); // this is the alt allele? Why are they vectors? Because they are encoded as single bases.
+            //println!("allele {}" , allele[1] as char); // this will print the second base if the alt allele is for example AC (C). 
+        }
+        // remember trim_alleles(&mut self)
+        
+        let genotypes = record.genotypes().unwrap();
+        let genotypes = (0..vcf_reader.header.sample_count() as usize).map(|s| {
+                        format!("{}", genotypes.get(s))
+                        }).collect_vec();
+            
+        for s in 0..vcf_reader.header.sample_count() as usize {
+            println!("genotypes {}", genotypes[s]); // here genotypes[s] is the str (?) 0|0, ok. These are displayable, check their code to understand the inner structure.
+            // https://github.com/rust-bio/rust-htslib/blob/master/src/bcf/record.rs
+        }
+    }
     
     let referenceseq: fasta::Fasta = {
         if let Ok(mut reader) = fasta::FastaReader::open_path(ref_path) {
