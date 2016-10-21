@@ -20,18 +20,18 @@ pub struct VcfReader {
 // Adding a layer of abstration, I am not sure that we will use the lib.
 impl VcfReader {
     pub fn open_path(path: &str) -> io::Result<VcfReader> {
-        if let Ok(res) = bcf::Reader::new(&path) {
-            let mut samples : Vec<String> = Vec::<String>::new();
-            for sample in res.header.samples() {
-                let name = sample.into_iter().map(|a| a.to_owned()).map(|x| x as char).collect_vec();
-                println!("{:?}", name); // it is ['H', 'G', '0', '0', '1', '0', '5']  -> woooa.
-                samples.push("placeholder".to_owned());
+        match bcf::Reader::new(&path) {
+            Ok(reader) => {
+                let mut samples : Vec<String> = Vec::<String>::new();
+                for sample in reader.header.samples() {
+                    let name = sample.into_iter().map(|a| a.to_owned()).map(|x| x as char).collect_vec();
+                    println!("{:?}", name); // it is ['H', 'G', '0', '0', '1', '0', '5']  -> woooa.
+                    samples.push("placeholder".to_owned());
+                }
+                Ok(VcfReader { reader: reader, samples: samples })
             }
-            Ok(VcfReader { reader: res, samples: samples })
-        }
-        else {
-            //Err(format!("Error opening vcf file {}", path))
-            panic!("Moanmoanmona")
+            Err(_) => Err(io::Error::last_os_error())
+            // How do errors work? rust_htslib::bcf::BCFError
         }
     }
 }
