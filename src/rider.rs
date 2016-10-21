@@ -40,7 +40,7 @@ pub struct RiderParameters<'a, T : CanScoreSequence + 'a> {
     pub min_len: usize,
     pub max_len: usize,
     pub parameters: &'a Vec<T>
-    // TODO the operation to be used to manage scores
+    // TODO the operation to be used to manage scores http://doc.rust-lang.org/core/ops/
 }
 
 // TODO ->

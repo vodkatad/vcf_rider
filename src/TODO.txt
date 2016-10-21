@@ -9,6 +9,11 @@
 - how to have +/min/max/mean in RiderParameters and use it
 
 - capire iterator cosa fa il for
+    // `for` works through an `Iterator` until it returns `None`.
+    // Each `Some` value is unwrapped and bound to a variable (here, `i`)
+    As a point of convenience for common situations, the for construct turns some collections into iterators using the .into_iterator() method. 
+The `iter` method produces an `Iterator` over an array/slice.
+
 [- capire come mettere print di debug: https://users.rust-lang.org/t/conditional-compilation-for-debug-release/1098]
 - implementare i controlli minimali?
 
