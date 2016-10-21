@@ -49,6 +49,7 @@ fn main() {
     // for m in matrixes {
     //     println!("{}", m.name);
     // }
+    //  m.compute_ll(&f.background); -> has to be done before calling get_scores
 
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
         get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename);
