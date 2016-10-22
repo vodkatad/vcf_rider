@@ -23,6 +23,7 @@ fn main() {
             matrixes.push(pwm);
         }
     }
+    // pwm_lengths is an Iter, matrixes is borrowed until end of scope. Use collect() to avoid.
     let mut pwm_lengths = matrixes.iter().map(|pwm| pwm.get_length());
     // It seems to me that min_max is not there anymore, it is more efficient, if needed the code is in TODO.txt.
     let (min, max) = {
@@ -34,21 +35,15 @@ fn main() {
                 }
                 else if len > max {
                     max = len;
-                }        
+                }
             }
             (min, max)
-        } 
+        }
         else {
             panic!("No PWM were found in the matrixes file!");
-        }        
+        }
     };
 
-    // Do not understand: http://hermanradtke.com/2015/06/22/effectively-using-iterators-in-rust.html
-    // why here is different?
-    // If you want to explore why matrixes.iter.map moves  matrixes to pwm_lengths (its scope) uncomment:
-    // for m in matrixes {
-    //     println!("{}", m.name);
-    // }
     //  m.compute_ll(&f.background); -> has to be done before calling get_scores
 
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
