@@ -14,7 +14,7 @@ pub struct Mutation {
 
 pub struct VcfReader {
     reader: bcf::Reader,
-    samples: Vec<String>
+    pub samples: Vec<String>
 }
 
 // Adding a layer of abstration, I am not sure that we will use the lib.
@@ -22,12 +22,7 @@ impl VcfReader {
     pub fn open_path(path: &str) -> io::Result<VcfReader> {
         match bcf::Reader::new(&path) {
             Ok(reader) => {
-                let mut samples : Vec<String> = Vec::<String>::new();
-                for sample in reader.header.samples() {
-                    let name = sample.into_iter().map(|a| a.to_owned()).map(|x| x as char).collect_vec();
-                    println!("{:?}", name); // it is ['H', 'G', '0', '0', '1', '0', '5']  -> woooa.
-                    samples.push("placeholder".to_owned());
-                }
+                let samples = reader.header.samples().into_iter().map(|sample| String::from_utf8(sample.to_owned()).unwrap()).collect();
                 Ok(VcfReader { reader: reader, samples: samples })
             }
             Err(_) => Err(io::Error::last_os_error())
@@ -72,15 +67,15 @@ impl Iterator for VcfReader {
             for allele in alleles[1..].iter() { // why skip the first? The first is the reference. Then are listed all the alternative ones.
                 println!("allele {}" , allele[0] as char); // this is the alt allele? Why are they vectors? Because they are encoded as single bases.
                 alt.push(allele[0] as u8);
-                //println!("allele {}" , allele[1] as char); // this will print the second base if the alt allele is for example AC (C). 
+                //println!("allele {}" , allele[1] as char); // this will print the second base if the alt allele is for example AC (C).
              }
             // remember trim_alleles(&mut self)
-        
+
             let rgenotypes = record.genotypes().unwrap();
             let rgenotypes = (0..self.reader.header.sample_count() as usize).map(|s| {
                             format!("{}", rgenotypes.get(s))
                             }).collect_vec();
-                
+
             for s in 0..self.reader.header.sample_count() as usize {
                 println!("genotypes {}", rgenotypes[s]); // here genotypes[s] is the str (?) 0|0, ok. These are displayable, check their code to understand the inner structure.
                 // https://github.com/rust-bio/rust-htslib/blob/master/src/bcf/record.rs
