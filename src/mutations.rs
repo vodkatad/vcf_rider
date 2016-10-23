@@ -16,6 +16,7 @@ pub enum Position {
     After
 }
 impl Coordinate {
+    /// Returns the position of self relative to other.
     // right now not using chr
     pub fn relative_position(&self, other : &Coordinate) -> Position {
          if (self.start >= other.start && self.start < other.end) ||

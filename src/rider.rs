@@ -112,18 +112,23 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
     }
 }
 
-// find_overlapping_snps(r.start, r.end, VcfReader, snps_buffer).
-// We assume to receive ordered vcf and bed therefore we can skip vcf entries < r.start,
-// if vcf > r.start+r.end empty snps_on_seq and return ---> not empty! leave them there but return false to avoid loosing vcf info
-// otherwise we have to renew the given snps_on_seq parameter according to coords
-// return true if there are overlapping snps and false otherwise
-fn find_overlapping_snps(window: mutations::Coordinate, mut reader: mutations::VcfReader, mut snps_buffer: VecDeque<mutations::Mutation>) -> u32
-{
+/// Function that advances on the VcfReader until the first snp that does not overlap with the given window, putting
+/// in snps_buffer all the overlapping snps and their number and then the first not overlapping snp.
+///
+/// # Arguments
+///
+/// * `window` - TODO
+/// * `reader` - TODO
+/// * `snps_buffer`- TODO
+pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut I, snps_buffer: &mut VecDeque<&'a mutations::Mutation>) -> u32
+    where I: Iterator<Item=&'a mutations::Mutation> {
+    // We assume to receive ordered vcf and bed therefore we can skip vcf entries < r.start
+    // if vcf > r.start+r.end empty snps_on_seq and return ---> not empty! leave them there 
     let mut overlapping_snps = 0u32;
     let mut i = 0;
     let mut n_to_be_removed = 0;
-    while i < snps_buffer.len() {
-        let next_mut = snps_buffer.get(i).unwrap();
+    while i < (*snps_buffer).len() {
+        let next_mut = (*snps_buffer).get(i).unwrap();
         match window.relative_position(&(*next_mut).pos) {
             mutations::Position::After => {
                 n_to_be_removed += 1;
@@ -141,18 +146,18 @@ fn find_overlapping_snps(window: mutations::Coordinate, mut reader: mutations::V
     // efficient though. Right now I could use a for instead of the while but will leave it 
     // in order to do the push_back inside the loop.
     while n_to_be_removed > 0 {
-        let _ = snps_buffer.pop_front();
-        n_to_be_removed += 1;
+        let _ = (*snps_buffer).pop_front();
+        n_to_be_removed -= 1;
     }
-    while let Some(next_mut) = reader.next() {
+    while let Some(next_mut) = (*reader).next() {
         match window.relative_position(& next_mut.pos) {
             mutations::Position::Overlapping => {
                 overlapping_snps += 1;
-                snps_buffer.push_back(next_mut);
+                (*snps_buffer).push_back(next_mut);
             },
             mutations::Position::After => {},
             mutations::Position::Before => {
-                snps_buffer.push_back(next_mut);
+                (*snps_buffer).push_back(next_mut);
                 break;
             }
         }
