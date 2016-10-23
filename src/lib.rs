@@ -96,6 +96,24 @@ mod tests {
         assert_eq!(muts_iter.next().unwrap().id, muts[1].id);
     }
 
+    #[test]
+    fn test_find_overlapping_snps_buffer_overlap() {
+        let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
+        let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
+        let muts = Vec::new();
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
+        let ref mut buffer = VecDeque::from(vec!(&mut1, &mut2));
+        let window = Coordinate{chr: "".to_owned(), start : 5, end : 30};
+        let ref mut muts_iter = muts.iter();
+        let n_ov = rider::find_overlapping_snps(window, muts_iter, buffer);
+        assert_eq!(n_ov, 2);
+        assert_eq!(buffer.front().unwrap().id, mut1.id);
+        assert_eq!(buffer.get(1).unwrap().id, mut2.id);
+        assert_eq!(muts_iter.len(), 0);
+    }
+
+
     // TODO tests with smt in the buffer: all overlapping, some overlapping to be removed, nothing overlapping, only one still out of 
     // the window, end of vcf.
 }
