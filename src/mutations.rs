@@ -3,10 +3,39 @@ use std::io;
 use itertools::Itertools;
 
 #[derive(Debug)]
+pub struct Coordinate {
+    pub chr: String,
+    pub start: u32, // 0 based, end inclusive
+    pub end: u32
+}
+
+#[derive(Eq, PartialEq, Debug)]
+pub enum Position {
+    Before,
+    Overlapping,
+    After
+}
+impl Coordinate {
+    // right now not using chr
+    pub fn relative_position(&self, other : &Coordinate) -> Position {
+         if (self.start >= other.start && self.start < other.end) ||
+                (self.end > other.start && self.end <= other.end) ||
+                (self.start < other.start && self.end >= other.end) {
+            Position::Overlapping
+        }
+        else if self.end <= other.start {
+            Position::Before
+        } else {
+            Position::After
+        }
+                
+    }
+}
+
+#[derive(Debug)]
 pub struct Mutation {
     pub id: String,
-    pub chr: String,
-    pub coord: u32,
+    pub pos: Coordinate,
     pub sequence_ref: Vec<u8>,
     pub sequence_alt: Vec<u8>,
     pub genotypes: Vec<(bool, bool)>
@@ -81,7 +110,8 @@ impl Iterator for VcfReader {
                 // https://github.com/rust-bio/rust-htslib/blob/master/src/bcf/record.rs
                 genotypes.push((true, true))
             }
-            Some(Mutation { id: id, chr: chr, coord: coord, sequence_ref: refe, sequence_alt: alt, genotypes : genotypes})
+            let pos = Coordinate { chr: chr, start: coord, end: coord+1}; // Right now only Snps.
+            Some(Mutation { id: id, pos: pos, sequence_ref: refe, sequence_alt: alt, genotypes : genotypes})
         } else {
             return None;
         }

@@ -2,6 +2,7 @@ use bio::io::bed;
 use std::fs;
 use super::fasta;
 use super::mutations;
+use std::collections::VecDeque;
 
 /// Our vcf_rider main function will receive a Vec<T: CanScoreSequence>
 /// and call it for every T on subsequences of the genomes of the samples
@@ -77,7 +78,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             println!("sample {}", sample);
         }
         for snp in vcf {
-            println!("snp {} {:?} {}", snp.coord, snp.sequence_ref, snp.id);
+            println!("snp {:?} {:?} {}", snp.pos, snp.sequence_ref, snp.id);
         }
     }
 
@@ -111,11 +112,54 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
     }
 }
 
-// find_overlapping_snps(r.start, r.end, VcfReader, snps_on_seq) - to pass coords use bed struct or a struct by me to easily add chr.
+// find_overlapping_snps(r.start, r.end, VcfReader, snps_buffer).
 // We assume to receive ordered vcf and bed therefore we can skip vcf entries < r.start,
 // if vcf > r.start+r.end empty snps_on_seq and return ---> not empty! leave them there but return false to avoid loosing vcf info
 // otherwise we have to renew the given snps_on_seq parameter according to coords
 // return true if there are overlapping snps and false otherwise
+fn find_overlapping_snps(window: mutations::Coordinate, mut reader: mutations::VcfReader, mut snps_buffer: VecDeque<mutations::Mutation>) -> u32
+{
+    let mut overlapping_snps = 0u32;
+    let mut i = 0;
+    let mut n_to_be_removed = 0;
+    while i < snps_buffer.len() {
+        let next_mut = snps_buffer.get(i).unwrap();
+        match window.relative_position(&(*next_mut).pos) {
+            mutations::Position::After => {
+                n_to_be_removed += 1;
+            },
+            mutations::Position::Overlapping => {
+                overlapping_snps += 1;
+            },
+            mutations::Position::Before => {
+                return overlapping_snps;
+            }
+        }
+        i += 1;        
+    }
+    // I am not removing them inside the previous loop to avoid borrowing issues, it is less
+    // efficient though. Right now I could use a for instead of the while but will leave it 
+    // in order to do the push_back inside the loop.
+    while n_to_be_removed > 0 {
+        let _ = snps_buffer.pop_front();
+        n_to_be_removed += 1;
+    }
+    while let Some(next_mut) = reader.next() {
+        match window.relative_position(& next_mut.pos) {
+            mutations::Position::Overlapping => {
+                overlapping_snps += 1;
+                snps_buffer.push_back(next_mut);
+            },
+            mutations::Position::After => {},
+            mutations::Position::Before => {
+                snps_buffer.push_back(next_mut);
+                break;
+            }
+        }
+    }
+    // do we need to explicitly manage the case where VcfReader is exausted? Don't think so.
+    overlapping_snps
+}
 
 // obtain_seq(r.chr, r.start, params.max_len, VcfReader, snps_on_seq)
 // snps_on_seq will be empty or contain snps found in the previous window
