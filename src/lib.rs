@@ -12,6 +12,7 @@ mod tests {
     use mutations::Coordinate;
     use mutations::Mutation;
     use mutations::Position;
+    use fasta;
     use rider;
     use std::collections::VecDeque;
 
@@ -166,8 +167,16 @@ mod tests {
         assert_eq!(buffer.get(1).unwrap().id, muts[0].id);
         assert_eq!(muts_iter.len(), 0);
     }
-    // TODO tests with smt in the buffer: all overlapping, some not overlapping to be removed, nothing overlapping, only one still out of 
-    // the window, end of vcf.
+    // TODO: some tests calling find_overlapping_snps several times.
+
+    #[test]
+    fn test_obtain_seq() {
+        let window = Coordinate{chr: "".to_owned(), start : 0, end : 2};
+        let ref reference = fasta::Fasta{id: "1".to_owned(), sequence: vec!(0,1,2,3), background : vec!(0.298947240099661, 0.200854143743417, 0.200941012710477, 0.299257603446445)};
+        let ref mut buffer = VecDeque::<&Mutation>::new();
+        let seq = rider::obtain_seq(window, buffer, 0, reference);
+        assert_eq!(seq.sequences[0], [0, 1]);
+    }
 }
 
 

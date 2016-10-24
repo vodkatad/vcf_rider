@@ -112,18 +112,21 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
     }
 }
 
-/// Function that advances on the VcfReader until the first snp that does not overlap with the given window, putting
+/// Function that advances on the VcfReader (Iterator of Mutation) until the first snp that does not overlap with the given window, putting
 /// in snps_buffer all the overlapping snps and their number and then the first not overlapping snp.
 ///
 /// # Arguments
 ///
-/// * `window` - TODO
-/// * `reader` - TODO
-/// * `snps_buffer`- TODO
+/// * `window` - the window where we search for overlapping SNPs. This function should be called giving them in order.
+/// * `reader` - a mutable reference to an Iterator of Mutation. This will be consumed, it need to store Mutation in order.
+/// * `snps_buffer`- a mutable reference to the VecDeque that is used as a buffer for SNPs. SNPs before the given window will
+///                  be removed, the overlapping ones will be at positions 0..returned value and the first SNPs after the given window
+///                  will be the last element.
 pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut I, snps_buffer: &mut VecDeque<&'a mutations::Mutation>) -> u32
     where I: Iterator<Item=&'a mutations::Mutation> {
     // We assume to receive ordered vcf and bed therefore we can skip vcf entries < r.start
     // if vcf > r.start+r.end empty snps_on_seq and return ---> not empty! leave them there 
+    // We could use a VcfReader as reader but to be able to write unit tests more easily it is an Iterator of Mutation.
     let mut overlapping_snps = 0u32;
     let mut i = 0;
     let mut n_to_be_removed = 0;
@@ -166,14 +169,33 @@ pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut 
     overlapping_snps
 }
 
-// obtain_seq(r.chr, r.start, params.max_len, VcfReader, snps_on_seq)
-// snps_on_seq will be empty or contain snps found in the previous window
-// we will call find_overlapping_snps
-// if it returns false we get the reference sequence and return only it --- we need a struct for the return type of obtain_seq
-// otherwise we need to build the sequences and the individual vectors
+pub struct MutatedSequences<'a> {
+    pub genotypes: Vec<(usize, usize)>,
+    pub sequences: Vec<&'a [u8]>
+} 
 
+pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: &mut VecDeque<&'a mutations::Mutation>, n_overlapping: u32, reference: &'a fasta::Fasta) -> MutatedSequences<'a> {
+    // snps_buffer will be empty or contain snps found in the previous window
+    // if there are no overlapping snps we get the reference sequence and return only it
+    // otherwise we need to build the sequences and the individual vectors.
+    let mut ref_seq : &[u8];
+    let _placeholder: &[u8] = &[];
+    if window.end > reference.sequence.len() as u32 {
+        let (_placeholder, refs) = reference.sequence.as_slice().split_at(window.start as usize);
+        ref_seq = refs;
+    } else {
+        let (before_ref_seq, _placeholder) = reference.sequence.as_slice().split_at(window.end as usize);
+        let (_placeholder, refs) = before_ref_seq.split_at(window.start as usize);
+        ref_seq = refs;
+    }
+    if n_overlapping == 0 {
+        MutatedSequences{ genotypes : Vec::new(), sequences: vec!(ref_seq)}
+    }
+    else {
+        MutatedSequences{ genotypes : Vec::new(), sequences: vec!(ref_seq)}
+    }
+}
 // Needed structs:
-// coords and comparisons methods
 // return type of obtain_seq with sequences and individual info
 // return type of get scores with bed info, n of snps, [len of individuals seqs], scores for both alleles for individuals and individual ids
 // vcf entry ?
