@@ -178,7 +178,7 @@ pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: &mut VecDeque<
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences and the individual vectors.
-    let mut ref_seq : &[u8];
+    let ref_seq : &[u8];
     let _placeholder: &[u8] = &[];
     if window.end > reference.sequence.len() as u32 {
         let (_placeholder, refs) = reference.sequence.as_slice().split_at(window.start as usize);
@@ -192,10 +192,32 @@ pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: &mut VecDeque<
         MutatedSequences{ genotypes : Vec::new(), sequences: vec!(ref_seq)}
     }
     else {
-        MutatedSequences{ genotypes : Vec::new(), sequences: vec!(ref_seq)}
+        let n_seq = 2usize.pow(n_overlapping);
+        let mut res = Vec::with_capacity(n_seq); //Vec<&'a [u8]>
+        let mut genotypes : Vec<(usize, usize)> = Vec::with_capacity(n_seq);
+        res.push(ref_seq);
+        let mut i = 0;
+        let snp = snps_buffer.get(i).unwrap();        
+        // This needs to be done only for the first snp.
+        let (before_snp_seq, _placeholder) = reference.sequence.as_slice().split_at(snp.pos.start as usize);
+        // http://stackoverflow.com/questions/29784502/convert-vectors-to-arrays-and-back
+        let mut new_seq_1 = before_snp_seq.to_vec();
+        let mut new_seq_2 = before_snp_seq.to_vec();
+        new_seq_1.push(snp.sequence_ref[0]);
+        new_seq_2.push(snp.sequence_alt[0]);
+        //res.push(new_seq_1.as_slice());
+        //res.push(new_seq_2.as_slice());
+        // But is it the only thing that we can do? Ideally we have te sequences
+        // already allocated inside mutations and should just point to them, but how?
+        i += 1;    
+        // Build genotype indexes before to produce only needed sequences or?
+        while i < n_overlapping as usize {
+            // for all sequences in res add this snp ref/alt
+            i += 1;
+        }
+        MutatedSequences{ genotypes : Vec::new(), sequences: res}
     }
 }
 // Needed structs:
-// return type of obtain_seq with sequences and individual info
 // return type of get scores with bed info, n of snps, [len of individuals seqs], scores for both alleles for individuals and individual ids
 // vcf entry ?
