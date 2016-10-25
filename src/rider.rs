@@ -174,7 +174,7 @@ pub struct MutatedSequences<'a> {
     pub sequences: Vec<&'a [u8]>
 } 
 
-pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: &mut VecDeque<&'a mutations::Mutation>, n_overlapping: u32, reference: &'a fasta::Fasta) -> MutatedSequences<'a> {
+pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: & VecDeque<&'a mutations::Mutation>, n_overlapping: u32, reference: &'a fasta::Fasta) -> MutatedSequences<'a> {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences and the individual vectors.
@@ -194,7 +194,8 @@ pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: &mut VecDeque<
     else {
         let n_seq = 2usize.pow(n_overlapping);
         let mut res = Vec::with_capacity(n_seq); //Vec<&'a [u8]>
-        let mut genotypes : Vec<(usize, usize)> = Vec::with_capacity(n_seq);
+        let n_samples = 0usize; //TODO
+        let genotypes : Vec<(usize, usize)> = encode_genotypes(&snps_buffer, n_overlapping, n_samples);
         res.push(ref_seq);
         let mut i = 0;
         let snp = snps_buffer.get(i).unwrap();        
@@ -218,6 +219,36 @@ pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: &mut VecDeque<
         MutatedSequences{ genotypes : Vec::new(), sequences: res}
     }
 }
+
+pub fn encode_genotypes(snps_buffer: & VecDeque<& mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> Vec<(usize, usize)> {
+    //    pub genotypes: Vec<(bool, bool)>
+    let mut chr_one = Vec::<String>::with_capacity(n_samples);
+    let mut chr_two = Vec::<String>::with_capacity(n_samples);
+    for _i in 0 .. n_samples {
+        chr_one.push(String::with_capacity(n_overlapping as usize));
+        chr_two.push(String::with_capacity(n_overlapping as usize));
+    } 
+    let mut i_snps = (n_overlapping - 1) as isize;
+    while i_snps >= 0 {
+        //for snp in snps_buffer.iter().rev() {
+        let snp = snps_buffer.get(i_snps as usize).unwrap();
+        let mut i = (n_samples - 1) as isize;
+        for allele in snp.genotypes.iter() {
+            match allele.0 {
+                true => chr_one.get_mut(i as usize).unwrap().push('1'),
+                false => chr_one.get_mut(i as usize).unwrap().push('0')
+            }
+            match allele.1 {
+                true => chr_two.get_mut(i as usize).unwrap().push('1'),
+                false => chr_two.get_mut(i as usize).unwrap().push('0')
+            }
+            i -= 1;
+        }
+        i_snps -= 1;
+    }
+    chr_one.iter().zip(chr_two.iter()).map(|x| (u32::from_str_radix(x.0, 2).unwrap() as usize, u32::from_str_radix(x.1, 2).unwrap() as usize)).collect()
+}
+
 // Needed structs:
 // return type of get scores with bed info, n of snps, [len of individuals seqs], scores for both alleles for individuals and individual ids
 // vcf entry ?

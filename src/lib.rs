@@ -177,6 +177,18 @@ mod tests {
         let seq = rider::obtain_seq(window, buffer, 0, reference);
         assert_eq!(seq.sequences[0], [0, 1]);
     }
+
+    #[test]
+    fn test_encode_genotypes() {
+        let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
+        let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((false, true))};
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, false))};
+        let buffer = VecDeque::from(vec!(&mut1, &mut2));
+        let indexes = rider::encode_genotypes(&buffer, 2u32, 1usize);
+        // We have one individual, two overlapping snps and our guy is indexed as 10 ->  2 and 01 -> 1
+        assert_eq!(indexes, vec!((2, 1)));
+    }
 }
 
 

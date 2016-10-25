@@ -9,6 +9,7 @@ pub struct Coordinate {
     pub end: u32
 }
 
+// use cmp and Ordering::Less? 
 #[derive(Eq, PartialEq, Debug)]
 pub enum Position {
     Before,
