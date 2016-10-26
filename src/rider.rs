@@ -196,7 +196,7 @@ pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: & VecDeque<&'a
         let mut i = 0;
         let snp = snps_buffer.get(i).unwrap();        
         // This needs to be done only for the first snp.
-        let (before_snp_seq, _placeholder) = reference.sequence.as_slice().split_at(snp.pos.start as usize); 
+        let before_snp_seq = &reference.sequence[0..snp.pos.start as usize]; 
         // http://stackoverflow.com/questions/29784502/convert-vectors-to-arrays-and-back
         let mut new_seq_1 = before_snp_seq.to_vec();
         let mut new_seq_2 = before_snp_seq.to_vec();
