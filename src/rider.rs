@@ -179,19 +179,15 @@ pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: & VecDeque<&'a
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences and the individual vectors.
     let ref_seq : &[u8];
-    let _placeholder: &[u8] = &[];
-    if window.end > reference.sequence.len() as u32 {
-        let (_placeholder, refs) = reference.sequence.as_slice().split_at(window.start as usize);
-        ref_seq = refs;
-    } else {
-        let (before_ref_seq, _placeholder) = reference.sequence.as_slice().split_at(window.end as usize);
-        let (_placeholder, refs) = before_ref_seq.split_at(window.start as usize);
-        ref_seq = refs;
+    let s = window.start as usize;
+    let mut e = window.end as usize;
+    if e > reference.sequence.len() {
+        e = reference.sequence.len();
     }
+    ref_seq = &reference.sequence[s..e];
     if n_overlapping == 0 {
         MutatedSequences{ genotypes : Vec::new(), sequences: vec!(ref_seq)}
-    }
-    else {
+    } else {
         let n_seq = 2usize.pow(n_overlapping);
         let mut res = Vec::with_capacity(n_seq); //Vec<&'a [u8]>
         let n_samples = 0usize; //TODO
@@ -200,7 +196,7 @@ pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: & VecDeque<&'a
         let mut i = 0;
         let snp = snps_buffer.get(i).unwrap();        
         // This needs to be done only for the first snp.
-        let (before_snp_seq, _placeholder) = reference.sequence.as_slice().split_at(snp.pos.start as usize);
+        let (before_snp_seq, _placeholder) = reference.sequence.as_slice().split_at(snp.pos.start as usize); 
         // http://stackoverflow.com/questions/29784502/convert-vectors-to-arrays-and-back
         let mut new_seq_1 = before_snp_seq.to_vec();
         let mut new_seq_2 = before_snp_seq.to_vec();
