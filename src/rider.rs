@@ -174,6 +174,7 @@ pub struct MutatedSequences<'a> {
     pub sequences: Vec<&'a [u8]>
 } 
 
+// Probably sequences of MutatedSequences should not be a vec of slices but a vec of vecs.
 pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: & VecDeque<&'a mutations::Mutation>, n_overlapping: u32, reference: &'a fasta::Fasta) -> MutatedSequences<'a> {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
@@ -189,29 +190,34 @@ pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: & VecDeque<&'a
         MutatedSequences{ genotypes : Vec::new(), sequences: vec!(ref_seq)}
     } else {
         let n_seq = 2usize.pow(n_overlapping);
-        let mut res = Vec::with_capacity(n_seq); //Vec<&'a [u8]>
+        let mut res : Vec<&'a [u8]> = Vec::with_capacity(n_seq); //Vec<&'a [u8]>
         let n_samples = 0usize; //TODO
         let genotypes : Vec<(usize, usize)> = encode_genotypes(&snps_buffer, n_overlapping, n_samples);
-        res.push(ref_seq);
         let mut i = 0;
-        let snp = snps_buffer.get(i).unwrap();        
-        // This needs to be done only for the first snp.
-        let before_snp_seq = &reference.sequence[0..snp.pos.start as usize]; 
-        // http://stackoverflow.com/questions/29784502/convert-vectors-to-arrays-and-back
-        let mut new_seq_1 = before_snp_seq.to_vec();
-        let mut new_seq_2 = before_snp_seq.to_vec();
-        new_seq_1.push(snp.sequence_ref[0]);
-        new_seq_2.push(snp.sequence_alt[0]);
-        //res.push(new_seq_1.as_slice());
-        //res.push(new_seq_2.as_slice());
-        // But is it the only thing that we can do? Ideally we have te sequences
-        // already allocated inside mutations and should just point to them, but how?
-        i += 1;    
-        // Build genotype indexes before to produce only needed sequences or?
-        while i < n_overlapping as usize {
-            // for all sequences in res add this snp ref/alt
-            i += 1;
+        let mut pos = s;
+        let pl = vec!();
+        res.push(&pl); // placeholder
+        while i < n_overlapping as usize { //but what will be the order?
+            let snp = snps_buffer.get(i).unwrap();
+            let before_snp_seq = &reference.sequence[pos..snp.pos.start as usize];
+            let mut new_res = Vec::with_capacity(n_seq); //Vec<&'a [u8]>
+            for seq in res.into_iter() { 
+                let mut new_seq_1 = seq.to_vec();
+                let mut new_seq_2 = seq.to_vec();
+                new_seq_1.extend_from_slice(before_snp_seq);
+                new_seq_2.extend_from_slice(before_snp_seq);
+                new_seq_1.push(snp.sequence_ref[0]);
+                new_seq_2.push(snp.sequence_alt[0]);
+                new_res.push(new_seq_1.as_slice());
+                new_res.push(new_seq_2.as_slice());
+            }
+            res = new_res;
+            // But is it the only thing that we can do? Ideally we have te sequences
+            // already allocated inside mutations and should just point to them, but how?
+            pos = snp.pos.end as usize;
+            i += 1;    
         }
+        // Use genotype indexes before to produce only needed sequences or?
         MutatedSequences{ genotypes : Vec::new(), sequences: res}
     }
 }

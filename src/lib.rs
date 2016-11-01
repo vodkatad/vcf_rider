@@ -156,22 +156,20 @@ mod tests {
         let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
         let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
         
-        //let ref mut buffer = VecDeque::from(vec!(&mut1, &mut2)); // If it is here it does not compile.
-        //The same problem occurs when the reference is declared before the variable it refers to. This is
-        //because resources within the same scope are freed in the opposite order they were declared.
-        // But what has muts to do with buffer? :(
+        let mut buffer = VecDeque::from(vec!(&mut1, &mut2)); 
+        // If it is here it does not compile
+        // this is due to the lifetimes declared in find_overlapping_snps.
         let muts = vec!(Mutation { id: "3".to_owned(), pos: csnp3, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))});
-        let ref mut muts_iter = muts.iter();
-
-        let ref mut buffer = VecDeque::from(vec!(&mut1, &mut2)); // Here it works.
+        let mut muts_iter = muts.iter();
+        //let mut buffer = VecDeque::from(vec!(&mut1, &mut2)); // Here it works.
 
         let window = Coordinate{chr: "".to_owned(), start : 15, end : 37};
-        let n_ov = rider::find_overlapping_snps(window, muts_iter, buffer);
+        let n_ov = rider::find_overlapping_snps(window, &mut muts_iter, &mut buffer);
         assert_eq!(n_ov, 2);
+        assert_eq!(muts_iter.len(), 0);
         assert_eq!(buffer.len(), 2);
         assert_eq!(buffer.front().unwrap().id, mut2.id);
         assert_eq!(buffer.get(1).unwrap().id, muts[0].id);
-        assert_eq!(muts_iter.len(), 0);
     }
     // TODO: some tests calling find_overlapping_snps several times.
 
