@@ -80,7 +80,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
         /*for snp in vcf {
             println!("snp {:?} {:?} {}", snp.pos, snp.sequence_ref, snp.id);
         }*/
-        
+
         let n_samples = vcf.samples.len();
         // initialize snps_buffer  VecDeque<&'a mutations::Mutation>
         let snps_buffer : VecDeque<& mutations::Mutation> = VecDeque::new();
@@ -95,6 +95,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 let window = mutations::Coordinate{chr: "".to_owned(), start: pos, end: pos+params.max_len as u64};
                 //let n_overlapping = find_overlapping_snps(window, &mut vcf, &mut snps_buffer);
                 let n_overlapping = 3;
+                // TODO: pass fixed-size vector to be filled with indices.
                 let genotypes : Vec<(usize, usize)> = encode_genotypes(&snps_buffer, n_overlapping, n_samples);
                 let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
                 //obtain_seq(window, & snps_buffer, n_overlapping, & referenceseq, genotypes, &mut seqs);
@@ -134,7 +135,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
 pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut I, snps_buffer: &mut VecDeque<&'a mutations::Mutation>) -> u32
     where I: Iterator<Item=&'a mutations::Mutation> {
     // We assume to receive ordered vcf and bed therefore we can skip vcf entries < r.start
-    // if vcf > r.start+r.end empty snps_on_seq and return ---> not empty! leave them there 
+    // if vcf > r.start+r.end empty snps_on_seq and return ---> not empty! leave them there
     // We could use a VcfReader as reader but to be able to write unit tests more easily it is an Iterator of Mutation.
     let mut overlapping_snps = 0u32;
     let mut i = 0;
@@ -149,27 +150,28 @@ pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut 
                 overlapping_snps += 1;
             },
             mutations::Position::Before => {
+                // No return before removing snips!
                 return overlapping_snps;
             }
         }
-        i += 1;        
+        i += 1;
     }
     // I am not removing them inside the previous loop to avoid borrowing issues, it is less
-    // efficient though. Right now I could use a for instead of the while but will leave it 
+    // efficient though. Right now I could use a for instead of the while but will leave it
     // in order to do the push_back inside the loop.
     while n_to_be_removed > 0 {
-        let _ = (*snps_buffer).pop_front();
+        let _ = snps_buffer.pop_front();
         n_to_be_removed -= 1;
     }
-    while let Some(next_mut) = (*reader).next() {
+    while let Some(next_mut) = reader.next() {
         match window.relative_position(& next_mut.pos) {
             mutations::Position::Overlapping => {
                 overlapping_snps += 1;
-                (*snps_buffer).push_back(next_mut);
+                snps_buffer.push_back(next_mut);
             },
             mutations::Position::After => {},
             mutations::Position::Before => {
-                (*snps_buffer).push_back(next_mut);
+                snps_buffer.push_back(next_mut);
                 break;
             }
         }
@@ -178,7 +180,7 @@ pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut 
     overlapping_snps
 }
 
-pub fn obtain_seq(window: mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, 
+pub fn obtain_seq(window: mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32,
                   reference: & fasta::Fasta, genotypes : Vec<(usize, usize)>, seqs : &mut Vec<Vec<u8>>) {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
@@ -195,11 +197,17 @@ pub fn obtain_seq(window: mutations::Coordinate, snps_buffer: & VecDeque<mutatio
     for i in 1..2usize.pow(n_overlapping) {
         // if i in indexes
         let mut seq_to_mutate = ref_seq.to_owned();
-        let binary_rep = fmt::format(format_args!("{:b}", i)); 
+        //let binary_rep = fmt::format(format_args!("{:b}", i));
         // do we need to fill 0 to 00? Since we work on rev and care only about 1 I don't think so.
-        for (snp, allele) in binary_rep.chars().rev().enumerate() {
+        /* for (snp, allele) in binary_rep.chars().rev().enumerate() {
             if allele == '1' {
                 let this_mut = snps_buffer.get(snp).unwrap();
+                seq_to_mutate[this_mut.pos.start as usize - s] = this_mut.sequence_alt[0];
+            }
+        } */
+        for j in 0 .. n_overlapping {
+            if (i >> j) & 1 == 1 {
+                let this_mut = snps_buffer.get(j).unwrap();
                 seq_to_mutate[this_mut.pos.start as usize - s] = this_mut.sequence_alt[0];
             }
         }
@@ -214,7 +222,7 @@ pub fn encode_genotypes(snps_buffer: & VecDeque<& mutations::Mutation>, n_overla
     for _i in 0 .. n_samples {
         chr_one.push(String::with_capacity(n_overlapping as usize));
         chr_two.push(String::with_capacity(n_overlapping as usize));
-    } 
+    }
     let mut i_snps = (n_overlapping - 1) as isize;
     while i_snps >= 0 {
         //for snp in snps_buffer.iter().rev() {
@@ -236,6 +244,31 @@ pub fn encode_genotypes(snps_buffer: & VecDeque<& mutations::Mutation>, n_overla
     chr_one.iter().zip(chr_two.iter()).map(|x| (u32::from_str_radix(x.0, 2).unwrap() as usize, u32::from_str_radix(x.1, 2).unwrap() as usize)).collect()
 }
 
+pub fn encode_genotypes2(snps_buffer: & VecDeque<& mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> Vec<(usize, usize)> {
+    let mut chr_one : Vec<usize> = vec![0; n_samples];
+    let mut chr_two : Vec<usize> = vec![0; n_samples];
+    for i_snps = n_overlapping - 1 ... 0 {
+        let snp = snps_buffer.get(i_snps as usize).unwrap();
+        for i in 0 .. n_samples {
+            chr_one[i] = chr_one[i] << 1;
+            chr_two[i] = chr_two[i] << 1;
+            let allele = snp.genotypes[i];
+            match allele.0 {
+                true => chr_one[i] |= 1,
+                false => chr_one[i]
+            }
+            match allele.1 {
+                true => chr_two[i] |= 1,
+                false => chr_two[i]
+            }
+        }
+    }
+    chr_one.iter().zip(chr_two.iter()).map(|x| (x.0, x.1)).collect()
+}
+
 // Needed structs:
 // return type of get scores with bed info, n of snps, [len of individuals seqs], scores for both alleles for individuals and individual ids
 // vcf entry ?
+
+//s.set_mutation(010011001);
+//s[0] -> base at index 0
