@@ -195,7 +195,8 @@ pub fn obtain_seq(window: mutations::Coordinate, snps_buffer: & VecDeque<mutatio
     for i in 1..2usize.pow(n_overlapping) {
         // if i in indexes
         let mut seq_to_mutate = ref_seq.to_owned();
-        let binary_rep = fmt::format(format_args!("{:b}", i)); // do we need to fill 0 to 00? Since we work on rev I don't think so.
+        let binary_rep = fmt::format(format_args!("{:b}", i)); 
+        // do we need to fill 0 to 00? Since we work on rev and care only about 1 I don't think so.
         for (snp, allele) in binary_rep.chars().rev().enumerate() {
             if allele == '1' {
                 let this_mut = snps_buffer.get(snp).unwrap();

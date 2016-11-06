@@ -214,6 +214,26 @@ mod tests {
         assert_eq!(seqs[3], vec!(0,3,0,0));
         assert_eq!(seqs.len(), 4);
     }
+
+     #[test]
+    fn test_obtain_seq_two_snps_2() {
+        // Just to test window positioning.
+        let csnp1 = Coordinate{chr: "".to_owned(), start : 11, end : 12};
+        let csnp2 = Coordinate{chr: "".to_owned(), start : 13, end : 14};
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(1), sequence_alt: vec!(3), genotypes : vec!((false, true))}; // T-C
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(2), sequence_alt: vec!(0), genotypes : vec!((true, false))}; // G-A
+        let buffer = VecDeque::from(vec!(mut1, mut2));
+        let reference = fasta::Fasta{id: "".to_owned(), sequence: vec!(0,0,0,0,0,0,0,0,0,0,0,1,0,2), background : vec!()}; // ATAG
+        let window = Coordinate{chr: "".to_owned(), start: 10, end: 14};
+        let n_overlapping = 2u32;
+        let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
+        rider::obtain_seq(window, &buffer, n_overlapping, &reference, vec!((2,1)), &mut seqs);
+        assert_eq!(seqs[0], vec!(0,1,0,2));
+        assert_eq!(seqs[1], vec!(0,3,0,2));
+        assert_eq!(seqs[2], vec!(0,1,0,0));
+        assert_eq!(seqs[3], vec!(0,3,0,0));
+        assert_eq!(seqs.len(), 4);
+    }
 }
 
 
