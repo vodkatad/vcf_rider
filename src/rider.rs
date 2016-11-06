@@ -1,5 +1,6 @@
 use bio::io::bed;
 use std::fs;
+use std::fmt;
 use super::fasta;
 use super::mutations;
 use std::collections::VecDeque;
@@ -69,21 +70,21 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
         }
     };
 
-    let used_chr = referenceseq.id;
-    println!("Fasta ref {}", used_chr);
+    println!("Fasta ref {}", referenceseq.id);
     // load vcf -> open file, skip # headers, first real entry
     // We could use a VcfReader similar to others.
     if let Ok(vcf) = mutations::VcfReader::open_path(vcf_path) {
         for sample in & vcf.samples {
             println!("sample {}", sample);
         }
-        for snp in vcf {
+        /*for snp in vcf {
             println!("snp {:?} {:?} {}", snp.pos, snp.sequence_ref, snp.id);
-        }
+        }*/
         
         let n_samples = vcf.samples.len();
         // initialize snps_buffer  VecDeque<&'a mutations::Mutation>
         let snps_buffer : VecDeque<& mutations::Mutation> = VecDeque::new();
+        // will probably end being a VecDeque of mutations and not ref to them
         // chr check
         for r in bed_reader.records() {
             let record = r.ok().expect("Error reading record");
@@ -92,10 +93,11 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             let mut pos = record.start();
             while pos < record.end() {  // we do not do pos + params.max_len < r.end to avoid cumbersome management for the last portion
                 let window = mutations::Coordinate{chr: "".to_owned(), start: pos, end: pos+params.max_len as u64};
-                let n_overlapping = find_overlapping_snps(window, &mut vcf, &mut snps_buffer);
+                //let n_overlapping = find_overlapping_snps(window, &mut vcf, &mut snps_buffer);
+                let n_overlapping = 3;
                 let genotypes : Vec<(usize, usize)> = encode_genotypes(&snps_buffer, n_overlapping, n_samples);
-                let seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
-                obtain_seq(window, & snps_buffer, n_overlapping, & referenceseq, genotypes, seqs);
+                let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
+                //obtain_seq(window, & snps_buffer, n_overlapping, & referenceseq, genotypes, &mut seqs);
 
                 // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
                 // seqs will be ordered in a specific order: the first one is the reference one and the last one
@@ -176,11 +178,11 @@ pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut 
     overlapping_snps
 }
 
-pub fn obtain_seq(window: mutations::Coordinate, snps_buffer: & VecDeque<& mutations::Mutation>, n_overlapping: u32, 
-                  reference: & fasta::Fasta, genotypes : Vec<(usize, usize)>, seqs : Vec<Vec<u8>>) {
+pub fn obtain_seq(window: mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, 
+                  reference: & fasta::Fasta, genotypes : Vec<(usize, usize)>, seqs : &mut Vec<Vec<u8>>) {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
-    // otherwise we need to build the sequences and the individual vectors.
+    // otherwise we need to build the sequences
     let ref_seq : &[u8];
     let s = window.start as usize;
     let mut e = window.end as usize;
@@ -188,10 +190,18 @@ pub fn obtain_seq(window: mutations::Coordinate, snps_buffer: & VecDeque<& mutat
         e = reference.sequence.len();
     }
     ref_seq = &reference.sequence[s..e];
-    if n_overlapping == 0 {
-        seqs.push(ref_seq.to_owned());
-    } else {
-        //TODO
+    seqs.push(ref_seq.to_owned());
+    //let indexes = genotypes.into_iter().somehowgetallvalues
+    for i in 1..2usize.pow(n_overlapping) {
+        // if i in indexes
+        let mut seq_to_mutate = ref_seq.to_owned();
+        let binary_rep = fmt::format(format_args!("{:b}", i));
+        for (snp, allele) in binary_rep.chars().enumerate() {
+            if allele == '1' {
+                seq_to_mutate[snp] = snps_buffer.get(snp).unwrap().sequence_alt[0];
+            }
+        }
+        seqs.push(seq_to_mutate);
     }
 }
 
