@@ -5,8 +5,8 @@ use itertools::Itertools;
 #[derive(Debug)]
 pub struct Coordinate {
     pub chr: String,
-    pub start: u32, // 0 based, end inclusive
-    pub end: u32
+    pub start: u64, // 0 based, end inclusive
+    pub end: u64
 }
 
 // use cmp and Ordering::Less? 
@@ -89,7 +89,7 @@ impl Iterator for VcfReader {
         if let Ok(_) = self.reader.read(&mut record) {
             let id = "".to_owned();
             let chr = "?".to_owned(); // where is it? rid?
-            let coord = record.pos(); // Manually checked: the lib converts 1 based coords of vcf to 0 based.
+            let coord = record.pos() as u64; // Manually checked: the lib converts 1 based coords of vcf to 0 based. bed records have u64
             let alleles = record.alleles().into_iter().map(|a| a.to_owned()).collect_vec(); // I do not like this to_owned...
             let refe : Vec<u8> = get_reference(&alleles[0]);
             let mut alt  : Vec<u8> = Vec::<u8>::with_capacity(1);

@@ -80,35 +80,42 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
         for snp in vcf {
             println!("snp {:?} {:?} {}", snp.pos, snp.sequence_ref, snp.id);
         }
-    }
-
-    // chr check
-    for r in bed_reader.records() {
-        let record = r.ok().expect("Error reading record");
-        println!("bed name: {}", record.name().expect("Error reading name"));
+        
+        let n_samples = vcf.samples.len();
+        // initialize snps_buffer  VecDeque<&'a mutations::Mutation>
+        let snps_buffer : VecDeque<& mutations::Mutation> = VecDeque::new();
         // chr check
+        for r in bed_reader.records() {
+            let record = r.ok().expect("Error reading record");
+            println!("bed name: {}", record.name().expect("Error reading name"));
+            // chr check
+            let mut pos = record.start();
+            while pos < record.end() {  // we do not do pos + params.max_len < r.end to avoid cumbersome management for the last portion
+                let window = mutations::Coordinate{chr: "".to_owned(), start: pos, end: pos+params.max_len as u64};
+                let n_overlapping = find_overlapping_snps(window, &mut vcf, &mut snps_buffer);
+                let genotypes : Vec<(usize, usize)> = encode_genotypes(&snps_buffer, n_overlapping, n_samples);
+                let seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
+                obtain_seq(window, & snps_buffer, n_overlapping, & referenceseq, genotypes, seqs);
 
-        // let mut pos = r.start
-        // while pos < r.end   // we do not do pos + params.max_len < r.end to avoid cumbersome management for the last portion
-            // obtain_seq(r.chr, r.start, params.max_len, VcfReader, snps_on_seq)
-            // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
-            // seqs will be ordered in a specific order: the first one is the reference one and the last one
-            // the one with all mutated alleles.  Every SNP status is encoded by 0 if it is reference and 1 if it is
-            // mutated. The first snp in the seq is encoded by the least significant position.
-            // In this way it will be easy to build for each individual chr the indexes linking
-            // them to their sequences. There will be a vector of tuples (usize,usize) for this.
-            // obtain seq will return sequences of length params.max_len if possible otherwise shorter
-            // ones and we will check to call get_score only on the right parameters
-            // for every p params.parameters call on seq
-            for i in 0..(*params.parameters).len() {
-                println!("pwm {}", (*params.parameters).get(i).unwrap().get_name());
+                // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
+                // seqs will be ordered in a specific order: the first one is the reference one and the last one
+                // the one with all mutated alleles.  Every SNP status is encoded by 0 if it is reference and 1 if it is
+                // mutated. The first snp in the seq is encoded by the least significant position.
+                // In this way it will be easy to build for each individual chr the indexes linking
+                // them to their sequences. There will be a vector of tuples (usize,usize) for this.
+                // obtain seq will return sequences of length params.max_len if possible otherwise shorter
+                // ones and we will check to call get_score only on the right parameters
+                // for every p params.parameters call on seq
+                for i in 0..(*params.parameters).len() {
+                    println!("pwm {}", (*params.parameters).get(i).unwrap().get_name());
+                }
+                    // if  p.len() < seq.len // not cumbersome but inefficient?
+                    // for every index present in the two vectors:
+                        // p.get_score(0usize, seq)
+                        // now we need to sum (or smt else) the scores assigning them to the right individuals.
+                pos += 1;
             }
-                // if  p.len() < seq.len // not cumbersome but inefficient?
-                // for every index present in the two vectors:
-                    // p.get_score(0usize, seq)
-                    // now we need to sum (or smt else) the scores assigning them to the right individuals.
-
-
+        }
     }
 }
 
@@ -169,13 +176,8 @@ pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut 
     overlapping_snps
 }
 
-pub struct MutatedSequences<'a> {
-    pub genotypes: Vec<(usize, usize)>,
-    pub sequences: Vec<&'a [u8]>
-} 
-
-// Probably sequences of MutatedSequences should not be a vec of slices but a vec of vecs.
-pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: & VecDeque<&'a mutations::Mutation>, n_overlapping: u32, reference: &'a fasta::Fasta) -> MutatedSequences<'a> {
+pub fn obtain_seq(window: mutations::Coordinate, snps_buffer: & VecDeque<& mutations::Mutation>, n_overlapping: u32, 
+                  reference: & fasta::Fasta, genotypes : Vec<(usize, usize)>, seqs : Vec<Vec<u8>>) {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences and the individual vectors.
@@ -187,38 +189,9 @@ pub fn obtain_seq<'a>(window: mutations::Coordinate, snps_buffer: & VecDeque<&'a
     }
     ref_seq = &reference.sequence[s..e];
     if n_overlapping == 0 {
-        MutatedSequences{ genotypes : Vec::new(), sequences: vec!(ref_seq)}
+        seqs.push(ref_seq.to_owned());
     } else {
-        let n_seq = 2usize.pow(n_overlapping);
-        let mut res : Vec<&'a [u8]> = Vec::with_capacity(n_seq); //Vec<&'a [u8]>
-        let n_samples = 0usize; //TODO
-        let genotypes : Vec<(usize, usize)> = encode_genotypes(&snps_buffer, n_overlapping, n_samples);
-        let mut i = 0;
-        let mut pos = s;
-        let pl = vec!();
-        res.push(&pl); // placeholder
-        while i < n_overlapping as usize { //but what will be the order?
-            let snp = snps_buffer.get(i).unwrap();
-            let before_snp_seq = &reference.sequence[pos..snp.pos.start as usize];
-            let mut new_res = Vec::with_capacity(n_seq); //Vec<&'a [u8]>
-            for seq in res.into_iter() { 
-                let mut new_seq_1 = seq.to_vec();
-                let mut new_seq_2 = seq.to_vec();
-                new_seq_1.extend_from_slice(before_snp_seq);
-                new_seq_2.extend_from_slice(before_snp_seq);
-                new_seq_1.push(snp.sequence_ref[0]);
-                new_seq_2.push(snp.sequence_alt[0]);
-                new_res.push(new_seq_1.as_slice());
-                new_res.push(new_seq_2.as_slice());
-            }
-            res = new_res;
-            // But is it the only thing that we can do? Ideally we have te sequences
-            // already allocated inside mutations and should just point to them, but how?
-            pos = snp.pos.end as usize;
-            i += 1;    
-        }
-        // Use genotype indexes before to produce only needed sequences or?
-        MutatedSequences{ genotypes : Vec::new(), sequences: res}
+        //TODO
     }
 }
 
