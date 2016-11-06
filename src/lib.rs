@@ -156,12 +156,12 @@ mod tests {
         let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
         let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
         
-        let mut buffer = VecDeque::from(vec!(&mut1, &mut2)); 
+        //let mut buffer = VecDeque::from(vec!(&mut1, &mut2)); 
         // If it is here it does not compile
         // this is due to the lifetimes declared in find_overlapping_snps.
         let muts = vec!(Mutation { id: "3".to_owned(), pos: csnp3, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))});
         let mut muts_iter = muts.iter();
-        //let mut buffer = VecDeque::from(vec!(&mut1, &mut2)); // Here it works.
+        let mut buffer = VecDeque::from(vec!(&mut1, &mut2)); // Here it works.
 
         let window = Coordinate{chr: "".to_owned(), start : 15, end : 37};
         let n_ov = rider::find_overlapping_snps(window, &mut muts_iter, &mut buffer);
@@ -177,9 +177,11 @@ mod tests {
     fn test_obtain_seq() {
         let window = Coordinate{chr: "".to_owned(), start : 0, end : 2};
         let ref reference = fasta::Fasta{id: "1".to_owned(), sequence: vec!(0,1,2,3), background : vec!(0.298947240099661, 0.200854143743417, 0.200941012710477, 0.299257603446445)};
-        let ref mut buffer = VecDeque::<&Mutation>::new();
-        let seq = rider::obtain_seq(window, buffer, 0, reference);
-        assert_eq!(seq.sequences[0], [0, 1]);
+        let ref mut buffer = VecDeque::<Mutation>::new();
+        let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(1);
+        rider::obtain_seq(window, &buffer, 0, &reference, vec!(), &mut seqs);
+        assert_eq!(seqs[0], [0, 1]);
+        assert_eq!(seqs.len(), 1);
     }
 
     #[test]
@@ -192,6 +194,25 @@ mod tests {
         let indexes = rider::encode_genotypes(&buffer, 2u32, 1usize);
         // We have one individual, two overlapping snps and our guy is indexed as 10 ->  2 and 01 -> 1
         assert_eq!(indexes, vec!((2, 1)));
+    }
+
+    #[test]
+    fn test_obtain_seq_two_snps() {
+        let csnp1 = Coordinate{chr: "".to_owned(), start : 1, end : 2};
+        let csnp2 = Coordinate{chr: "".to_owned(), start : 3, end : 4};
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(1), sequence_alt: vec!(3), genotypes : vec!((false, true))}; // T-C
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(2), sequence_alt: vec!(0), genotypes : vec!((true, false))}; // G-A
+        let buffer = VecDeque::from(vec!(mut1, mut2));
+        let reference = fasta::Fasta{id: "".to_owned(), sequence: vec!(0,1,0,2), background : vec!()}; // ATAG
+        let window = Coordinate{chr: "".to_owned(), start: 0, end: 4};
+        let n_overlapping = 2u32;
+        let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
+        rider::obtain_seq(window, &buffer, n_overlapping, &reference, vec!((2,1)), &mut seqs);
+        assert_eq!(seqs[0], vec!(0,1,0,2));
+        assert_eq!(seqs[1], vec!(0,3,0,2));
+        assert_eq!(seqs[2], vec!(0,1,0,0));
+        assert_eq!(seqs[3], vec!(0,3,0,0));
+        assert_eq!(seqs.len(), 4);
     }
 }
 
