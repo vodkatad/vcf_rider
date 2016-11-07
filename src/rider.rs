@@ -140,9 +140,9 @@ pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut 
     let mut overlapping_snps = 0u32;
     let mut i = 0;
     let mut n_to_be_removed = 0;
-    while i < (*snps_buffer).len() {
-        let next_mut = (*snps_buffer).get(i).unwrap();
-        match window.relative_position(&(*next_mut).pos) {
+    while i < snps_buffer.len() {
+        let next_mut = snps_buffer.get(i).unwrap();
+        match window.relative_position(& next_mut.pos) {
             mutations::Position::After => {
                 n_to_be_removed += 1;
             },
@@ -197,18 +197,11 @@ pub fn obtain_seq(window: mutations::Coordinate, snps_buffer: & VecDeque<mutatio
     for i in 1..2usize.pow(n_overlapping) {
         // if i in indexes
         let mut seq_to_mutate = ref_seq.to_owned();
-        //let binary_rep = fmt::format(format_args!("{:b}", i));
-        // do we need to fill 0 to 00? Since we work on rev and care only about 1 I don't think so.
-        /* for (snp, allele) in binary_rep.chars().rev().enumerate() {
-            if allele == '1' {
-                let this_mut = snps_buffer.get(snp).unwrap();
-                seq_to_mutate[this_mut.pos.start as usize - s] = this_mut.sequence_alt[0];
-            }
-        } */
         for j in 0 .. n_overlapping {
             if (i >> j) & 1 == 1 {
-                let this_mut = snps_buffer.get(j).unwrap();
-                seq_to_mutate[this_mut.pos.start as usize - s] = this_mut.sequence_alt[0];
+                let this_mut = snps_buffer.get(j as usize).unwrap();
+                seq_to_mutate[this_mut.pos.start as usize - s] = this_mut.sequence_alt[0]; 
+                // 0 works only for single SNPs, like everything else right now.
             }
         }
         seqs.push(seq_to_mutate);
@@ -216,54 +209,24 @@ pub fn obtain_seq(window: mutations::Coordinate, snps_buffer: & VecDeque<mutatio
 }
 
 pub fn encode_genotypes(snps_buffer: & VecDeque<& mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> Vec<(usize, usize)> {
-    //    pub genotypes: Vec<(bool, bool)>
-    let mut chr_one = Vec::<String>::with_capacity(n_samples);
-    let mut chr_two = Vec::<String>::with_capacity(n_samples);
-    for _i in 0 .. n_samples {
-        chr_one.push(String::with_capacity(n_overlapping as usize));
-        chr_two.push(String::with_capacity(n_overlapping as usize));
-    }
-    let mut i_snps = (n_overlapping - 1) as isize;
-    while i_snps >= 0 {
-        //for snp in snps_buffer.iter().rev() {
-        let snp = snps_buffer.get(i_snps as usize).unwrap();
-        let mut i = (n_samples - 1) as isize;
-        for allele in snp.genotypes.iter() {
-            match allele.0 {
-                true => chr_one.get_mut(i as usize).unwrap().push('1'),
-                false => chr_one.get_mut(i as usize).unwrap().push('0')
-            }
-            match allele.1 {
-                true => chr_two.get_mut(i as usize).unwrap().push('1'),
-                false => chr_two.get_mut(i as usize).unwrap().push('0')
-            }
-            i -= 1;
-        }
-        i_snps -= 1;
-    }
-    chr_one.iter().zip(chr_two.iter()).map(|x| (u32::from_str_radix(x.0, 2).unwrap() as usize, u32::from_str_radix(x.1, 2).unwrap() as usize)).collect()
-}
-
-pub fn encode_genotypes2(snps_buffer: & VecDeque<& mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> Vec<(usize, usize)> {
     let mut chr_one : Vec<usize> = vec![0; n_samples];
     let mut chr_two : Vec<usize> = vec![0; n_samples];
-    for i_snps = n_overlapping - 1 ... 0 {
-        let snp = snps_buffer.get(i_snps as usize).unwrap();
+    for snp in snps_buffer.iter().rev() {
         for i in 0 .. n_samples {
             chr_one[i] = chr_one[i] << 1;
             chr_two[i] = chr_two[i] << 1;
             let allele = snp.genotypes[i];
             match allele.0 {
                 true => chr_one[i] |= 1,
-                false => chr_one[i]
+                false => ()
             }
             match allele.1 {
                 true => chr_two[i] |= 1,
-                false => chr_two[i]
+                false => ()
             }
         }
     }
-    chr_one.iter().zip(chr_two.iter()).map(|x| (x.0, x.1)).collect()
+    chr_one.into_iter().zip(chr_two.into_iter()).map(|x| (x.0, x.1)).collect()
 }
 
 // Needed structs:
