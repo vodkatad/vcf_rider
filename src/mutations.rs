@@ -62,7 +62,7 @@ impl VcfReader {
     }
 }
 
-fn get_reference(seq : &Vec<u8>) -> Vec<u8> {
+fn get_sequence(seq : &Vec<u8>) -> Vec<u8> {
     println!("reference first char{}" , seq[0] as char);
     let mut res : Vec<u8> = Vec::<u8>::with_capacity(1);
     for nuc in seq {
@@ -80,6 +80,30 @@ fn get_reference(seq : &Vec<u8>) -> Vec<u8> {
     }
     res
 }
+fn decode_allele(c: char) -> bool {
+    match c {
+        '0' => false,
+        '1' => true,
+         x => panic!("Wrongly encoded snp in vcf {:?}", x)
+    }
+}
+
+fn decode_genotype(geno: String) -> (bool, bool) {
+    // this will need a lot of work inside the lib
+    // here genotypes[s] is the str (?) 0|0, ok. These are displayable, check their code to understand the inner structure.
+    // https://github.com/rust-bio/rust-htslib/blob/master/src/bcf/record.rs
+    let mut genos = geno.chars();
+    let a1 = genos.next().unwrap();
+    if a1 == '.' {
+        return (true, true) // missing data as reference.
+    }
+    let sep = genos.next().unwrap();
+    let a2 = genos.next().unwrap();
+    if sep != '|' {
+        panic!("Only phased genotypes are supported! {}", sep)
+    }
+    (decode_allele(a1),decode_allele(a2))
+}
 
 impl Iterator for VcfReader {
     type Item = Mutation;
@@ -91,29 +115,30 @@ impl Iterator for VcfReader {
             let chr = "?".to_owned(); // where is it? rid?
             let coord = record.pos() as u64; // Manually checked: the lib converts 1 based coords of vcf to 0 based. bed records have u64
             let alleles = record.alleles().into_iter().map(|a| a.to_owned()).collect_vec(); // I do not like this to_owned...
-            let refe : Vec<u8> = get_reference(&alleles[0]);
+            let refe : Vec<u8> = get_sequence(&alleles[0]);
             let mut alt  : Vec<u8> = Vec::<u8>::with_capacity(1);
             let mut genotypes : Vec<(bool, bool)> = Vec::<(bool, bool)>::with_capacity(self.samples.len());
-
+            let mut found_alt = 0;
             for allele in alleles[1..].iter() { // why skip the first? The first is the reference. Then are listed all the alternative ones.
                 println!("allele {}" , allele[0] as char); // this is the alt allele? Why are they vectors? Because they are encoded as single bases.
                 alt.push(allele[0] as u8);
+                found_alt += 1;
                 //println!("allele {}" , allele[1] as char); // this will print the second base if the alt allele is for example AC (C).
-             }
+            }
+            if found_alt != 1 {
+                panic!("Cannot manage multi-allelic SNPs!") // maybe simply skip?
+            }
+            let alte = get_sequence(&alt);
             // remember trim_alleles(&mut self)
 
             let rgenotypes = record.genotypes().unwrap();
-            let rgenotypes = (0..self.reader.header.sample_count() as usize).map(|s| {
-                            format!("{}", rgenotypes.get(s))
+            let genotypes = (0..self.reader.header.sample_count() as usize).map(|s| {
+                                let geno_str = format!("{}", rgenotypes.get(s));
+                                decode_genotype(geno_str)
                             }).collect_vec();
 
-            for s in 0..self.reader.header.sample_count() as usize {
-                println!("genotypes {}", rgenotypes[s]); // here genotypes[s] is the str (?) 0|0, ok. These are displayable, check their code to understand the inner structure.
-                // https://github.com/rust-bio/rust-htslib/blob/master/src/bcf/record.rs
-                genotypes.push((true, true))
-            }
             let pos = Coordinate { chr: chr, start: coord, end: coord+1}; // Right now only Snps.
-            Some(Mutation { id: id, pos: pos, sequence_ref: refe, sequence_alt: alt, genotypes : genotypes})
+            Some(Mutation { id: id, pos: pos, sequence_ref: refe, sequence_alt: alte, genotypes : genotypes})
         } else {
             return None;
         }

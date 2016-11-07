@@ -73,14 +73,14 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
     // load vcf -> open file, skip # headers, first real entry
     // We could use a VcfReader similar to others.
     if let Ok(vcf) = mutations::VcfReader::open_path(vcf_path) {
-        let mut vcf_reader = vcf;
-        for sample in & vcf_reader.samples {
+        //let mut vcf_reader = vcf;
+        /*for sample in & vcf_reader.samples {
             println!("sample {}", sample);
-        }
-        /*for snp in vcf {
-            println!("snp {:?} {:?} {}", snp.pos, snp.sequence_ref, snp.id);
         }*/
-
+        for snp in vcf {
+            println!("snp {:?} {:?} {:?} {} {:?}", snp.pos, snp.sequence_ref, snp.sequence_alt, snp.id, snp.genotypes);
+        }
+        /*
         let n_samples = vcf_reader.samples.len();
         // initialize snps_buffer  VecDeque<mutations::Mutation>
         let mut snps_buffer : VecDeque<mutations::Mutation> = VecDeque::new();
@@ -118,6 +118,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 pos += 1;
             }
         }
+        */
     }
 }
 
