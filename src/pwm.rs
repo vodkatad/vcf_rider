@@ -47,18 +47,18 @@ impl Matrix {
 
     // We do not do an if to check if we are breaking up
     // our 2d matrix calling the wrong function for efficiency's sake.
-    pub fn push_row_4(&mut self, a: f64, c: f64, t: f64, g: f64) {
+    pub fn push_row_4(&mut self, a: f64, c: f64, g: f64, t: f64) {
         self.rows.push(a);
         self.rows.push(c);
-        self.rows.push(t);
         self.rows.push(g);
+        self.rows.push(t);
     }
 
-    pub fn push_row_5(&mut self, a: f64, c: f64, t: f64, g: f64, n: f64) {
+    pub fn push_row_5(&mut self, a: f64, c: f64, g: f64, t: f64, n: f64) {
         self.rows.push(a);
         self.rows.push(c);
-        self.rows.push(t);
         self.rows.push(g);
+        self.rows.push(t);
         self.rows.push(n);
     }
 
@@ -186,11 +186,11 @@ impl Iterator for PWMReader {
             } else {
                 let a: u64 = tokens.next().unwrap().parse::<u64>().unwrap();     
                 let c: u64 = tokens.next().unwrap().parse::<u64>().unwrap();
-                let t: u64 = tokens.next().unwrap().parse::<u64>().unwrap();
                 let g: u64 = tokens.next().unwrap().parse::<u64>().unwrap();
-                let tot: f64 = (a + c + t + g) as f64;
+                let t: u64 = tokens.next().unwrap().parse::<u64>().unwrap();
+                let tot: f64 = (a + c + g + t) as f64;
                 // TODO ADD error checking, this is get_fraction_from_pcounts
-                freq.push_row_4(a as f64/ tot, c  as f64/ tot, t  as f64/ tot, g  as f64/ tot);
+                freq.push_row_4(a as f64/ tot, c  as f64/ tot, g  as f64/ tot, t  as f64/ tot);
                 old_name = name;
             }
             if !finished {
