@@ -201,8 +201,8 @@ impl Iterator for PWMReader {
                 }
             }
         }
-        let ll = Matrix::with_capacity(BASES, freq.rows.len());
-        let llrc =  Matrix::with_capacity(BASES, freq.rows.len());;
+        let ll = Matrix::with_capacity(BASES+1, freq.rows.len());
+        let llrc =  Matrix::with_capacity(BASES+1, freq.rows.len());;
         Some(PWM {name: old_name.to_owned(), ll: ll, llrc: llrc, freq: freq })
     }
 }
