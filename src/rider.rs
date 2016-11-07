@@ -140,6 +140,7 @@ pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut 
     let mut overlapping_snps = 0u32;
     let mut i = 0;
     let mut n_to_be_removed = 0;
+    let mut window_before_next_snp = false;
     while i < snps_buffer.len() {
         let next_mut = snps_buffer.get(i).unwrap();
         match window.relative_position(& next_mut.pos) {
@@ -150,8 +151,7 @@ pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut 
                 overlapping_snps += 1;
             },
             mutations::Position::Before => {
-                // No return before removing snips!
-                return overlapping_snps;
+                window_before_next_snp = true;
             }
         }
         i += 1;
@@ -162,6 +162,9 @@ pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut 
     while n_to_be_removed > 0 {
         let _ = snps_buffer.pop_front();
         n_to_be_removed -= 1;
+    }
+    if window_before_next_snp {
+        return overlapping_snps
     }
     while let Some(next_mut) = reader.next() {
         match window.relative_position(& next_mut.pos) {
