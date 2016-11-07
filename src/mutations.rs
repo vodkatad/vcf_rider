@@ -63,7 +63,6 @@ impl VcfReader {
 }
 
 fn get_sequence(seq : &Vec<u8>) -> Vec<u8> {
-    println!("reference first char{}" , seq[0] as char);
     let mut res : Vec<u8> = Vec::<u8>::with_capacity(1);
     for nuc in seq {
         res.push(match *nuc {
@@ -117,10 +116,9 @@ impl Iterator for VcfReader {
             let alleles = record.alleles().into_iter().map(|a| a.to_owned()).collect_vec(); // I do not like this to_owned...
             let refe : Vec<u8> = get_sequence(&alleles[0]);
             let mut alt  : Vec<u8> = Vec::<u8>::with_capacity(1);
-            let mut genotypes : Vec<(bool, bool)> = Vec::<(bool, bool)>::with_capacity(self.samples.len());
             let mut found_alt = 0;
             for allele in alleles[1..].iter() { // why skip the first? The first is the reference. Then are listed all the alternative ones.
-                println!("allele {}" , allele[0] as char); // this is the alt allele? Why are they vectors? Because they are encoded as single bases.
+                //println!("allele {}" , allele[0] as char); // this is the alt allele? Why are they vectors? Because they are encoded as single bases.
                 alt.push(allele[0] as u8);
                 found_alt += 1;
                 //println!("allele {}" , allele[1] as char); // this will print the second base if the alt allele is for example AC (C).
@@ -135,8 +133,8 @@ impl Iterator for VcfReader {
             let genotypes = (0..self.reader.header.sample_count() as usize).map(|s| {
                                 let geno_str = format!("{}", rgenotypes.get(s));
                                 decode_genotype(geno_str)
-                            }).collect_vec();
-
+                            }).collect_vec(); //useful to pre alloc?  Vec::<(bool, bool)>::with_capacity(self.samples.len());
+ 
             let pos = Coordinate { chr: chr, start: coord, end: coord+1}; // Right now only Snps.
             Some(Mutation { id: id, pos: pos, sequence_ref: refe, sequence_alt: alte, genotypes : genotypes})
         } else {

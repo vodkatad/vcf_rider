@@ -194,7 +194,7 @@ mod tests {
         let ref reference = fasta::Fasta{id: "1".to_owned(), sequence: vec!(0,1,2,3), background : vec!(0.298947240099661, 0.200854143743417, 0.200941012710477, 0.299257603446445)};
         let ref mut buffer = VecDeque::<Mutation>::new();
         let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(1);
-        rider::obtain_seq(&window, &buffer, 0, &reference, vec!(), &mut seqs);
+        rider::obtain_seq(&window, &buffer, 0, &reference, &vec!(), &mut seqs);
         assert_eq!(seqs[0], [0, 1]);
         assert_eq!(seqs.len(), 1);
     }
@@ -234,7 +234,7 @@ mod tests {
         let window = Coordinate{chr: "".to_owned(), start: 0, end: 4};
         let n_overlapping = 2u32;
         let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
-        rider::obtain_seq(&window, &buffer, n_overlapping, &reference, vec!((2,1)), &mut seqs);
+        rider::obtain_seq(&window, &buffer, n_overlapping, &reference, &vec!((2,1)), &mut seqs);
         assert_eq!(seqs[0], vec!(0,1,0,2));
         assert_eq!(seqs[1], vec!(0,3,0,2));
         assert_eq!(seqs[2], vec!(0,1,0,0));
@@ -254,7 +254,7 @@ mod tests {
         let window = Coordinate{chr: "".to_owned(), start: 10, end: 14};
         let n_overlapping = 2u32;
         let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
-        rider::obtain_seq(&window, &buffer, n_overlapping, &reference, vec!((2,1)), &mut seqs);
+        rider::obtain_seq(&window, &buffer, n_overlapping, &reference, &vec!((2,1)), &mut seqs);
         assert_eq!(seqs[0], vec!(0,1,0,2));
         assert_eq!(seqs[1], vec!(0,3,0,2));
         assert_eq!(seqs[2], vec!(0,1,0,0));
