@@ -158,10 +158,15 @@ pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I,
     // I am not removing them inside the previous loop to avoid borrowing issues, it is less
     // efficient though. Right now I could use a for instead of the while but will leave it
     // in order to do the push_back inside the loop.
-    while n_to_be_removed > 0 {
-        let _ = snps_buffer.pop_front();
+    /*while n_to_be_removed > 0 {
+        let _ = snps_buffer.pop_front(); 
         n_to_be_removed -= 1;
-    }
+    }*/
+    snps_buffer.drain(0..n_to_be_removed);
+    // split_off does not seem ok, maybe drain?
+    // test efficiency of split_off, but it does new allocations
+    //let new_snp_b = snps_buffer.split_off(n_to_be_removed as usize);
+    //*snps_buffer = new_snp_b;
     if window_before_next_snp {
         return overlapping_snps
     }
