@@ -14,20 +14,23 @@ fn main() {
     let pwms_filename = get_next_arg(&mut args, "Missing pwm file argument", &binary_name);
     let bed_filename = get_next_arg(&mut args, "Missing bed file argument", &binary_name);
     let ref_filename = get_next_arg(&mut args, "Missing reference chr argument", &binary_name);
+    let bg = vec!(0.298947240099661, 0.200854143743417, 0.200941012710477, 0.299257603446445);
     // TODO argument bg
     //println!("fasta: {}", fasta_filename);
     //println!("pwms: {}", pwms_filename);
     let mut matrixes : Vec<pwm::PWM> = Vec::new();
     if let Ok(pwm_reader) = pwm::PWMReader::open_path(&pwms_filename) {
-        for pwm in pwm_reader {
+        for mut pwm in pwm_reader {
+            pwm.compute_ll(&bg);
             matrixes.push(pwm);
         }
     }
     // pwm_lengths is an Iter, matrixes is borrowed until end of scope. Use collect() to avoid.
-    let mut pwm_lengths = matrixes.iter().map(|pwm| pwm.get_length());
+    // but without collect and with .next() instead of pop() it's more efficient?
+    let mut pwm_lengths : Vec<usize> = matrixes.iter().map(|pwm| pwm.get_length()).collect();
     // It seems to me that min_max is not there anymore, it is more efficient, if needed the code is in TODO.txt.
     let (min, max) = {
-        if let Some(mut min) = pwm_lengths.next() {
+        if let Some(mut min) = pwm_lengths.pop() {
             let mut max = min;
             for len in pwm_lengths {
                 if len < min {
@@ -43,9 +46,7 @@ fn main() {
             panic!("No PWM were found in the matrixes file!");
         }
     };
-
-    //  m.compute_ll(&f.background); -> has to be done before calling get_scores
-
+    
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
         get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename);
     } else {

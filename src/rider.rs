@@ -82,7 +82,8 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
         }*/
         
         let n_samples = vcf_reader.samples.len();
-        let mut scores : Vec<(f64, f64)> = vec![(0f64, 0f64); n_samples];
+        let n_pwm = params.parameters.len();
+        let mut scores : Vec<Vec<(f64, f64)>> = vec![vec![(0f64, 0f64); n_samples]; n_pwm];
         let mut idx_for_seq  : Vec<(usize, (bool,bool))> = Vec::<(usize, (bool,bool))>::with_capacity(n_samples);
         // initialize snps_buffer  VecDeque<mutations::Mutation>
         let mut snps_buffer : VecDeque<mutations::Mutation> = VecDeque::new();
@@ -99,7 +100,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 // TODO: pass fixed-size vector to be filled with indices.
                 let genotypes : Vec<(usize, usize)> = encode_genotypes(&snps_buffer, n_overlapping, n_samples);
                 let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
-                obtain_seq(& window, & snps_buffer, n_overlapping, & referenceseq, &genotypes, &mut seqs);
+                obtain_seq(& window, & snps_buffer, n_overlapping, & referenceseq, & genotypes, &mut seqs);
                 println!("genotypes {:?}", genotypes);
                 // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
                 // seqs will be ordered in a specific order: the first one is the reference one and the last one
@@ -114,25 +115,21 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     println!("seq {} {:?}", i, s);
                     // if i in indexes genotypes -> function that checks if it's there and fills a vector (idx_for_seq) with the indexes of the individuals that
                     if match_indexes(i, &mut idx_for_seq, &genotypes) {
-                        println!("yay1 {:?}", idx_for_seq);
                         // needs this score (i, 0|1)
-                        for i in 0..(*params.parameters).len() {
-                            let p = (*params.parameters).get(i).unwrap();
+                        for i in 0..n_pwm {
+                            let p = params.parameters.get(i).unwrap();
                             println!("pwm name {} {} {}", p.get_name(), p.get_length(), s.len());
                             if p.get_length() <= s.len() {
-                                println!("yay!");
-                                let score = 1f64;
-                                //let score = p.get_score(0usize, s);
+                                let score = p.get_score(0usize, s);
                                 // now we need to sum (or smt else) the scores assigning them to the right individuals.
                                 // iterate over idx_for_seq and sum the right scores.
                                 for j in idx_for_seq.iter() {
-                                    println!("yayyy {:?}", j);
                                     // j.0 is the wanted samples index, j.1.0 and 0.1 the info about the two chromosomes
                                     if (j.1).0 {
-                                        scores[j.0].0 += score;
+                                        scores[i][j.0].0 += score;
                                     } 
                                     if (j.1).1 {
-                                        scores[j.0].1 += score;
+                                        scores[i][j.0].1 += score;
                                     }
                                 }
                             }
@@ -142,9 +139,12 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 }
                 pos += 1;
             }
-        }
-        for (i, sample) in vcf_reader.samples.iter().enumerate() {
-            println!("score\t{}\t{}\t{}", sample, scores[i].0, scores[i].1);
+            for i in 0..n_pwm {
+                for (j, sample) in vcf_reader.samples.iter().enumerate() {
+                    println!("{}\t{}\t{}\t{}", params.parameters.get(i).unwrap().get_name(), sample, scores[i][j].0, scores[i][j].1);
+                }
+            }
+            scores = vec![vec![(0f64, 0f64); n_samples]; n_pwm]; // Horrible.
         }
     }
 }
