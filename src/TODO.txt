@@ -1,3 +1,6 @@
+- // TODO: pass fixed-size vector to be filled with indices.
+  let genotypes : Vec<(usize, usize)> = encode_genotypes(&snps_buffer, n_overlapping, n_samples);
+
 [- get MinMax to work]
 [- map for Vec<PWM>]
 - crate for parameters: https://doc.rust-lang.org/getopts/getopts/index.html   - cargo still do not
@@ -5,20 +8,21 @@
  I do not like the lib very much to tell the truth... will see in the future if n.of arguments gets too cumbersome
  to be managed with the code that I already have.
 [- lifetimes!!]
-- read vcf by myself or use lib? gvcf
+[- read vcf by myself or use lib? gvcf]
+- finish loading vcf
 - how to have +/min/max/mean in RiderParameters and use it
 
-- capire iterator cosa fa il for
+[- capire iterator cosa fa il for
     // `for` works through an `Iterator` until it returns `None`.
     // Each `Some` value is unwrapped and bound to a variable (here, `i`)
     As a point of convenience for common situations, the for construct turns some collections into iterators using the .into_iterator() method. 
-The `iter` method produces an `Iterator` over an array/slice.
+The `iter` method produces an `Iterator` over an array/slice.]
 
 [- capire come mettere print di debug: https://users.rust-lang.org/t/conditional-compilation-for-debug-release/1098]
 - implementare i controlli minimali?
 
-- comments/real docs about code flow: *
-- structs!
+- docs
+- tests
 
 - indagare differenza array Vec
 

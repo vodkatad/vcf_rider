@@ -212,6 +212,18 @@ mod tests {
     }
 
     #[test]
+    fn test_encode_genotypes_single_snp() {
+        let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
+        let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((false, true))};
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, false))};
+        let buffer = VecDeque::from(vec!(mut1, mut2));
+        let indexes = rider::encode_genotypes(&buffer, 1u32, 1usize);
+        // We have one individual, one overlapping snps and our guy is indexed as 0 -> 0 and 1 -> 1
+        assert_eq!(indexes, vec!((0, 1)));
+    }
+
+    #[test]
     fn test_obtain_seq_two_snps() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 1, end : 2};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 3, end : 4};
@@ -230,7 +242,7 @@ mod tests {
         assert_eq!(seqs.len(), 4);
     }
 
-     #[test]
+    #[test]
     fn test_obtain_seq_two_snps_2() {
         // Just to test window positioning.
         let csnp1 = Coordinate{chr: "".to_owned(), start : 11, end : 12};

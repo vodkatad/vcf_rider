@@ -219,9 +219,9 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
 pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> Vec<(usize, usize)> {
     let mut chr_one : Vec<usize> = vec![0; n_samples];
     let mut chr_two : Vec<usize> = vec![0; n_samples];
-    for snp in snps_buffer.iter().rev() { // TODO BUG we need to use only n_overlapping snps! 
-    //let mut i = (n_overlapping - 1) as isize;
-    //while i >= 0;
+    // for snp in snps_buffer.iter().rev() { // but we need to use only n_overlapping snps! 
+    for i_snp in (0 .. n_overlapping).rev() {
+        let snp = snps_buffer.get(i_snp as usize).unwrap();
         for i in 0 .. n_samples {
             chr_one[i] = chr_one[i] << 1;
             chr_two[i] = chr_two[i] << 1;
