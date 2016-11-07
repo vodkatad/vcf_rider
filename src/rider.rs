@@ -1,6 +1,5 @@
 use bio::io::bed;
 use std::fs;
-use std::fmt;
 use super::fasta;
 use super::mutations;
 use std::collections::VecDeque;
@@ -74,16 +73,17 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
     // load vcf -> open file, skip # headers, first real entry
     // We could use a VcfReader similar to others.
     if let Ok(vcf) = mutations::VcfReader::open_path(vcf_path) {
-        for sample in & vcf.samples {
+        let mut vcf_reader = vcf;
+        for sample in & vcf_reader.samples {
             println!("sample {}", sample);
         }
         /*for snp in vcf {
             println!("snp {:?} {:?} {}", snp.pos, snp.sequence_ref, snp.id);
         }*/
 
-        let n_samples = vcf.samples.len();
-        // initialize snps_buffer  VecDeque<&'a mutations::Mutation>
-        let snps_buffer : VecDeque<& mutations::Mutation> = VecDeque::new();
+        let n_samples = vcf_reader.samples.len();
+        // initialize snps_buffer  VecDeque<mutations::Mutation>
+        let mut snps_buffer : VecDeque<mutations::Mutation> = VecDeque::new();
         // will probably end being a VecDeque of mutations and not ref to them
         // chr check
         for r in bed_reader.records() {
@@ -93,12 +93,11 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             let mut pos = record.start();
             while pos < record.end() {  // we do not do pos + params.max_len < r.end to avoid cumbersome management for the last portion
                 let window = mutations::Coordinate{chr: "".to_owned(), start: pos, end: pos+params.max_len as u64};
-                //let n_overlapping = find_overlapping_snps(window, &mut vcf, &mut snps_buffer);
-                let n_overlapping = 3;
+                let n_overlapping = find_overlapping_snps(& window, &mut vcf_reader, &mut snps_buffer);
                 // TODO: pass fixed-size vector to be filled with indices.
                 let genotypes : Vec<(usize, usize)> = encode_genotypes(&snps_buffer, n_overlapping, n_samples);
                 let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
-                //obtain_seq(window, & snps_buffer, n_overlapping, & referenceseq, genotypes, &mut seqs);
+                obtain_seq(& window, & snps_buffer, n_overlapping, & referenceseq, genotypes, &mut seqs);
 
                 // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
                 // seqs will be ordered in a specific order: the first one is the reference one and the last one
@@ -132,8 +131,8 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
 /// * `snps_buffer`- a mutable reference to the VecDeque that is used as a buffer for SNPs. SNPs before the given window will
 ///                  be removed, the overlapping ones will be at positions 0..returned value and the first SNPs after the given window
 ///                  will be the last element.
-pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut I, snps_buffer: &mut VecDeque<&'a mutations::Mutation>) -> u32
-    where I: Iterator<Item=&'a mutations::Mutation> {
+pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I, snps_buffer: &mut VecDeque<mutations::Mutation>) -> u32
+    where I: Iterator<Item=mutations::Mutation> {
     // We assume to receive ordered vcf and bed therefore we can skip vcf entries < r.start
     // if vcf > r.start+r.end empty snps_on_seq and return ---> not empty! leave them there
     // We could use a VcfReader as reader but to be able to write unit tests more easily it is an Iterator of Mutation.
@@ -183,7 +182,8 @@ pub fn find_overlapping_snps<'a, I>(window: mutations::Coordinate, reader: &mut 
     overlapping_snps
 }
 
-pub fn obtain_seq(window: mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32,
+#[allow(unused_variables)]
+pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32,
                   reference: & fasta::Fasta, genotypes : Vec<(usize, usize)>, seqs : &mut Vec<Vec<u8>>) {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
@@ -211,10 +211,12 @@ pub fn obtain_seq(window: mutations::Coordinate, snps_buffer: & VecDeque<mutatio
     }
 }
 
-pub fn encode_genotypes(snps_buffer: & VecDeque<& mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> Vec<(usize, usize)> {
+pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> Vec<(usize, usize)> {
     let mut chr_one : Vec<usize> = vec![0; n_samples];
     let mut chr_two : Vec<usize> = vec![0; n_samples];
-    for snp in snps_buffer.iter().rev() {
+    for snp in snps_buffer.iter().rev() { // TODO BUG we need to use only n_overlapping snps! 
+    //let mut i = (n_overlapping - 1) as isize;
+    //while i >= 0;
         for i in 0 .. n_samples {
             chr_one[i] = chr_one[i] << 1;
             chr_two[i] = chr_two[i] << 1;

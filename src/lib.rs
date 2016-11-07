@@ -16,6 +16,7 @@ mod tests {
     use rider;
     use std::collections::VecDeque;
 
+    
     #[test]
     fn test_relative_position() {
         // Completely inside.
@@ -54,17 +55,18 @@ mod tests {
     fn test_find_overlapping_snps_emptybuffer1() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
+        let overlapping_mut = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
         let muts = vec!(Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))},
-                    Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))});
+                    overlapping_mut);
         let window = Coordinate{chr: "".to_owned(), start : 15, end : 30};
-        let ref mut buffer = VecDeque::<&Mutation>::new();
-        let ref mut muts_iter = muts.iter();
-        let n_ov = rider::find_overlapping_snps(window, muts_iter, buffer);
+        let ref mut buffer = VecDeque::<Mutation>::new();
+        let ref mut muts_iter = muts.into_iter();
+        let n_ov = rider::find_overlapping_snps(&window, muts_iter, buffer);
         assert_eq!(n_ov, 1);
-        assert_eq!(buffer.front().unwrap().id, muts[1].id);
+        assert_eq!(buffer.front().unwrap().id, "2".to_owned());
         assert_eq!(muts_iter.len(), 0);
     }
-    
+        
     #[test]
     fn test_find_overlapping_snps_emptybuffer2() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
@@ -72,15 +74,15 @@ mod tests {
         let muts = vec!(Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))},
                     Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))});
         let window = Coordinate{chr: "".to_owned(), start : 9, end : 30};
-        let ref mut buffer = VecDeque::<&Mutation>::new();
-        let ref mut muts_iter = muts.iter();
-        let n_ov = rider::find_overlapping_snps(window, muts_iter, buffer);
+        let ref mut buffer = VecDeque::<Mutation>::new();
+        let ref mut muts_iter = muts.into_iter();
+        let n_ov = rider::find_overlapping_snps(&window, muts_iter, buffer);
         assert_eq!(n_ov, 2);
-        assert_eq!(buffer.front().unwrap().id, muts[0].id);
-        assert_eq!(buffer.get(1).unwrap().id, muts[1].id);
+        assert_eq!(buffer.front().unwrap().id, "1".to_owned());
+        assert_eq!(buffer.get(1).unwrap().id, "2".to_owned());
         assert_eq!(muts_iter.len(), 0);
     }
-
+    
     #[test]
     fn test_find_overlapping_snps_emptybuffer3() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
@@ -88,13 +90,13 @@ mod tests {
         let muts = vec!(Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))},
                     Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))});
         let window = Coordinate{chr: "".to_owned(), start : 5, end : 7};
-        let ref mut buffer = VecDeque::<&Mutation>::new();
-        let ref mut muts_iter = muts.iter();
-        let n_ov = rider::find_overlapping_snps(window, muts_iter, buffer);
+        let ref mut buffer = VecDeque::<Mutation>::new();
+        let ref mut muts_iter = muts.into_iter();
+        let n_ov = rider::find_overlapping_snps(&window, muts_iter, buffer);
         assert_eq!(n_ov, 0);
-        assert_eq!(buffer.front().unwrap().id, muts[0].id);
+        assert_eq!(buffer.front().unwrap().id, "1".to_owned());
         assert_eq!(muts_iter.len(), 1);
-        assert_eq!(muts_iter.next().unwrap().id, muts[1].id);
+        assert_eq!(muts_iter.next().unwrap().id, "2".to_owned());
     }
 
     #[test]
@@ -104,16 +106,16 @@ mod tests {
         let muts = Vec::new();
         let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
         let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
-        let ref mut buffer = VecDeque::from(vec!(&mut1, &mut2));
+        let ref mut buffer = VecDeque::from(vec!(mut1, mut2));
         let window = Coordinate{chr: "".to_owned(), start : 5, end : 30};
-        let ref mut muts_iter = muts.iter();
-        let n_ov = rider::find_overlapping_snps(window, muts_iter, buffer);
+        let ref mut muts_iter = muts.into_iter();
+        let n_ov = rider::find_overlapping_snps(&window, muts_iter, buffer);
         assert_eq!(n_ov, 2);
-        assert_eq!(buffer.front().unwrap().id, mut1.id);
-        assert_eq!(buffer.get(1).unwrap().id, mut2.id);
+        assert_eq!(buffer.front().unwrap().id, "1".to_owned());
+        assert_eq!(buffer.get(1).unwrap().id, "2".to_owned());
         assert_eq!(muts_iter.len(), 0);
     }
-
+    
     #[test]
     fn test_find_overlapping_snps_buffer_after() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
@@ -121,16 +123,16 @@ mod tests {
         let muts = Vec::new();
         let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
         let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
-        let ref mut buffer = VecDeque::from(vec!(&mut1, &mut2));
+        let ref mut buffer = VecDeque::from(vec!(mut1, mut2));
         let window = Coordinate{chr: "".to_owned(), start : 5, end : 7};
-        let ref mut muts_iter = muts.iter();
-        let n_ov = rider::find_overlapping_snps(window, muts_iter, buffer);
+        let ref mut muts_iter = muts.into_iter();
+        let n_ov = rider::find_overlapping_snps(&window, muts_iter, buffer);
         assert_eq!(n_ov, 0);
-        assert_eq!(buffer.front().unwrap().id, mut1.id);
-        assert_eq!(buffer.get(1).unwrap().id, mut2.id);
+        assert_eq!(buffer.front().unwrap().id, "1".to_owned());
+        assert_eq!(buffer.get(1).unwrap().id, "2".to_owned());
         assert_eq!(muts_iter.len(), 0);
     }
-
+    
     #[test]
     fn test_find_overlapping_snps_buffer_after_removing() {
         let csnp0 = Coordinate{chr: "".to_owned(), start : 3, end : 4};
@@ -140,16 +142,16 @@ mod tests {
         let mut0 = Mutation { id: "0".to_owned(), pos: csnp0, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
         let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
         let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
-        let ref mut buffer = VecDeque::from(vec!(&mut0, &mut1, &mut2));
+        let ref mut buffer = VecDeque::from(vec!(mut0, mut1, mut2));
         let window = Coordinate{chr: "".to_owned(), start : 5, end : 7};
-        let ref mut muts_iter = muts.iter();
-        let n_ov = rider::find_overlapping_snps(window, muts_iter, buffer);
+        let ref mut muts_iter = muts.into_iter();
+        let n_ov = rider::find_overlapping_snps(&window, muts_iter, buffer);
         assert_eq!(n_ov, 0);
-        assert_eq!(buffer.front().unwrap().id, mut1.id);
-        assert_eq!(buffer.get(1).unwrap().id, mut2.id);
+        assert_eq!(buffer.front().unwrap().id, "1".to_owned());
+        assert_eq!(buffer.get(1).unwrap().id, "2".to_owned());
         assert_eq!(muts_iter.len(), 0);
     }
-
+    
     #[test]
     fn test_find_overlapping_snps_buffer_before() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
@@ -157,15 +159,15 @@ mod tests {
         let muts = Vec::new();
         let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
         let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
-        let ref mut buffer = VecDeque::from(vec!(&mut1, &mut2));
+        let ref mut buffer = VecDeque::from(vec!(mut1, mut2));
         let window = Coordinate{chr: "".to_owned(), start : 25, end : 37};
-        let ref mut muts_iter = muts.iter();
-        let n_ov = rider::find_overlapping_snps(window, muts_iter, buffer);
+        let ref mut muts_iter = muts.into_iter();
+        let n_ov = rider::find_overlapping_snps(&window, muts_iter, buffer);
         assert_eq!(n_ov, 0);
         assert_eq!(buffer.len(), 0);
         assert_eq!(muts_iter.len(), 0);
     }
-
+    
     #[test]
     fn test_find_overlapping_snps_buffer_mixed() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
@@ -173,21 +175,16 @@ mod tests {
         let csnp3 = Coordinate{chr: "".to_owned(), start : 23, end : 24};
         let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
         let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
-        
-        //let mut buffer = VecDeque::from(vec!(&mut1, &mut2)); 
-        // If it is here it does not compile
-        // this is due to the lifetimes declared in find_overlapping_snps.
+        let mut buffer = VecDeque::from(vec!(mut1, mut2)); 
         let muts = vec!(Mutation { id: "3".to_owned(), pos: csnp3, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))});
-        let mut muts_iter = muts.iter();
-        let mut buffer = VecDeque::from(vec!(&mut1, &mut2)); // Here it works.
-
+        let mut muts_iter = muts.into_iter();
         let window = Coordinate{chr: "".to_owned(), start : 15, end : 37};
-        let n_ov = rider::find_overlapping_snps(window, &mut muts_iter, &mut buffer);
+        let n_ov = rider::find_overlapping_snps(&window, &mut muts_iter, &mut buffer);
         assert_eq!(n_ov, 2);
         assert_eq!(muts_iter.len(), 0);
         assert_eq!(buffer.len(), 2);
-        assert_eq!(buffer.front().unwrap().id, mut2.id);
-        assert_eq!(buffer.get(1).unwrap().id, muts[0].id);
+        assert_eq!(buffer.front().unwrap().id, "2".to_owned());
+        assert_eq!(buffer.get(1).unwrap().id, "3".to_owned());
     }
     // TODO: some tests calling find_overlapping_snps several times.
 
@@ -197,7 +194,7 @@ mod tests {
         let ref reference = fasta::Fasta{id: "1".to_owned(), sequence: vec!(0,1,2,3), background : vec!(0.298947240099661, 0.200854143743417, 0.200941012710477, 0.299257603446445)};
         let ref mut buffer = VecDeque::<Mutation>::new();
         let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(1);
-        rider::obtain_seq(window, &buffer, 0, &reference, vec!(), &mut seqs);
+        rider::obtain_seq(&window, &buffer, 0, &reference, vec!(), &mut seqs);
         assert_eq!(seqs[0], [0, 1]);
         assert_eq!(seqs.len(), 1);
     }
@@ -208,7 +205,7 @@ mod tests {
         let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
         let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((false, true))};
         let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, false))};
-        let buffer = VecDeque::from(vec!(&mut1, &mut2));
+        let buffer = VecDeque::from(vec!(mut1, mut2));
         let indexes = rider::encode_genotypes(&buffer, 2u32, 1usize);
         // We have one individual, two overlapping snps and our guy is indexed as 10 ->  2 and 01 -> 1
         assert_eq!(indexes, vec!((2, 1)));
@@ -225,7 +222,7 @@ mod tests {
         let window = Coordinate{chr: "".to_owned(), start: 0, end: 4};
         let n_overlapping = 2u32;
         let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
-        rider::obtain_seq(window, &buffer, n_overlapping, &reference, vec!((2,1)), &mut seqs);
+        rider::obtain_seq(&window, &buffer, n_overlapping, &reference, vec!((2,1)), &mut seqs);
         assert_eq!(seqs[0], vec!(0,1,0,2));
         assert_eq!(seqs[1], vec!(0,3,0,2));
         assert_eq!(seqs[2], vec!(0,1,0,0));
@@ -245,7 +242,7 @@ mod tests {
         let window = Coordinate{chr: "".to_owned(), start: 10, end: 14};
         let n_overlapping = 2u32;
         let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
-        rider::obtain_seq(window, &buffer, n_overlapping, &reference, vec!((2,1)), &mut seqs);
+        rider::obtain_seq(&window, &buffer, n_overlapping, &reference, vec!((2,1)), &mut seqs);
         assert_eq!(seqs[0], vec!(0,1,0,2));
         assert_eq!(seqs[1], vec!(0,3,0,2));
         assert_eq!(seqs[2], vec!(0,1,0,0));
