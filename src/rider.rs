@@ -49,8 +49,8 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
 
     // #[cfg(debug_assertions)]   attributes on non-item statements and expressions are experimental. (see issue #15701)
     //{
-    println!("I would use {}", vcf_path);
-    println!("With parameters {} {}", params.min_len, params.max_len);
+    //println!("I would use {}", vcf_path);
+    //println!("With parameters {} {}", params.min_len, params.max_len);
     //}
     let referenceseq: fasta::Fasta = {
         if let Ok(mut reader) = fasta::FastaReader::open_path(ref_path) {
@@ -69,7 +69,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
         }
     };
 
-    println!("Fasta ref {}", referenceseq.id);
+    //println!("Fasta ref {}", referenceseq.id);
     // load vcf -> open file, skip # headers, first real entry
     // We could use a VcfReader similar to others.
     if let Ok(vcf) = mutations::VcfReader::open_path(vcf_path) {
@@ -91,7 +91,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
         // chr check
         for r in bed_reader.records() {
             let record = r.ok().expect("Error reading record");
-            println!("bed name: {}", record.name().expect("Error reading name"));
+            //println!("bed name: {}", record.name().expect("Error reading name"));
             // chr check
             let mut pos = record.start();
             while pos < record.end() {  // we do not do pos + params.max_len < r.end to avoid cumbersome management for the last portion
@@ -101,7 +101,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 let genotypes : Vec<(usize, usize)> = encode_genotypes(&snps_buffer, n_overlapping, n_samples);
                 let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
                 obtain_seq(& window, & snps_buffer, n_overlapping, & referenceseq, & genotypes, &mut seqs);
-                println!("genotypes {:?}", genotypes);
+                //println!("genotypes {:?}", genotypes);
                 // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
                 // seqs will be ordered in a specific order: the first one is the reference one and the last one
                 // the one with all mutated alleles.  Every SNP status is encoded by 0 if it is reference and 1 if it is
@@ -112,13 +112,13 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 // ones and we will check to call get_score only on the right parameters
                 // for every p params.parameters call on seq
                 for (i, s) in seqs.iter().enumerate() {
-                    println!("seq {} {:?}", i, s);
+                    //println!("seq {} {:?}", i, s);
                     // if i in indexes genotypes -> function that checks if it's there and fills a vector (idx_for_seq) with the indexes of the individuals that
                     if match_indexes(i, &mut idx_for_seq, &genotypes) {
                         // needs this score (i, 0|1)
                         for i in 0..n_pwm {
                             let p = params.parameters.get(i).unwrap();
-                            println!("pwm name {} {} {}", p.get_name(), p.get_length(), s.len());
+                            //println!("pwm name {} {} {}", p.get_name(), p.get_length(), s.len());
                             if p.get_length() <= s.len() {
                                 let score = p.get_score(0usize, s);
                                 // now we need to sum (or smt else) the scores assigning them to the right individuals.
@@ -141,7 +141,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             }
             for i in 0..n_pwm {
                 for (j, sample) in vcf_reader.samples.iter().enumerate() {
-                    println!("{}\t{}\t{}\t{}", params.parameters.get(i).unwrap().get_name(), sample, scores[i][j].0, scores[i][j].1);
+                    println!("{}\t{}\t{}\t{}\t{}", record.name().expect("Error reading name"), params.parameters.get(i).unwrap().get_name(), sample, scores[i][j].0, scores[i][j].1);
                 }
             }
             scores = vec![vec![(0f64, 0f64); n_samples]; n_pwm]; // Horrible.
