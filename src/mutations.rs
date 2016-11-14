@@ -1,6 +1,7 @@
 use rust_htslib::bcf;
 use std::io;
 use itertools::Itertools;
+use std::path::Path;
 
 #[derive(Debug)]
 pub struct Coordinate {
@@ -51,7 +52,7 @@ pub struct VcfReader {
 // Adding a layer of abstration, I am not sure that we will use the lib.
 impl VcfReader {
     pub fn open_path(path: &str) -> io::Result<VcfReader> {
-        match bcf::Reader::new(&path) {
+        match bcf::Reader::from_path(Path::new(path)) {
             Ok(reader) => {
                 let samples = reader.header.samples().into_iter().map(|sample| String::from_utf8(sample.to_owned()).unwrap()).collect();
                 Ok(VcfReader { reader: reader, samples: samples })
