@@ -125,7 +125,7 @@ impl Iterator for VcfReader {
                 //println!("allele {}" , allele[1] as char); // this will print the second base if the alt allele is for example AC (C).
             }
             if found_alt != 1 {
-                panic!("Cannot manage multi-allelic SNPs!") // maybe simply skip?
+                panic!("Cannot manage multi-allelic SNPs! {:?}", alt) // maybe simply skip?
             }
             let alte = get_sequence(&alt);
             // remember trim_alleles(&mut self)

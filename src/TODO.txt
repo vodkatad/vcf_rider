@@ -1,5 +1,8 @@
-- // TODO: pass fixed-size vector to be filled with indices.
-  let genotypes : Vec<(usize, usize)> = encode_genotypes(&snps_buffer, n_overlapping, n_samples);
+- TODO: print overlapping SNPs
+- filter vcf inside the lib with the reader?
+- length of sequences: meaningfull only after having added SNPs
+- docs
+- tests
 
 [- get MinMax to work]
 [- map for Vec<PWM>]
@@ -20,9 +23,6 @@ The `iter` method produces an `Iterator` over an array/slice.]
 
 [- capire come mettere print di debug: https://users.rust-lang.org/t/conditional-compilation-for-debug-release/1098]
 - implementare i controlli minimali?
-
-- docs
-- tests
 
 - indagare differenza array Vec
 
