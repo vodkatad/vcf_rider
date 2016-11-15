@@ -4,6 +4,40 @@
 - docs
 - tests
 
+- bed out of chr is not managed:
+data@clo:~/work/vcf_rider$ ./target/debug/vcf_rider examples/phased.vcf examples/one_mat examples/prova.bed examples/f2.fasta
+bed name: bed2
+thread 'main' panicked at 'slice index starts at 6 but ends at 4', ../src/libcore/slice.rs:555
+stack backtrace:
+   1:     0x5605907f9c39 - std::sys::backtrace::tracing::imp::write::h00e948915d1e4c72
+   2:     0x5605907fca5c - std::panicking::default_hook::_{{closure}}::h7b8a142818383fb8
+   3:     0x5605907fbf49 - std::panicking::default_hook::h41cf296f654245d7
+   4:     0x5605907fc588 - std::panicking::rust_panic_with_hook::h4cbd7ca63ce1aee9
+   5:     0x5605907fc3e2 - std::panicking::begin_panic::h93672d0313d5e8e9
+   6:     0x5605907fc350 - std::panicking::begin_panic_fmt::hd0daa02942245d81
+   7:     0x5605907fc2d1 - rust_begin_unwind
+   8:     0x5605908369cf - core::panicking::panic_fmt::hbfc935564d134c1b
+   9:     0x560590836b44 - core::slice::slice_index_order_fail::h9ee27d421c31502b
+  10:     0x560590772268 - core::slice::_<impl core..ops..Index<core..ops..Range<usize>> for [T]>::index::h4d1325c39b2e2225
+                        at /buildslave/rust-buildbot/slave/stable-dist-rustc-linux/build/obj/../src/libcore/slice.rs:577
+  11:     0x560590763e04 - _<collections..vec..Vec<T> as core..ops..Index<core..ops..Range<usize>>>::index::hcc671cfe8292d444
+                        at /buildslave/rust-buildbot/slave/stable-dist-rustc-linux/build/obj/../src/libcollections/vec.rs:1285
+  12:     0x56059077ef82 - vcf_rider::rider::obtain_seq::hfd00545b48b6db2b
+                        at /home/data/work/vcf_rider/src/rider.rs:243
+  13:     0x56059075f561 - vcf_rider::rider::get_scores::hccc426ed4790678f
+                        at /home/data/work/vcf_rider/src/rider.rs:103
+  14:     0x560590761953 - vcf_rider::main::h4a398ebb62141879
+                        at /home/data/work/vcf_rider/src/main.rs:51
+  15:     0x560590804546 - __rust_maybe_catch_panic
+  16:     0x5605907fb6c2 - std::rt::lang_start::h53bf99b0829cc03c
+  17:     0x560590763d43 - main
+  18:     0x7ffabc6a672f - __libc_start_main
+  19:     0x5605907476b8 - _start
+  20:                0x0 - <unknown>
+
+
+do we want to do smt better?
+
 [- get MinMax to work]
 [- map for Vec<PWM>]
 - crate for parameters: https://doc.rust-lang.org/getopts/getopts/index.html   - cargo still do not
