@@ -95,7 +95,11 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             // chr check
             let mut pos = record.start();
             while pos < record.end() {  // we do not do pos + params.max_len < r.end to avoid cumbersome management for the last portion
-                let window = mutations::Coordinate{chr: "".to_owned(), start: pos, end: pos+params.max_len as u64};
+		let mut wend = pos+params.max_len as u64;
+		if wend > record.end() {
+			wend = record.end();
+		}
+                let window = mutations::Coordinate{chr: "".to_owned(), start: pos, end: wend};
                 let n_overlapping = find_overlapping_snps(& window, &mut vcf_reader, &mut snps_buffer);
                 // TODO: pass fixed-size vector to be filled with indices.
                 let genotypes : Vec<(usize, usize)> = encode_genotypes(&snps_buffer, n_overlapping, n_samples);
