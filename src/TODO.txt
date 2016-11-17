@@ -4,6 +4,15 @@
 - docs
 - tests
 
+- bug: when bed are overlapping we could lose snps that falls out of the buffer due to the windows inside the bed:
+
+b1 --------------------
+w  --- --- --- --- ---
+snp .   .       .       .
+b2     ---------------
+
+when we arrive at b2 the second snp is long gone in our buffer.
+
 - bed out of chr is not managed:
 data@clo:~/work/vcf_rider$ ./target/debug/vcf_rider examples/phased.vcf examples/one_mat examples/prova.bed examples/f2.fasta
 bed name: bed2
