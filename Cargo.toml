@@ -5,5 +5,5 @@ authors = ["Elena Grassi <grassi.e@gmail.com>"]
 
 [dependencies]
 bio = "*"
-rust-htslib = { git = "https://github.com/rust-bio/rust-htslib" } #"^0.8.1"
+rust-htslib = { git = "https://github.com/rust-bio/rust-htslib" }
 itertools = "*"
