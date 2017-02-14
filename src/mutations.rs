@@ -41,7 +41,8 @@ pub struct Mutation {
     pub pos: Coordinate,
     pub sequence_ref: Vec<u8>,
     pub sequence_alt: Vec<u8>,
-    pub genotypes: Vec<(bool, bool)>
+    pub genotypes: Vec<(bool, bool)>,
+    pub is_indel: bool
 }
 
 pub struct VcfReader {
@@ -75,9 +76,9 @@ fn get_sequence(seq : &Vec<u8>) -> Vec<u8> {
             _ => panic!("Vcf with a not allowed char {}", *nuc as char),
         });
     }
-    if res.len() > 1 {
+    /*if res.len() > 1 {
         panic!("Right now we do not handle more than SNPs!");
-    }
+    }*/
     res
 }
 fn decode_allele(c: char) -> bool {
@@ -102,6 +103,8 @@ fn decode_genotype(geno: String) -> (bool, bool) {
     if sep != '|' {
         panic!("Only phased genotypes are supported! {}", sep)
     }
+    //println!("allele1 {:?}", a1);
+    //println!("allele1 {:?}", a2);
     (decode_allele(a1),decode_allele(a2))
 }
 
@@ -115,12 +118,12 @@ impl Iterator for VcfReader {
             let chr = "?".to_owned(); // where is it? rid?
             let coord = record.pos() as u64; // Manually checked: the lib converts 1 based coords of vcf to 0 based. bed records have u64
             let alleles = record.alleles().into_iter().map(|a| a.to_owned()).collect_vec(); // I do not like this to_owned...
-            let refe : Vec<u8> = get_sequence(&alleles[0]);
             let mut alt  : Vec<u8> = Vec::<u8>::with_capacity(1);
             let mut found_alt = 0;
+            let refe : Vec<u8> = get_sequence(&alleles[0]);
+            //println!("ref {}", alleles[0].iter().map(|x| *x as char).join(""));
             for allele in alleles[1..].iter() { // why skip the first? The first is the reference. Then are listed all the alternative ones.
-                //println!("allele {}" , allele[0] as char); // this is the alt allele? Why are they vectors? Because they are encoded as single bases.
-                alt.push(allele[0] as u8);
+                alt.extend(allele.iter().map(|x| *x as u8)); // not the best way, play with scopes and mut and so on TODO
                 found_alt += 1;
                 //println!("allele {}" , allele[1] as char); // this will print the second base if the alt allele is for example AC (C).
             }
@@ -128,6 +131,7 @@ impl Iterator for VcfReader {
                 panic!("Cannot manage multi-allelic SNPs! {:?}", alt) // maybe simply skip?
             }
             let alte = get_sequence(&alt);
+            //println!("alt {}", alt.iter().map(|x| *x as char).join(""));
             // remember trim_alleles(&mut self)
 
             let rgenotypes = record.genotypes().unwrap();
@@ -137,7 +141,8 @@ impl Iterator for VcfReader {
                             }).collect_vec(); //useful to pre alloc?  Vec::<(bool, bool)>::with_capacity(self.samples.len());
  
             let pos = Coordinate { chr: chr, start: coord, end: coord+1}; // Right now only Snps.
-            Some(Mutation { id: id, pos: pos, sequence_ref: refe, sequence_alt: alte, genotypes : genotypes})
+            let indel = refe.len() != 1 || alte.len() != 1;
+            Some(Mutation { id: id, pos: pos, sequence_ref: refe, sequence_alt: alte, genotypes : genotypes, is_indel : indel})
         } else {
             return None;
         }
