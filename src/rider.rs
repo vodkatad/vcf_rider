@@ -128,9 +128,9 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                                 // now we need to sum (or smt else) the scores assigning them to the right individuals.
                                 // iterate over idx_for_seq and sum the right scores.
                                 for j in idx_for_seq.iter() {
-                                    // j.0 is the wanted samples index, j.1.0 and 0.1 the info about the two chromosomes
+                                    // j.0 is the wanted samples index, j.1.0 and 1.1 the info about the two chromosomes
                                     if (j.1).0 {
-                                        scores[i][j.0].0 += score;
+                                        scores[i][j.0].0 += score; // i indexes the pwm, j.0 the individual, then .0, .1 are the two chr (M/P).
                                     } 
                                     if (j.1).1 {
                                         scores[i][j.0].1 += score;
