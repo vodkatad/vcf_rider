@@ -19,9 +19,11 @@
 ##FORMAT=<ID=HQ,Number=2,Type=Integer,Description="Haplotype	Quality">
 ##ALT=<ID=DEL:ME:ALU,Description="Deletion	of	ALU	element">
 ##ALT=<ID=CNV,Description="Copy	number	variable	region">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA00001	NA00002	NA00003
-1	3	snp1	TT	C	9.6	.	.	GT:HQ	0|0:10,10	1|1:10,10	0|1:3,3
-1	3	snp1	T	C	9.6	.	.	GT:HQ	0|0:10,10	1|1:10,10	0|1:3,3
-1	3	snp1	T	C	9.6	.	.	GT:HQ	0|0:10,10	1|1:10,10	0|1:3,3
-1	3	snp1	T	CC	9.6	.	.	GT:HQ	0|0:10,10	1|1:10,10	0|1:3,3
-1	8	snp2	T	GT	10	.	.	GT:HQ	0|0:10,10	1|0:10,10	0|1:3,3
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA00001	NA00002	NA00003	NA00004
+1	3	snp1	TT	C	9.6	.	.	GT:HQ	1|1:10,10	1|0:10,10	0|0:3,3	0|1:3,3
+1	3	snp1	T	C	9.6	.	.	GT:HQ	0|0:10,10	1|1:10,10	0|1:3,3	0|1:3,3
+1	3	snp1	T	C	9.6	.	.	GT:HQ	0|0:10,10	1|1:10,10	0|1:3,3	0|1:3,3
+1	3	snp1	T	C	9.6	.	.	GT:HQ	0|0:10,10	1|1:10,10	0|1:3,3	0|1:3,3
+1	8	snp2	T	G	10	.	.	GT:HQ	0|0:10,10	1|0:10,10	0|1:3,3	0|1:3,3
+1	9	snp1	TT	C	9.6	.	.	GT:HQ	1|1:10,10	1|0:10,10	0|0:3,3	0|1:3,3
+1	10	snp1	T	CC	9.6	.	.	GT:HQ	1|0:10,10	0|0:10,10	0|0:3,3	0|0:3,3

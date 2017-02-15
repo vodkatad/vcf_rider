@@ -1,3 +1,15 @@
+- indel stats
+let mut groups : Vec<Vec<u8>> = Vec::with_capacity(1);
+            groups.push(vec![0 .. n_samples*2]); // in this way it is not easy to understand the group of a sample
+
+            data@tungsteno:/mnt/red/data/bioinfotree/prj/tba_variation/local/src/vcf_rider$ ./target/debug/indel_stats examples/indel.vcf examples/prova.bed
+[W::vcf_parse] contig '1' is not defined in the header. (Quick workaround: index the file with tabix.)
+bed1    4       1       2       0:1;1:1;2:0;3:0;4:1;5:0;6:0;7:1
+[W::vcf_parse] contig '' is not defined in the header. (Quick workaround: index the file with tabix.)
+thread 'main' panicked at 'index out of bounds: the len is 0 but the index is 0', /buildslave/rust-buildbot/slave/nightly-dist-rustc-linux/build/src/libcollections/vec.rs:1395
+stack backtrace:
+
+
 - TODO: print overlapping SNPs
 - filter vcf inside the lib with the reader?
 - length of sequences: meaningfull only after having added SNPs
