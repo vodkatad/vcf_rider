@@ -72,7 +72,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
     //println!("Fasta ref {}", referenceseq.id);
     // load vcf -> open file, skip # headers, first real entry
     // We could use a VcfReader similar to others.
-    if let Ok(vcf) = mutations::VcfReader::open_path(vcf_path) {
+    if let Ok(vcf) = mutations::VcfReader::open_path(vcf_path, false) {
         let mut vcf_reader = vcf;
         /*for sample in & vcf_reader.samples {
             println!("sample {}", sample);

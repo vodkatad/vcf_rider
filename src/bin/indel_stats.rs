@@ -16,7 +16,7 @@ fn main() {
     let vcf_filename = get_next_arg(&mut args, "Missing vcf file argument", &binary_name);
     let bed_filename = get_next_arg(&mut args, "Missing bed file argument", &binary_name);
     if let Ok(mut bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
-        if let Ok(vcf) = mutations::VcfReader::open_path(&vcf_filename) {
+        if let Ok(vcf) = mutations::VcfReader::open_path(&vcf_filename, true) {
             let mut vcf_reader = vcf;
             /*for sample in & vcf_reader.samples {
                 println!("sample {}", sample);

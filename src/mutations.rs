@@ -47,16 +47,17 @@ pub struct Mutation {
 
 pub struct VcfReader {
     reader: bcf::Reader,
+    accept_phased: bool,
     pub samples: Vec<String>
 }
 
 // Adding a layer of abstration, I am not sure that we will use the lib.
 impl VcfReader {
-    pub fn open_path(path: &str) -> io::Result<VcfReader> {
+    pub fn open_path(path: &str, accept_phased: bool) -> io::Result<VcfReader> {
         match bcf::Reader::from_path(Path::new(path)) {
             Ok(reader) => {
                 let samples = reader.header.samples().into_iter().map(|sample| String::from_utf8(sample.to_owned()).unwrap()).collect();
-                Ok(VcfReader { reader: reader, samples: samples })
+                Ok(VcfReader { reader: reader, accept_phased: accept_phased, samples: samples })
             }
             Err(_) => Err(io::Error::last_os_error())
             // How do errors work? rust_htslib::bcf::BCFError
@@ -89,7 +90,7 @@ fn decode_allele(c: char) -> bool {
     }
 }
 
-fn decode_genotype(geno: String) -> (bool, bool) {
+fn decode_genotype(geno: String, accept_phased: bool) -> (bool, bool) {
     // this will need a lot of work inside the lib
     // here genotypes[s] is the str (?) 0|0, ok. These are displayable, check their code to understand the inner structure.
     // https://github.com/rust-bio/rust-htslib/blob/master/src/bcf/record.rs
@@ -100,7 +101,7 @@ fn decode_genotype(geno: String) -> (bool, bool) {
     }
     let sep = genos.next().unwrap();
     let a2 = genos.next().unwrap();
-    if sep != '|' {
+    if sep != '|' && !accept_phased {
         panic!("Only phased genotypes are supported! {}", sep)
     }
     //println!("allele1 {:?}", a1);
@@ -137,7 +138,7 @@ impl Iterator for VcfReader {
             let rgenotypes = record.genotypes().unwrap();
             let genotypes = (0..self.reader.header.sample_count() as usize).map(|s| {
                                 let geno_str = format!("{}", rgenotypes.get(s));
-                                decode_genotype(geno_str)
+                                decode_genotype(geno_str, self.accept_phased)
                             }).collect_vec(); //useful to pre alloc?  Vec::<(bool, bool)>::with_capacity(self.samples.len());
  
             let pos = Coordinate { chr: chr, start: coord, end: coord+1}; // Right now only Snps.
