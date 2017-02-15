@@ -67,6 +67,7 @@ impl VcfReader {
 
 fn get_sequence(seq : &Vec<u8>) -> Vec<u8> {
     let mut res : Vec<u8> = Vec::<u8>::with_capacity(1);
+    let mut flag_big_del = false;
     for nuc in seq {
         res.push(match *nuc {
             b'A' => 0u8,
@@ -74,8 +75,12 @@ fn get_sequence(seq : &Vec<u8>) -> Vec<u8> {
             b'G' => 2u8,
             b'T' => 3u8,
             b'N' => 4u8,
+            b'<' => { flag_big_del = true; 10u8 }, // Not my preferred way to go.
             _ => panic!("Vcf with a not allowed char {}", *nuc as char),
         });
+        if flag_big_del {
+            break;
+        }
     }
     /*if res.len() > 1 {
         panic!("Right now we do not handle more than SNPs!");
