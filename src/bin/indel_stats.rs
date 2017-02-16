@@ -50,6 +50,15 @@ fn main() {
     }
 }
 
+fn prova() -> u32 {
+    return 42u32;
+}
+
+#[test]
+fn test_indel_stats() {
+    assert_eq!(prova(), 42);
+}
+
 fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, groups: &mut Vec<u32>, n_samples: usize) -> u32 {
     let mut n_indel = 0;    
     for (i_snp, snp) in snps_buffer.iter().enumerate() {
