@@ -3,6 +3,8 @@ extern crate bio;
 extern crate itertools; 
 
 use vcf_rider::rider::*;
+use vcf_rider::mutations::*;
+use std::iter::FromIterator;
 use std::env;
 use bio::io::bed;
 use std::path::Path;
@@ -50,13 +52,22 @@ fn main() {
     }
 }
 
-fn prova() -> u32 {
-    return 42u32;
-}
-
 #[test]
 fn test_indel_stats() {
-    assert_eq!(prova(), 42);
+    let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
+    let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
+    let csnp3 = Coordinate{chr: "".to_owned(), start : 30, end : 31};
+    let muts = vec!(Mutation { id: "2".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), 
+                    genotypes : vec!((true, true), (true, false), (false, false),(false, true)), is_indel : true},
+                    Mutation { id: "1".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), 
+                    genotypes : vec!((true, false), (false, false), (false, false),(false, false)), is_indel : true},
+                    Mutation { id: "2".to_owned(), pos: csnp3, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false});
+    let ref mut buffer = VecDeque::<Mutation>::from_iter(muts.into_iter());
+    let n_samples = 4;
+    let mut groups : Vec<u32> =  vec![0; n_samples*2];
+    let n_indel = count_groups(buffer, 2, &mut groups, n_samples);
+    assert_eq!(n_indel, 2);
+    assert_eq!(groups, vec![3, 2, 0, 0, 2, 0, 0, 2]);
 }
 
 fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, groups: &mut Vec<u32>, n_samples: usize) -> u32 {
