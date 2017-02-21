@@ -70,10 +70,41 @@ fn test_indel_stats() {
     assert_eq!(groups, vec![3, 2, 0, 0, 2, 0, 0, 2]);
 }
 
+#[test]
+fn test_indel_stats_2() {
+    let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
+    let csnp2 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
+    let csnp3 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
+    let csnp4 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
+    let csnp5 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
+    let csnp6 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
+    // TOdo RECHECK with the groups tree and individuals the wanted results and genotype tuples!
+    let muts = vec!(Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), 
+                    genotypes : vec!((true, false), (true, false), (true, false), (true, false)), is_indel : true},
+                    Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), 
+                    genotypes : vec!((true, true), (true, true), (false, false),(false, false)), is_indel : true},
+                    Mutation { id: "3".to_owned(), pos: csnp3, sequence_ref: vec!(), sequence_alt: vec!(), 
+                    genotypes : vec!((false, false), (true, true), (false, false),(true, true)), is_indel : true},
+                    Mutation { id: "4".to_owned(), pos: csnp4, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!(), is_indel : false},
+                    Mutation { id: "5".to_owned(), pos: csnp5, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!(), is_indel : false},
+                    Mutation { id: "6".to_owned(), pos: csnp6, sequence_ref: vec!(), sequence_alt: vec!(), 
+                    genotypes : vec!(), is_indel : true},
+                );
+    // Coords are always the same and genotypes for snps are wrong but ideally we should never look at them.
+    // The lst indel should be skipped (it is the first Mutation outside our window in this setup.
+    let ref mut buffer = VecDeque::<Mutation>::from_iter(muts.into_iter());
+    let n_samples = 4;
+    let mut groups : Vec<u32> =  vec![0; n_samples*2];
+    let n_indel = count_groups(buffer, 5, &mut groups, n_samples);
+    assert_eq!(n_indel, 3);
+    assert_eq!(groups, vec![6, 7, 4, 5, 2, 3, 0, 1]); // NAY
+}
+
+
 fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, groups: &mut Vec<u32>, n_samples: usize) -> u32 {
     let mut n_indel = 0;    
     for (i_snp, snp) in snps_buffer.iter().enumerate() {
-        if snp.is_indel && i_snp <= n_overlapping as usize { // i > n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
+        if snp.is_indel && i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
             n_indel += 1;
             if snp.genotypes.iter().any(|x| x.0 || x.1) {
                 // we have a bisection
@@ -86,21 +117,21 @@ fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32
                     groups[i_sample] = match allele.0 {
                         true => match old_group_0 {
                             0 => 1,
-                            _ => 2u32.pow(old_group_0)+1
+                            _ => 2*old_group_0+1
                         },
                         false => match old_group_0 {
                             0 => 0,
-                            _ => 2u32.pow(old_group_0)
+                            _ => 2*old_group_0
                         }
                     };
                     groups[i_sample+n_samples] = match allele.1 {
                         true => match old_group_1 {
                             0 => 1,
-                            _ => 2u32.pow(old_group_1)+1,
+                            _ => 2*old_group_1+1,
                         },
                         false => match old_group_1 {
                             0 => 0,
-                            _ => 2u32.pow(old_group_1)
+                            _ => 2*old_group_1
                         }
                     };
                     /*if allele.0 {
