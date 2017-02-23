@@ -66,12 +66,12 @@ mod tests {
         assert_eq!(muts_iter.len(), 0);
     }
         
-  /*  #[test]
+    #[test]
     fn test_find_overlapping_snps_emptybuffer2() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
-        let muts = vec!(Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))},
-                    Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))});
+        let muts = vec!(Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false},
+                    Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false});
         let window = Coordinate{chr: "".to_owned(), start : 9, end : 30};
         let ref mut buffer = VecDeque::<Mutation>::new();
         let ref mut muts_iter = muts.into_iter();
@@ -86,8 +86,8 @@ mod tests {
     fn test_find_overlapping_snps_emptybuffer3() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
-        let muts = vec!(Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))},
-                    Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))});
+        let muts = vec!(Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false},
+                    Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false});
         let window = Coordinate{chr: "".to_owned(), start : 5, end : 7};
         let ref mut buffer = VecDeque::<Mutation>::new();
         let ref mut muts_iter = muts.into_iter();
@@ -103,8 +103,8 @@ mod tests {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
         let muts = Vec::new();
-        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
-        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false};
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false};
         let ref mut buffer = VecDeque::from(vec!(mut1, mut2));
         let window = Coordinate{chr: "".to_owned(), start : 5, end : 30};
         let ref mut muts_iter = muts.into_iter();
@@ -120,8 +120,8 @@ mod tests {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
         let muts = Vec::new();
-        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
-        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false};
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false};
         let ref mut buffer = VecDeque::from(vec!(mut1, mut2));
         let window = Coordinate{chr: "".to_owned(), start : 5, end : 7};
         let ref mut muts_iter = muts.into_iter();
@@ -138,9 +138,9 @@ mod tests {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
         let muts = Vec::new();
-        let mut0 = Mutation { id: "0".to_owned(), pos: csnp0, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
-        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
-        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
+        let mut0 = Mutation { id: "0".to_owned(), pos: csnp0, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false};
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false};
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false};
         let ref mut buffer = VecDeque::from(vec!(mut0, mut1, mut2));
         let window = Coordinate{chr: "".to_owned(), start : 5, end : 7};
         let ref mut muts_iter = muts.into_iter();
@@ -156,8 +156,8 @@ mod tests {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
         let muts = Vec::new();
-        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
-        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false};
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false};
         let ref mut buffer = VecDeque::from(vec!(mut1, mut2));
         let window = Coordinate{chr: "".to_owned(), start : 25, end : 37};
         let ref mut muts_iter = muts.into_iter();
@@ -172,10 +172,10 @@ mod tests {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
         let csnp3 = Coordinate{chr: "".to_owned(), start : 23, end : 24};
-        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
-        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))};
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false};
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false};
         let mut buffer = VecDeque::from(vec!(mut1, mut2)); 
-        let muts = vec!(Mutation { id: "3".to_owned(), pos: csnp3, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true))});
+        let muts = vec!(Mutation { id: "3".to_owned(), pos: csnp3, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false});
         let mut muts_iter = muts.into_iter();
         let window = Coordinate{chr: "".to_owned(), start : 15, end : 37};
         let n_ov = rider::find_overlapping_snps(&window, &mut muts_iter, &mut buffer);
@@ -202,8 +202,8 @@ mod tests {
     fn test_encode_genotypes() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
-        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((false, true))};
-        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, false))};
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((false, true)), is_indel : false};
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, false)), is_indel : false};
         let buffer = VecDeque::from(vec!(mut1, mut2));
         let indexes = rider::encode_genotypes(&buffer, 2u32, 1usize);
         // We have one individual, two overlapping snps and our guy is indexed as 10 ->  2 and 01 -> 1
@@ -214,8 +214,8 @@ mod tests {
     fn test_encode_genotypes_single_snp() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
-        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((false, true))};
-        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, false))};
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((false, true)), is_indel : false};
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, false)), is_indel : false};
         let buffer = VecDeque::from(vec!(mut1, mut2));
         let indexes = rider::encode_genotypes(&buffer, 1u32, 1usize);
         // We have one individual, one overlapping snps and our guy is indexed as 0 -> 0 and 1 -> 1
@@ -226,8 +226,8 @@ mod tests {
     fn test_obtain_seq_two_snps() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 1, end : 2};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 3, end : 4};
-        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(1), sequence_alt: vec!(3), genotypes : vec!((false, true))}; // T-C
-        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(2), sequence_alt: vec!(0), genotypes : vec!((true, false))}; // G-A
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(1), sequence_alt: vec!(3), genotypes : vec!((false, true)), is_indel : false}; // T-C
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(2), sequence_alt: vec!(0), genotypes : vec!((true, false)), is_indel : false}; // G-A
         let buffer = VecDeque::from(vec!(mut1, mut2));
         let reference = fasta::Fasta{id: "".to_owned(), sequence: vec!(0,1,0,2), background : vec!()}; // ATAG
         let window = Coordinate{chr: "".to_owned(), start: 0, end: 4};
@@ -246,8 +246,8 @@ mod tests {
         // Just to test window positioning.
         let csnp1 = Coordinate{chr: "".to_owned(), start : 11, end : 12};
         let csnp2 = Coordinate{chr: "".to_owned(), start : 13, end : 14};
-        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(1), sequence_alt: vec!(3), genotypes : vec!((false, true))}; // T-C
-        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(2), sequence_alt: vec!(0), genotypes : vec!((true, false))}; // G-A
+        let mut1 = Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(1), sequence_alt: vec!(3), genotypes : vec!((false, true)), is_indel : false}; // T-C
+        let mut2 = Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(2), sequence_alt: vec!(0), genotypes : vec!((true, false)), is_indel : false}; // G-A
         let buffer = VecDeque::from(vec!(mut1, mut2));
         let reference = fasta::Fasta{id: "".to_owned(), sequence: vec!(0,0,0,0,0,0,0,0,0,0,0,1,0,2), background : vec!()}; // ATAG
         let window = Coordinate{chr: "".to_owned(), start: 10, end: 14};
@@ -259,7 +259,7 @@ mod tests {
         assert_eq!(seqs[2], vec!(0,1,0,0));
         assert_eq!(seqs[3], vec!(0,3,0,0));
         assert_eq!(seqs.len(), 4);
-    }*/
+    }
 }
 
 
