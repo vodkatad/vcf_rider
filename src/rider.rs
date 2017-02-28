@@ -106,12 +106,18 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             println!("{:?}", rev_groups);
             for chr_samples in rev_groups.iter() {
                 let mut pos = record.start();
-                let n_wanted_samples = chr_samples.len() / 2;
+                let mut samples : Vec<u32> = Vec::new();
+                for allele in chr_samples.iter() {
+                    samples.push(allele % n_samples as u32);  // These are the samples id.
+                }
+                let n_wanted_samples = samples.len() / 2;
+                //let ordered_samples = samples.iter().collect().sort();
+                let n_alleles = chr_samples.len();
                 //println!("{}", n_wanted_samples);
                 // We change the indexing of individuals separating chrM and chrP to handle groups 
                 // with different indels combo later on.
-                let mut scores : Vec<Vec<f64>> = vec![vec![0f64; n_wanted_samples*2]; n_pwm];
-                let mut idx_for_seq  : Vec<(usize, bool)> = Vec::<(usize, bool)>::with_capacity(n_wanted_samples*2);
+                let mut scores : Vec<Vec<f64>> = vec![vec![0f64; n_alleles]; n_pwm];
+                let mut idx_for_seq  : Vec<(usize, bool)> = Vec::<(usize, bool)>::with_capacity(n_alleles);
                 //let mut scores = vec![vec![(0f64); n_wanted_samples*2]; n_pwm]; // Horrible.
                 while pos < record.end() {  // we do not do pos + params.max_len < r.end to avoid cumbersome management for the last portion
                     let mut wend = pos+params.max_len as u64;
@@ -123,7 +129,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     let n_overlapping = end_ov - start_ov;
                     println!("for window {}-{} n_ov {}", pos, wend, n_overlapping);
                     // TODO: pass fixed-size vector to be filled with indices.
-                    let genotypes : Vec<(usize)> = encode_genotypes(&snps_buffer, start_ov, end_ov, n_wanted_samples, &chr_samples);
+                    let genotypes : Vec<(usize)> = encode_genotypes(&snps_buffer, start_ov, end_ov, n_wanted_samples, &samples);
                     // BEWARE: indexes of samples in the encoded genotypes are not == as the final ones.
                     let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
                     obtain_seq(& window, & snps_buffer, start_ov, end_ov, n_overlapping, & referenceseq, & genotypes, &mut seqs);
@@ -258,16 +264,18 @@ pub fn find_overlapping_snps_inner(window: & mutations::Coordinate, snps_buffer:
     let mut first_ov = 0u32;
     let mut last_ov = 0u32;
     let mut not_seen = true;
-    let mut mut_iter = snps_buffer.iter();
+    let mut mut_iter : Vec<& mutations::Mutation> = snps_buffer.into_iter().collect();
+    println!("buffer {:?}", snps_buffer);
     let mut i = 0;
-    while let Some(next_mut) = mut_iter.next() {
+    while let Some(next_mut) = mut_iter.get(i) {
         match window.relative_position(& next_mut.pos) {
             mutations::Position::Overlapping => {
                 if not_seen {
-                    first_ov = i;
+                    first_ov = i as u32;
                     not_seen = false;
                 }
-                last_ov = i;
+                last_ov = i as u32;
+                println!("for window {} {} ov_from {} ov_to {:?}", window.start, window.end, i, next_mut.pos);
             },
             mutations::Position::After => {},
             mutations::Position::Before => {
@@ -303,10 +311,14 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     for i in 1..2usize.pow(n_overlapping) {
         // if i in indexes
         let mut seq_to_mutate = ref_seq.to_owned();
+        println!("start ov {} end ov {}", start_ov, end_ov);
         for j in start_ov .. end_ov {
+            println!("yay");
+            // j does not start from 0 therefore this if is not working
             if (i >> j) & 1 == 1 {
+                println!("naya");
                 let this_mut = snps_buffer.get(j as usize).unwrap();
-                //println!("this mut {} s {} ov_snp {}", this_mut.pos.start, s, j);
+                println!("this mut {} s {} ov_snp {}", this_mut.pos.start, s, j);
                 seq_to_mutate[this_mut.pos.start as usize - s] = this_mut.sequence_alt[0]; 
                 // 0 works only for single SNPs, like everything else right now. // FIXME_INDELS
             }
