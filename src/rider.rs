@@ -315,7 +315,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
         for j in start_ov .. end_ov {
             println!("yay");
             // j does not start from 0 therefore this if is not working
-            if (i >> j) & 1 == 1 {
+            if (i >> (j-start_ov)) & 1 == 1 {
                 println!("naya");
                 let this_mut = snps_buffer.get(j as usize).unwrap();
                 println!("this mut {} s {} ov_snp {}", this_mut.pos.start, s, j);
