@@ -30,7 +30,7 @@ fn main() {
             
             let n_samples = vcf_reader.samples.len();
             let mut snps_buffer : VecDeque<mutations::Mutation> = VecDeque::new();
-            // We initialize a vector that as indexes has chr_samples ids (chr_M sample 1: 1, chr_P sample 1: 2 ..) and
+            // We initialize a vector that as indexes has chr_samples ids (chr_M sample 1: 0, chr_P sample 1: n_samples ..) and
             // as values the group id.
             for r in bed_reader.records() {
                 let mut groups : Vec<u32> =  vec![0; n_samples*2]; // Vec::with_capacity(n_samples*2);
@@ -39,7 +39,7 @@ fn main() {
                 // chr check
                 // add real windows (length 30) and compute n. of samples in different groups foreach position.
                 let window = mutations::Coordinate{chr: "".to_owned(), start: record.start(), end: record.end()};
-                let n_overlapping = find_overlapping_snps(& window, &mut vcf_reader, &mut snps_buffer);      
+                let n_overlapping = find_overlapping_snps_outer(& window, &mut vcf_reader, &mut snps_buffer);      
                 let n_indel = count_groups(&snps_buffer, n_overlapping, &mut groups, n_samples);
                 let n_groups = groups.iter().max().unwrap()+1;
                 let group_structure = groups.into_iter().enumerate().map(|x| 
