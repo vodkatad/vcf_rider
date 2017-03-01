@@ -308,7 +308,12 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
             // j does not start from 0 therefore this if is not working
             if (i >> (j-start_ov)) & 1 == 1 {
                 let this_mut = snps_buffer.get(j as usize).unwrap();
-                seq_to_mutate[this_mut.pos.start as usize - s] = this_mut.sequence_alt[0]; 
+                seq_to_mutate[this_mut.pos.start as usize - s] = this_mut.sequence_alt[0];  
+                // If sequence_alt and sequence_ref will work for indels we will probably need to fill the else branch and instead of modifying the slice in place
+                // adding to a String.
+                // Should we worry about coords? The set of sequences returned will have different lengths but this is already managed using s.len() correctly.
+                // Coords management should keep in consideration indels for determining overlapping SNPs on subsequent windows for this group in this bed.
+                // Maybe this function could return the n. of nucleotide added/removed form the reference. The code to manage overlaps should consider lengths.
                 // 0 works only for single SNPs, like everything else right now. // FIXME_INDELS
             }
         }
