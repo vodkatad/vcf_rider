@@ -15,7 +15,7 @@ mod tests {
     use fasta;
     use rider;
     use std::collections::VecDeque;
-    
+
     #[test]
     fn test_relative_position() {
         // Completely inside.
@@ -49,7 +49,8 @@ mod tests {
         assert_eq!(c1.relative_position(&c2), Position::Overlapping);
         assert_eq!(c2.relative_position(&c1), Position::Overlapping);
     } 
-    
+
+    /*    
     #[test]
     fn test_find_overlapping_snps_emptybuffer1() {
         let csnp1 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
