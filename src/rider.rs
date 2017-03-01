@@ -89,13 +89,11 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
         // chr check
         for r in bed_reader.records() {
             let record = r.ok().expect("Error reading record");
-            println!("bed name: {}", record.name().expect("Error reading name"));
             // chr check
             let mut groups : Vec<u32> =  vec![0; n_samples*2]; // Vec::with_capacity(n_samples*2);
             let bed_window = mutations::Coordinate{chr: "".to_owned(), start: record.start(), end: record.end()};
             let n_overlapping = find_overlapping_snps_outer(& bed_window, &mut vcf_reader, &mut snps_buffer);      
             count_groups(&snps_buffer, n_overlapping, &mut groups, n_samples);
-            println!("{:?} {}", groups, n_overlapping);
             let n_groups = groups.iter().max().unwrap();
             let n = *n_groups as usize;
             let mut rev_groups : Vec<Vec<u32>> = vec![Vec::new(); n+1]; // functional way to do this?
@@ -103,7 +101,6 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             for (sample, group) in groups.iter().enumerate() {
                 rev_groups[*group as usize].push(sample as u32); // Mh, use all usize and stop? XXX
             }
-            println!("{:?}", rev_groups);
             for chr_samples in rev_groups.iter() {
                 let mut pos = record.start();
                 let mut samples : Vec<u32> = Vec::new();
@@ -125,9 +122,8 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                         wend = record.end();
                     }
                     let window = mutations::Coordinate{chr: "".to_owned(), start: pos, end: wend};
-                    let (start_ov, end_ov) = find_overlapping_snps_inner(& window, & snps_buffer); // FIXME indel
+                    let (start_ov, end_ov) = find_overlapping_snps_inner(& window, & snps_buffer);
                     let n_overlapping = end_ov - start_ov;
-                    println!("for window {}-{} n_ov {}", pos, wend, n_overlapping);
                     // TODO: pass fixed-size vector to be filled with indices.
                     let genotypes : Vec<(usize)> = encode_genotypes(&snps_buffer, start_ov, end_ov, n_wanted_samples, &samples);
                     // BEWARE: indexes of samples in the encoded genotypes are not == as the final ones.
@@ -144,7 +140,6 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     // ones and we will check to call get_score only on the right parameters
                     // for every p params.parameters call on seq
                     for (i, s) in seqs.iter().enumerate() {
-                        println!("seq {} {:?}", i, s);
                         // if i in indexes genotypes -> function that checks if it's there and fills a vector (idx_for_seq) with the indexes of the individuals that
                         if match_indexes(i, &mut idx_for_seq, &genotypes) {
                             // needs this score (i, 0|1)
@@ -265,7 +260,6 @@ pub fn find_overlapping_snps_inner(window: & mutations::Coordinate, snps_buffer:
     let mut last_ov = 0u32;
     let mut not_seen = true;
     let mut mut_iter : Vec<& mutations::Mutation> = snps_buffer.into_iter().collect();
-    println!("buffer {:?}", snps_buffer);
     let mut i = 0;
     while let Some(next_mut) = mut_iter.get(i) {
         match window.relative_position(& next_mut.pos) {
@@ -275,7 +269,6 @@ pub fn find_overlapping_snps_inner(window: & mutations::Coordinate, snps_buffer:
                     not_seen = false;
                 }
                 last_ov = i as u32;
-                println!("for window {} {} ov_from {} ov_to {:?}", window.start, window.end, i, next_mut.pos);
             },
             mutations::Position::After => {},
             mutations::Position::Before => {
@@ -311,14 +304,10 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     for i in 1..2usize.pow(n_overlapping) {
         // if i in indexes
         let mut seq_to_mutate = ref_seq.to_owned();
-        println!("start ov {} end ov {}", start_ov, end_ov);
         for j in start_ov .. end_ov {
-            println!("yay");
             // j does not start from 0 therefore this if is not working
             if (i >> (j-start_ov)) & 1 == 1 {
-                println!("naya");
                 let this_mut = snps_buffer.get(j as usize).unwrap();
-                println!("this mut {} s {} ov_snp {}", this_mut.pos.start, s, j);
                 seq_to_mutate[this_mut.pos.start as usize - s] = this_mut.sequence_alt[0]; 
                 // 0 works only for single SNPs, like everything else right now. // FIXME_INDELS
             }
