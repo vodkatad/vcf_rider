@@ -259,7 +259,7 @@ pub fn find_overlapping_snps_inner(window: & mutations::Coordinate, snps_buffer:
     let mut first_ov = 0u32;
     let mut last_ov = 0u32;
     let mut not_seen = true;
-    let mut mut_iter : Vec<& mutations::Mutation> = snps_buffer.into_iter().collect();
+    let mut_iter : Vec<& mutations::Mutation> = snps_buffer.into_iter().collect();
     let mut i = 0;
     while let Some(next_mut) = mut_iter.get(i) {
         match window.relative_position(& next_mut.pos) {

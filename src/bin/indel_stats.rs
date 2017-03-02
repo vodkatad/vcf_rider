@@ -58,10 +58,10 @@ fn test_indel_stats() {
     let csnp2 = Coordinate{chr: "".to_owned(), start : 20, end : 21};
     let csnp3 = Coordinate{chr: "".to_owned(), start : 30, end : 31};
     let muts = vec!(Mutation { id: "2".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), 
-                    genotypes : vec!((true, true), (true, false), (false, false),(false, true)), is_indel : true},
+                    genotypes : vec!((true, true), (true, false), (false, false),(false, true)), is_indel : true, del_length: 0},
                     Mutation { id: "1".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), 
-                    genotypes : vec!((true, false), (false, false), (false, false),(false, false)), is_indel : true},
-                    Mutation { id: "2".to_owned(), pos: csnp3, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false});
+                    genotypes : vec!((true, false), (false, false), (false, false),(false, false)), is_indel : true, del_length: 0},
+                    Mutation { id: "2".to_owned(), pos: csnp3, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!((true, true)), is_indel : false, del_length: 0});
     let ref mut buffer = VecDeque::<Mutation>::from_iter(muts.into_iter());
     let n_samples = 4;
     let mut groups : Vec<u32> =  vec![0; n_samples*2];
@@ -80,15 +80,15 @@ fn test_indel_stats_2() {
     let csnp6 = Coordinate{chr: "".to_owned(), start : 10, end : 11};
     // TOdo RECHECK with the groups tree and individuals the wanted results and genotype tuples!
     let muts = vec!(Mutation { id: "1".to_owned(), pos: csnp1, sequence_ref: vec!(), sequence_alt: vec!(), 
-                    genotypes : vec!((true, false), (true, false), (true, false), (true, false)), is_indel : true},
+                    genotypes : vec!((true, false), (true, false), (true, false), (true, false)), is_indel : true, del_length: 0},
                     Mutation { id: "2".to_owned(), pos: csnp2, sequence_ref: vec!(), sequence_alt: vec!(), 
-                    genotypes : vec!((true, true), (true, true), (false, false),(false, false)), is_indel : true},
+                    genotypes : vec!((true, true), (true, true), (false, false),(false, false)), is_indel : true, del_length: 0},
                     Mutation { id: "3".to_owned(), pos: csnp3, sequence_ref: vec!(), sequence_alt: vec!(), 
-                    genotypes : vec!((false, false), (true, true), (false, false),(true, true)), is_indel : true},
-                    Mutation { id: "4".to_owned(), pos: csnp4, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!(), is_indel : false},
-                    Mutation { id: "5".to_owned(), pos: csnp5, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!(), is_indel : false},
+                    genotypes : vec!((false, false), (true, true), (false, false),(true, true)), is_indel : true, del_length: 0},
+                    Mutation { id: "4".to_owned(), pos: csnp4, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!(), is_indel : false, del_length: 0},
+                    Mutation { id: "5".to_owned(), pos: csnp5, sequence_ref: vec!(), sequence_alt: vec!(), genotypes : vec!(), is_indel : false, del_length: 0},
                     Mutation { id: "6".to_owned(), pos: csnp6, sequence_ref: vec!(), sequence_alt: vec!(), 
-                    genotypes : vec!(), is_indel : true},
+                    genotypes : vec!(), is_indel : true, del_length: 0},
                 );
     // Coords are always the same and genotypes for snps are wrong but ideally we should never look at them.
     // The lst indel should be skipped (it is the first Mutation outside our window in this setup.

@@ -42,7 +42,8 @@ pub struct Mutation {
     pub sequence_ref: Vec<u8>,
     pub sequence_alt: Vec<u8>,
     pub genotypes: Vec<(bool, bool)>,
-    pub is_indel: bool
+    pub is_indel: bool,
+    pub del_length: u8
 }
 
 pub struct VcfReader {
@@ -137,6 +138,19 @@ impl Iterator for VcfReader {
                 panic!("Cannot manage multi-allelic SNPs! {:?}", alt) // maybe simply skip?
             }
             let alte = get_sequence(&alt);
+            let mut del_len = 0;
+            if alte == vec![6u8, 6u8, 6u8] {
+                let info_end = record.info("END".as_bytes()).integer();
+                //let end = match info_end.unwrap_or_else(panic!("VCF with a <DEL> and no END info!")) {let end = match info_end.unwrap_or_else(panic!("VCF with a <DEL> and no END info!")) {
+                let end = match info_end.unwrap() {
+                    Some(l) => l,
+                    None => panic!("VCF with a <DEL> and an END info not good"),
+                };
+                if end.len() > 1 || end[0] < 0 {
+                    panic!("Multiallelic snp or wrong end");
+                }
+                del_len = end[0] as u8;
+            }
             //println!("alt {}", alt.iter().map(|x| *x as char).join(""));
             // remember trim_alleles(&mut self)
 
@@ -149,7 +163,7 @@ impl Iterator for VcfReader {
             let pos = Coordinate { chr: chr, start: coord, end: coord+1}; // Right now only Snps.
             let indel = refe.len() != 1 || alte.len() != 1;
             println!("ref {:?} alt {:?}", refe, alte);
-            Some(Mutation { id: id, pos: pos, sequence_ref: refe, sequence_alt: alte, genotypes : genotypes, is_indel : indel})
+            Some(Mutation { id: id, pos: pos, sequence_ref: refe, sequence_alt: alte, genotypes : genotypes, is_indel : indel, del_length: del_len})
         } else {
             return None;
         }
