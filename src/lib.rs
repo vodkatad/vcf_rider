@@ -260,7 +260,7 @@ mod tests {
         assert_eq!(seqs[2], vec!(0,1,0,0));
         assert_eq!(seqs[3], vec!(0,3,0,0));
         assert_eq!(seqs.len(), 4);
-    }
-}
+    }*/
+} 
 
 

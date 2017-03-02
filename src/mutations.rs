@@ -148,6 +148,7 @@ impl Iterator for VcfReader {
  
             let pos = Coordinate { chr: chr, start: coord, end: coord+1}; // Right now only Snps.
             let indel = refe.len() != 1 || alte.len() != 1;
+            println!("ref {:?} alt {:?}", refe, alte);
             Some(Mutation { id: id, pos: pos, sequence_ref: refe, sequence_alt: alte, genotypes : genotypes, is_indel : indel})
         } else {
             return None;
