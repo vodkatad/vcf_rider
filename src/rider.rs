@@ -288,13 +288,14 @@ pub fn find_overlapping_snps_inner(window: & mutations::Coordinate, snps_buffer:
 
 #[allow(unused_variables)]
 pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, start_ov: u32, end_ov: u32, n_overlapping: u32,
-                  reference: & fasta::Fasta, genotypes : &Vec<usize>, seqs : &mut Vec<Vec<u8>>) {
+                  reference: & fasta::Fasta, genotypes : &Vec<usize>, seqs : &mut Vec<Vec<u8>>) -> u64 {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences
     let ref_seq : &[u8];
     let s = window.start as usize;
     let mut e = window.end as usize;
+    let mut len = window.end - window.start;
     if e > reference.sequence.len() {
         e = reference.sequence.len();
     }
@@ -308,7 +309,38 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
             // j does not start from 0 therefore this if is not working
             if (i >> (j-start_ov)) & 1 == 1 {
                 let this_mut = snps_buffer.get(j as usize).unwrap();
-                seq_to_mutate[this_mut.pos.start as usize - s] = this_mut.sequence_alt[0];  
+                if this_mut.is_indel {
+                    let ref mut after_mut = seq_to_mutate.split_off(this_mut.pos.start as usize);
+                    // better to use remove/insert?
+                    if this_mut.sequence_alt == vec![6u8, 6u8, 6u8] { 
+                        // <DEL>, large deletion.
+                        len -= this_mut.pos.end - this_mut.pos.start;
+                        //after_mut.reverse().truncate(len);
+                        for k in 0 .. len as usize {
+                            after_mut.remove(k);
+                        }
+                    } else { 
+                        // small IN or DEL.
+                        // This code should be moved inside Mutation
+                        let ref_len = this_mut.sequence_ref.len();
+                        let alt_len = this_mut.sequence_alt.len(); // what is the cost of calling .len()?
+                        if ref_len > alt_len {
+                            // DEL
+                            len -= (ref_len - alt_len) as u64;
+                            //after_mut.reverse().truncate(len);
+                            for k in 0 .. len as usize {
+                               after_mut.remove(k);
+                            }
+                        } else {
+                            // IN
+                            len += (ref_len - alt_len) as u64;
+                            seq_to_mutate.append(& mut this_mut.sequence_alt.to_owned());
+                        }
+                    }
+                    seq_to_mutate.append(after_mut);
+                } else {
+                    seq_to_mutate[this_mut.pos.start as usize - s] = this_mut.sequence_alt[0];  
+                }
                 // If sequence_alt and sequence_ref will work for indels we will probably need to fill the else branch and instead of modifying the slice in place
                 // adding to a String.
                 // Should we worry about coords? The set of sequences returned will have different lengths but this is already managed using s.len() correctly.
@@ -319,6 +351,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
         }
         seqs.push(seq_to_mutate);
     }
+    len
 }
 
 pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, start_ov: u32, end_ov: u32, n_samples: usize, id_samples: & Vec<u32>) -> Vec<usize> {
