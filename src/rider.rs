@@ -320,7 +320,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                     // better to use remove/insert?
                     if this_mut.sequence_alt == vec![6u8, 6u8, 6u8] { 
                         // <DEL>, large deletion.
-                        let mut del_len = this_mut.pos.end - this_mut.pos.start;
+                        let mut del_len = this_mut.indel_len as u64;
                         //after_mut.reverse().truncate(len);
                         if del_len > after_mut.len() as u64 {
                             del_len = after_mut.len() as u64;
@@ -333,11 +333,10 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                     } else { 
                         // small IN or DEL.
                         // This code should be moved inside Mutation
-                        let ref_len = this_mut.sequence_ref.len();
-                        let alt_len = this_mut.sequence_alt.len(); // what is the cost of calling .len()?
-                        if ref_len > alt_len {
+                        let indel_len = this_mut.indel_len as i64;
+                        if indel_len > 0 {
                             // DEL
-                            let mut del_len = (ref_len - alt_len) as u64;
+                            let mut del_len = indel_len as u64;
                             //after_mut.reverse().truncate(len);
                             if del_len > after_mut.len() as u64 {
                                 del_len = after_mut.len() as u64;
@@ -349,7 +348,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                             }
                         } else {
                             // IN
-                            let in_len = (alt_len - ref_len) as u64;
+                            let in_len = -indel_len as u64;
                             len += in_len;
                             this_window_start -= in_len as usize; // overflow if bed starts at coord 0 and we have an indel there XXX TODO
                             seq_to_mutate.append(& mut this_mut.sequence_alt.to_owned());

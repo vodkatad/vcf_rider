@@ -38,11 +38,13 @@ impl Coordinate {
 #[derive(Debug)]
 pub struct Mutation {
     pub id: String,
-    pub pos: Coordinate,
+    pub pos: Coordinate, // Always end=start+1 to compute overlaps safely.
     pub sequence_ref: Vec<u8>,
     pub sequence_alt: Vec<u8>,
     pub genotypes: Vec<(bool, bool)>,
-    pub is_indel: bool
+    pub is_indel: bool,
+    pub indel_len: i64 // We use this to store the length of indels instead of pos.end.
+    // the length of insertions is negative
 }
 
 pub struct VcfReader {
@@ -137,7 +139,8 @@ impl Iterator for VcfReader {
                 panic!("Cannot manage multi-allelic SNPs! {:?}", alt) // maybe simply skip?
             }
             let alte = get_sequence(&alt);
-            let mut end_coord = coord + 1; // for SNPs
+            let mut len = 1;
+            let indel = refe.len() != 1 || alte.len() != 1;
             if alte == vec![6u8, 6u8, 6u8] {
                 let info_end = record.info("END".as_bytes()).integer();
                 //let end = match info_end.unwrap_or_else(panic!("VCF with a <DEL> and no END info!")) {let end = match info_end.unwrap_or_else(panic!("VCF with a <DEL> and no END info!")) {
@@ -148,10 +151,15 @@ impl Iterator for VcfReader {
                 if end.len() > 1 || end[0] < 0 {
                     panic!("Multiallelic snp or wrong end");
                 }
-                end_coord = end[0] as u64 -1; // minus one to go back to 0 based coords even for this one (I believe that the lib does not fix this).
+                len = (end[0] as i64 -1) - coord as i64; // minus one to go back to 0 based coords even for this one (I believe that the lib does not fix this).
                 // Following vcf v4.2 specs the length is only "approximate", but it is ok to use end - pos (end is exclusive).
+            } else if indel {
+                let ref_len = refe.len();
+                let alt_len = alte.len(); // what is the cost of calling .len()?
+                len = (ref_len as i64 - alt_len as i64) as i64;
+                // IN have a negative length, DEL a positive one.
             }
-            let pos = Coordinate { chr: chr, start: coord, end: end_coord}; // Right now only snps and <DEL>. Small indels are managed in rider.rs (TODO move here)
+            let pos = Coordinate { chr: chr, start: coord, end: coord+1}; 
             //println!("alt {}", alt.iter().map(|x| *x as char).join(""));
             // remember trim_alleles(&mut self)
 
@@ -161,9 +169,8 @@ impl Iterator for VcfReader {
                                 decode_genotype(geno_str, self.accept_phased)
                             }).collect_vec(); //useful to pre alloc?  Vec::<(bool, bool)>::with_capacity(self.samples.len());
  
-            let indel = refe.len() != 1 || alte.len() != 1;
-            //println!("ref {:?} alt {:?}", refe, alte);
-            Some(Mutation { id: id, pos: pos, sequence_ref: refe, sequence_alt: alte, genotypes : genotypes, is_indel : indel})
+            println!("ref {:?} alt {:?} s {} e{} len {}", refe, alte, pos.start, pos.end, len);
+            Some(Mutation { id: id, pos: pos, sequence_ref: refe, sequence_alt: alte, genotypes : genotypes, is_indel : indel, indel_len : len})
         } else {
             return None;
         }
