@@ -1,3 +1,5 @@
+- I must consider indel lengths when it comes to overlap when working on windows, so get_overlapping_inner should use a different
+  criterium than get_overlapping_outer and use info about lengths of obtained seqs...
 - indel stats
 let mut groups : Vec<Vec<u8>> = Vec::with_capacity(1);
             groups.push(vec![0 .. n_samples*2]); // in this way it is not easy to understand the group of a sample

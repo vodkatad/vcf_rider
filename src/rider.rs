@@ -131,7 +131,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
                     let len_seq = obtain_seq(& window, & snps_buffer, start_ov, end_ov, n_overlapping, & referenceseq, & genotypes, &mut seqs);
                     // TODO manage coords and len.
-                    println!("for group {:?} in window {} the window is of len {}", chr_samples, pos, len_seq);
+                    println!("for group {:?} in window {} the window is of len {:?}", chr_samples, pos, len_seq);
                     // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
                     // seqs will be ordered in a specific order: the first one is the reference one and the last one
                     // the one with all mutated alleles.  Every SNP status is encoded by 0 if it is reference and 1 if it is
@@ -291,14 +291,17 @@ pub fn find_overlapping_snps_inner(window: & mutations::Coordinate, snps_buffer:
 
 #[allow(unused_variables)]
 pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, start_ov: u32, end_ov: u32, n_overlapping: u32,
-                  reference: & fasta::Fasta, genotypes : &Vec<usize>, seqs : &mut Vec<Vec<u8>>) -> u64 {
+                  reference: & fasta::Fasta, genotypes : &Vec<usize>, seqs : &mut Vec<Vec<u8>>) -> Vec<u64> {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences
     let ref_seq : &[u8];
     let s = window.start as usize;
     let mut e = window.end as usize;
-    let mut len = window.end - window.start;
+    let len = window.end - window.start;
+    let n = 2usize.pow(n_overlapping);
+    let mut lens: Vec<u64> = Vec::with_capacity(n);
+    lens.push(len);
     if e > reference.sequence.len() {
         e = reference.sequence.len();
     }
@@ -308,6 +311,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     for i in 1..2usize.pow(n_overlapping) {
         // if i in indexes
         let mut seq_to_mutate = ref_seq.to_owned();
+        let mut len = window.end - window.start;
         let mut this_window_start = s;
         for j in start_ov .. end_ov {
             // j does not start from 0 therefore this if is not working
@@ -366,9 +370,11 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                 // 0 works only for single SNPs, like everything else right now. // FIXME_INDELS
             }
         }
+        println!("encoded {}  window.start {} fixed window start {} seq {:?}", i, s, this_window_start,  seq_to_mutate);
         seqs.push(seq_to_mutate);
+        lens.push(len);
     }
-    len
+    lens
 }
 
 pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, start_ov: u32, end_ov: u32, n_samples: usize, id_samples: & Vec<u32>) -> Vec<usize> {
