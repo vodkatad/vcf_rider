@@ -124,12 +124,14 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     let window = mutations::Coordinate{chr: "".to_owned(), start: pos, end: wend};
                     let (start_ov, end_ov) = find_overlapping_snps_inner(& window, & snps_buffer);
                     let n_overlapping = end_ov - start_ov;
+                    println!("for group {:?} in window {} n_overlapping {} wend{}", chr_samples, pos,  n_overlapping, wend);
                     // TODO: pass fixed-size vector to be filled with indices.
                     let genotypes : Vec<(usize)> = encode_genotypes(&snps_buffer, start_ov, end_ov, n_wanted_samples, &samples);
                     // BEWARE: indexes of samples in the encoded genotypes are not == as the final ones.
                     let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
-                    obtain_seq(& window, & snps_buffer, start_ov, end_ov, n_overlapping, & referenceseq, & genotypes, &mut seqs);
-                    //println!("genotypes {:?}", genotypes);
+                    let len_seq = obtain_seq(& window, & snps_buffer, start_ov, end_ov, n_overlapping, & referenceseq, & genotypes, &mut seqs);
+                    // TODO manage coords and len.
+                    println!("for group {:?} in window {} the window is of len {}", chr_samples, pos, len_seq);
                     // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
                     // seqs will be ordered in a specific order: the first one is the reference one and the last one
                     // the one with all mutated alleles.  Every SNP status is encoded by 0 if it is reference and 1 if it is
@@ -264,6 +266,7 @@ pub fn find_overlapping_snps_inner(window: & mutations::Coordinate, snps_buffer:
     while let Some(next_mut) = mut_iter.get(i) {
         match window.relative_position(& next_mut.pos) {
             mutations::Position::Overlapping => {
+                println!("for window {} {} seen ov {} {}", window.start, window.end, next_mut.pos.start, next_mut.pos.end);
                 if not_seen {
                     first_ov = i as u32;
                     not_seen = false;
@@ -305,19 +308,27 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     for i in 1..2usize.pow(n_overlapping) {
         // if i in indexes
         let mut seq_to_mutate = ref_seq.to_owned();
+        let mut this_window_start = s;
         for j in start_ov .. end_ov {
             // j does not start from 0 therefore this if is not working
             if (i >> (j-start_ov)) & 1 == 1 {
                 let this_mut = snps_buffer.get(j as usize).unwrap();
                 if this_mut.is_indel {
-                    let ref mut after_mut = seq_to_mutate.split_off(this_mut.pos.start as usize);
+                    // TODO reason about multiple indels!
+                    println!("encoding {} mut.start {}  window.start {} fixed window start {} seq {:?}", i, this_mut.pos.start, s, this_window_start,  seq_to_mutate);
+                    let ref mut after_mut = seq_to_mutate.split_off(this_mut.pos.start as usize - this_window_start);
                     // better to use remove/insert?
                     if this_mut.sequence_alt == vec![6u8, 6u8, 6u8] { 
                         // <DEL>, large deletion.
-                        len -= this_mut.pos.end - this_mut.pos.start;
+                        let mut del_len = this_mut.pos.end - this_mut.pos.start;
                         //after_mut.reverse().truncate(len);
-                        for k in 0 .. len as usize {
-                            after_mut.remove(k);
+                        if del_len > after_mut.len() as u64 {
+                            del_len = after_mut.len() as u64;
+                        }
+                        len -= del_len;
+                        for k in 0 .. del_len as usize {
+                            after_mut.remove(0);
+                            this_window_start += 1;
                         }
                     } else { 
                         // small IN or DEL.
@@ -326,20 +337,27 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                         let alt_len = this_mut.sequence_alt.len(); // what is the cost of calling .len()?
                         if ref_len > alt_len {
                             // DEL
-                            len -= (ref_len - alt_len) as u64;
+                            let mut del_len = (ref_len - alt_len) as u64;
                             //after_mut.reverse().truncate(len);
-                            for k in 0 .. len as usize {
-                               after_mut.remove(k);
+                            if del_len > after_mut.len() as u64 {
+                                del_len = after_mut.len() as u64;
+                            }
+                            len -= del_len;
+                            for k in 0 .. del_len as usize {
+                               after_mut.remove(0);
+                               this_window_start += 1;
                             }
                         } else {
                             // IN
-                            len += (ref_len - alt_len) as u64;
+                            let in_len = (alt_len - ref_len) as u64;
+                            len += in_len;
+                            this_window_start -= in_len as usize; // overflow if bed starts at coord 0 and we have an indel there XXX TODO
                             seq_to_mutate.append(& mut this_mut.sequence_alt.to_owned());
                         }
                     }
                     seq_to_mutate.append(after_mut);
                 } else {
-                    seq_to_mutate[this_mut.pos.start as usize - s] = this_mut.sequence_alt[0];  
+                    seq_to_mutate[this_mut.pos.start as usize - this_window_start] = this_mut.sequence_alt[0];  
                 }
                 // If sequence_alt and sequence_ref will work for indels we will probably need to fill the else branch and instead of modifying the slice in place
                 // adding to a String.

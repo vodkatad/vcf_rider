@@ -148,7 +148,7 @@ impl Iterator for VcfReader {
                 if end.len() > 1 || end[0] < 0 {
                     panic!("Multiallelic snp or wrong end");
                 }
-                end_coord = end[0] as u64;
+                end_coord = end[0] as u64 -1; // minus one to go back to 0 based coords even for this one (I believe that the lib does not fix this).
                 // Following vcf v4.2 specs the length is only "approximate", but it is ok to use end - pos (end is exclusive).
             }
             let pos = Coordinate { chr: chr, start: coord, end: end_coord}; // Right now only snps and <DEL>. Small indels are managed in rider.rs (TODO move here)
