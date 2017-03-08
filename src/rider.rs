@@ -163,7 +163,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                         }
                         idx_for_seq.clear();
                     }
-                    pos += 1;
+                    pos += 1; // this will advance...always by 1. Why do we need the window ending coords?
                 }
                 for i in 0..n_pwm {
                     //for (j, sample) in vcf_reader.samples.iter().enumerate() {
