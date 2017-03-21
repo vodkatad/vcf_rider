@@ -10,6 +10,7 @@ pub enum MutationClass {
     Del(u32, usize)
 }
 
+#[allow(dead_code)]
 pub struct IndelRider {
     groups: Vec<u32>, // groups has chr samples as indexes and group ids as elements
 }
@@ -87,7 +88,8 @@ impl IndelRider {
     }
         
     // Function that given a group id and a window will return info on the overlapping SNPs for that group and on the resulting window length
-    pub fn get_group_info(&self, window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, info: & Vec<(usize, MutationClass)>) {
+    #[allow(unused_variables)]
+    pub fn get_group_info(&self, window: & mut mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, info: & mut Vec<(usize, MutationClass)>) {
 
     }
 }

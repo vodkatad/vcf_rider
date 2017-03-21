@@ -3,8 +3,6 @@ extern crate bio;
 extern crate itertools; 
 
 use vcf_rider::rider::*;
-use vcf_rider::mutations::*;
-use std::iter::FromIterator;
 use std::env;
 use bio::io::bed;
 use std::path::Path;

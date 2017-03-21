@@ -87,7 +87,6 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
         let mut snps_buffer : VecDeque<mutations::Mutation> = VecDeque::new();
         for r in bed_reader.records() {
             let record = r.ok().expect("Error reading record");
-            let mut groups : Vec<u32> =  vec![0; n_samples*2]; // Vec::with_capacity(n_samples*2);
             let bed_window = mutations::Coordinate{chr: "".to_owned(), start: record.start(), end: record.end()};
             let n_overlapping = find_overlapping_snps_outer(& bed_window, &mut vcf_reader, &mut snps_buffer);
             let mut indel_manager = indel::IndelRider::new(&snps_buffer, n_overlapping, n_samples);
@@ -121,7 +120,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     let mut overlapping : Vec<(usize, indel::MutationClass)> = Vec::new(); 
                     // or is it better to allocate it in eccess with n overlapping capacity?
                     // This will also modify the window to access the right portion of the reference genome (longer or shorter if necessary due to indels).
-                    indel_manager.get_group_info(&window, &snps_buffer, &overlapping); // pass also info on which group...
+                    indel_manager.get_group_info(& mut window, &snps_buffer, & mut overlapping); // He should now the group cause it is iterating on them itself.
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     let n_overlapping = overlapping.len() as u32;
                     println!("for group {:?} in window {} n_overlapping {} ", chr_samples, pos, n_overlapping);
