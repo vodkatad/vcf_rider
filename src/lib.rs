@@ -2,6 +2,7 @@ extern crate bio;
 extern crate rust_htslib;
 extern crate itertools;
 
+pub mod indel; // not pub maybe?    
 pub mod fasta;
 pub mod pwm;
 pub mod rider;

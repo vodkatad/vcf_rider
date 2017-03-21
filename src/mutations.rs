@@ -17,6 +17,7 @@ pub enum Position {
     Overlapping,
     After
 }
+
 impl Coordinate {
     /// Returns the position of self relative to other.
     // right now not using chr
