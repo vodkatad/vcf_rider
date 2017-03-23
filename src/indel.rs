@@ -25,7 +25,7 @@ impl Iterator for IndelRider {
         } else {
             let ref res = self.groups[self.next_group];
             self.next_group += 1;
-            Some(res.to_vec()) //but why do we need to clone it? Do we need lifetimes or...?
+            Some(res.to_vec()) //XXX FIXME but why do we need to clone it? Do we need lifetimes or...?
         }
     }
 }

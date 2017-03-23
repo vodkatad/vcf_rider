@@ -101,7 +101,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     samples.push(allele % n_samples as u32); 
                 }
                 let n_alleles = chr_samples.len();
-                // println!("{}", n_alleles);
+                println!("{}", n_alleles);
                 // scores will hold the scores computed for this bed/group combination.
                 let mut scores : Vec<Vec<f64>> = vec![vec![0f64; n_alleles]; n_pwm];
                 // idx_for_seq will store correspondence between our samples
@@ -170,12 +170,11 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     }
                     pos += 1;
                 }
-                let n_wanted_samples = n_alleles / 2; // CHECK
                 for i in 0..n_pwm {
                     //for (j, sample) in vcf_reader.samples.iter().enumerate() {
                     for (j, chr_sample) in chr_samples.iter().enumerate() {
-                        //println!("j {} chr_s {} n_wanted_samples {}", j, chr_sample, n_wanted_samples);
-                        let ref sample = vcf_reader.samples[(*chr_sample % n_wanted_samples as u32) as usize];
+                        println!("j {} chr_s {} n_samples {}", j, chr_sample, n_samples);
+                        let ref sample = vcf_reader.samples[(*chr_sample % n_samples as u32) as usize];
                         println!("{}\t{}\t{}\t{}", record.name().expect("Error reading name"), params.parameters.get(i).unwrap().get_name(), sample, scores[i][j]);
                     }
                 }
