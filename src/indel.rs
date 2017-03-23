@@ -102,6 +102,7 @@ impl IndelRider {
     #[allow(unused_assignments)]  // WTF
     pub fn get_group_info(&self, window: & mut mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, info: & mut Vec<(usize, MutationClass)>) {
         let mut pos : u64 = 0; // relative position inside the window that we are at.
+        let mut window_end = window.end;
         for (i_snp, snp) in snps_buffer.iter().enumerate() {
             if i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
                 let mut group_genotypes : Vec<bool> = Vec::with_capacity(self.groups[self.next_group].len());
@@ -115,7 +116,7 @@ impl IndelRider {
                 }
                 let mut res_mutclass = MutationClass::Manage(pos as usize); // the majority are SNPs so we start with this.
                 let mut snp_coords = mutations::Coordinate{ chr: snp.pos.chr.to_owned(), start: snp.pos.start, end: snp.pos.end };
-                if group_genotypes.iter().any(|&x| x) && snp.is_indel { // shold be .all()
+                if group_genotypes.iter().any(|&x| x) && snp.is_indel { // shold be .all(), assert smt here?
                     let mut is_del = false;
                     if snp.is_indel {
                         is_del = true;
@@ -127,26 +128,36 @@ impl IndelRider {
                     if is_del {
                         res_mutclass = MutationClass::Del(snp.indel_len as u64, pos as usize);
                         pos += snp.indel_len as u64; // for deletions we need to account that we have moved over the reference
-                        //for del we need to get more reference since we have removed bases.   
-                        window.end += snp.indel_len as u64;
                     } else {
                         res_mutclass = MutationClass::Ins(snp.sequence_alt.to_owned(), pos as usize);
                         pos += 1;
-                        //for ins we get less reference since we have inserted bases for this group (snp.len is negative for ins)
-                        window.end -= (-snp.indel_len) as u64;
                     }
-                    // cannot do here together for ins and del due to types mismatches.
-                    //window.end += snp.indel_len;
+                    //for ins we get less reference since we have inserted bases for this group (snp.len is negative for ins)
+                    //for del we need to get more reference since we have removed bases.   
+                    let len_modifier = snp.indel_len; // we do not modify the window here 
+                    if len_modifier < 0 {
+                        window_end -= (-len_modifier) as u64;
+                    } else {
+                        window_end +- len_modifier as u64;
+                    }
                 } else {
                     res_mutclass = MutationClass::Reference;
                     pos += 1;
                     // we have a SNP always reference in this group or an indel always reference.
                 }
                 // Determine overlap
-                let sub_window = mutations::Coordinate{ chr: window.chr.to_owned(), start: window.start+pos, end: window.end};
+                // We need to use a window with a modified end that considers all indels, Before and Overlapping.
+                // But the actual window will have a length that is modified only by Overlapping.
+                let sub_window = mutations::Coordinate{ chr: window.chr.to_owned(), start: window.start+pos, end: window_end};
                 match snp_coords.relative_position(&sub_window) {
                     mutations::Position::Before => {},
-                    mutations::Position::Overlapping => { info.push((i_snp, res_mutclass)) },
+                    mutations::Position::Overlapping => { info.push((i_snp, res_mutclass));
+                                                        if len_modifier < 0 {
+                                                            window.end -= (-len_modifier) as u64;
+                                                        } else {
+                                                            window.end +- len_modifier as u64;
+                                                        }
+                                                     },
                     mutations::Position::After => { break } 
                 }
             }
