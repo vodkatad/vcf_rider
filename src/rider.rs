@@ -129,8 +129,6 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
                     // that encodes its genotype (using only the mutation that needs to be managed here, i.e. SNPs).
                     let genotypes : Vec<usize> = encode_genotypes(&snps_buffer, &overlapping, n_alleles, &samples);
-                    // BEWARE: indexes of samples in the encoded genotypes are not == as the final ones. ??? TODO
-
                     // Obtain all the possible sequences for this group in this position.
                     let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
                     obtain_seq(& window, & snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs);
@@ -308,23 +306,23 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     }
 }
 
-pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>, n_samples: usize, id_samples: & Vec<u32>) -> Vec<usize> {
-    let mut chrs : Vec<usize> = vec![0; n_samples];
+pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>, n_alleles: usize, id_samples: & Vec<u32>) -> Vec<usize> {
+    let mut chrs : Vec<usize> = vec![0; n_alleles];
     for &(i_snp, _) in overlapping_info.iter().rev() {
         let snp = snps_buffer.get(i_snp as usize).unwrap();
-        for i in 0 .. n_samples {
+        for i in 0 .. n_alleles {
             chrs[i] = chrs[i] << 1;
-            // We start indexing all M chrs starting from 0 and P from n_samples.
-            // The alternative is doing i*2/i*2+1, is it more confortable? Possibly less efficient.
-            chrs[i+n_samples] = chrs[i+n_samples] << 1;
-            let allele = snp.genotypes[id_samples[i] as usize]; // this i is wrong, since it is indexed on the whole vcf and not our group XXX ???
-            match allele.0 {
-                true => chrs[i] |= 1,
-                false => ()
-            }
-            match allele.1 {
-                true => chrs[i+n_samples] |= 1,
-                false => ()
+            let allele = snp.genotypes[id_samples[i] as usize]; 
+            if i % 2 == 0 { // even if for snps on the first chr
+                match allele.0 {
+                    true => chrs[i] |= 1,
+                    false => ()
+                }
+            } else {  // odd for the others
+                match allele.1 {
+                    true => chrs[i] |= 1,
+                    false => ()
+                }
             }
         }
     }

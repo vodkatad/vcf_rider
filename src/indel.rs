@@ -17,7 +17,6 @@ pub enum MutationClass {
 pub struct IndelRider {
     groups: Vec<Vec<u32>>, // groups has groups ids as indexes and all the samples id of that group as elements.
     next_group: usize,
-    alleles: usize,
     n_samples_tot: usize
 }
 
@@ -39,7 +38,6 @@ impl IndelRider {
     pub fn new(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> IndelRider {
         let mut groups : Vec<u32> =  vec![0; n_samples*2];
         IndelRider::count_groups(snps_buffer, n_overlapping, & mut groups, n_samples);
-        let n_alleles = groups.len();
         let n_groups = groups.iter().max().unwrap();
         let n = *n_groups as usize;
         let mut rev_groups : Vec<Vec<u32>> = vec![Vec::new(); n+1]; // functional way to do this?
@@ -47,7 +45,7 @@ impl IndelRider {
         for (sample, group) in groups.iter().enumerate() {
             rev_groups[*group as usize].push(sample as u32); // Mh, use all usize and stop? XXX
         }
-        IndelRider{ groups: rev_groups, next_group: 0, alleles: n_alleles, n_samples_tot: n_samples}
+        IndelRider{ groups: rev_groups, next_group: 0, n_samples_tot: n_samples}
     }
         
     /// Function that assigns chr samples to different groups depending on their overlapping indel alleles.
@@ -106,15 +104,18 @@ impl IndelRider {
         let mut pos : u64 = 0; // relative position inside the window that we are at.
         for (i_snp, snp) in snps_buffer.iter().enumerate() {
             if i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
-                let mut group_genotypes : Vec<&(bool, bool)> = Vec::with_capacity((self.alleles/2) as usize);
+                let mut group_genotypes : Vec<bool> = Vec::with_capacity(self.groups[self.next_group].len());
                 for i_sample in self.groups[self.next_group].to_vec() {
-                   let index = i_sample as usize % self.n_samples_tot;
-                   group_genotypes.push(snp.genotypes.get(index).unwrap());
+                    let index = i_sample as usize % self.n_samples_tot;
+                    if i_sample % 2 == 0 {
+                        group_genotypes.push(snp.genotypes.get(index).unwrap().0)
+                    } else {
+                        group_genotypes.push(snp.genotypes.get(index).unwrap().1);
+                    }
                 }
-                // check overlap, will need another method
                 let mut res_mutclass = MutationClass::Manage(pos as usize); // the majority are SNPs so we start with this.
                 let mut snp_coords = mutations::Coordinate{ chr: snp.pos.chr.to_owned(), start: snp.pos.start, end: snp.pos.end };
-                if group_genotypes.iter().any(|&x| x.0 || x.1) && snp.is_indel { 
+                if group_genotypes.iter().any(|&x| x) && snp.is_indel { // shold be .all()
                     let mut is_del = false;
                     if snp.is_indel {
                         is_del = true;
