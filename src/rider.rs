@@ -295,7 +295,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                     },
                         indel::MutationClass::Del(length, pos) => {  
                                                     let ref mut after_mut = seq_to_mutate.split_off(pos);
-                                                    //let ref deleted = after_mut.split_off(pos+length); TODO
+                                                    let ref deleted = after_mut.split_off(length as usize);
                                                     seq_to_mutate.append(after_mut);
                                                     },
                         indel::MutationClass::Reference => { panic!("I found an indel annotated as Reference that seems mutated to me! {:?} {}", this_mut, mut_idx)}
