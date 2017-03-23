@@ -92,7 +92,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             let mut indel_manager = indel::IndelRider::new(&snps_buffer, n_overlapping, n_samples);
             // We iterate over different groups, each group is made of single chromosomes of out samples with the same
             // combination of indels genotypes for this bed.
-            while let Some(&chr_samples) = indel_manager.next() {
+            while let Some(chr_samples) = indel_manager.next() {
                 println!("working on group {:?}", chr_samples);
                 let mut pos = record.start();
                 let mut samples : Vec<u32> = Vec::new();

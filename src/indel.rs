@@ -11,27 +11,26 @@ pub enum MutationClass {
 }
 
 #[allow(dead_code)]
-pub struct IndelRider<'a> {
+pub struct IndelRider {
     groups: Vec<Vec<u32>>, // groups has groups ids as indexes and all the samples id of that group as elements.
-    next_group: usize,
-    _marker: marker::PhantomData<&'a>,
+    next_group: usize
 }
 
-impl<'a> Iterator for IndelRider<'a> {
-    type Item = &'a Vec<u32>;
+impl Iterator for IndelRider {
+    type Item = Vec<u32>;
 
-    fn next(&mut self) -> Option<& 'a Vec<u32>> {
+    fn next(&mut self) -> Option<Vec<u32>> {
         if self.next_group == self.groups.len() {
             None
         } else {
             let ref res = self.groups[self.next_group];
             self.next_group += 1;
-            Some(res)
+            Some(res.to_vec()) //but why do we need to clone it? Do we need lifetimes or...?
         }
     }
 }
 
-impl<'a> IndelRider<'a> {
+impl IndelRider {
     pub fn new(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> IndelRider {
         let mut groups : Vec<u32> =  vec![0; n_samples*2];
         IndelRider::count_groups(snps_buffer, n_overlapping, & mut groups, n_samples);

@@ -37,7 +37,7 @@ fn main() {
                 // chr check
                 // add real windows (length 30) and compute n. of samples in different groups foreach position.
                 let window = mutations::Coordinate{chr: "".to_owned(), start: record.start(), end: record.end()};
-                let n_overlapping = find_overlapping_snps_outer(& window, &mut vcf_reader, &mut snps_buffer);      
+                let n_overlapping = find_overlapping_snps(& window, &mut vcf_reader, &mut snps_buffer);      
                 let n_indel = count_groups(&snps_buffer, n_overlapping, &mut groups, n_samples);
                 let n_groups = groups.iter().max().unwrap()+1;
                 let group_structure = groups.into_iter().enumerate().map(|x| 
