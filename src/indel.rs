@@ -11,31 +11,38 @@ pub enum MutationClass {
 }
 
 #[allow(dead_code)]
-pub struct IndelRider {
-    groups: Vec<u32>, // groups has chr samples as indexes and group ids as elements
+pub struct IndelRider<'a> {
+    groups: Vec<Vec<u32>>, // groups has groups ids as indexes and all the samples id of that group as elements.
+    next_group: usize,
+    _marker: marker::PhantomData<&'a>,
 }
 
-impl Iterator for IndelRider {
-    type Item = Vec<u32>;
+impl<'a> Iterator for IndelRider<'a> {
+    type Item = &'a Vec<u32>;
 
-    fn next(&mut self) -> Option<Vec<u32>> {
-        return None;
+    fn next(&mut self) -> Option<& 'a Vec<u32>> {
+        if self.next_group == self.groups.len() {
+            None
+        } else {
+            let ref res = self.groups[self.next_group];
+            self.next_group += 1;
+            Some(res)
+        }
     }
 }
 
-impl IndelRider {
+impl<'a> IndelRider<'a> {
     pub fn new(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> IndelRider {
-        let mut my_groups : Vec<u32> =  vec![0; n_samples*2];
-        IndelRider::count_groups(snps_buffer, n_overlapping, & mut my_groups, n_samples);
-        /*let n_groups = groups.iter().max().unwrap();
-          let n = *n_groups as usize;
-          let mut rev_groups : Vec<Vec<u32>> = vec![Vec::new(); n+1]; // functional way to do this?
-          // groups has chr samples as indexes and group ids as elements, we need to invert this array.
-          for (sample, group) in groups.iter().enumerate() {
-              rev_groups[*group as usize].push(sample as u32); // Mh, use all usize and stop? XXX
-          }
-        */
-        IndelRider{ groups: my_groups }
+        let mut groups : Vec<u32> =  vec![0; n_samples*2];
+        IndelRider::count_groups(snps_buffer, n_overlapping, & mut groups, n_samples);
+        let n_groups = groups.iter().max().unwrap();
+        let n = *n_groups as usize;
+        let mut rev_groups : Vec<Vec<u32>> = vec![Vec::new(); n+1]; // functional way to do this?
+        // groups has chr samples as indexes and group ids as elements, we need to invert this array.
+        for (sample, group) in groups.iter().enumerate() {
+            rev_groups[*group as usize].push(sample as u32); // Mh, use all usize and stop? XXX
+        }
+        IndelRider{ groups: rev_groups, next_group: 0 }
     }
         
     /// Function that assigns chr samples to different groups depending on their overlapping indel alleles.
