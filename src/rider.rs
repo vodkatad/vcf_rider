@@ -289,7 +289,8 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                         indel::MutationClass::Manage(pos) => seq_to_mutate[pos] = this_mut.sequence_alt[0],
                         indel::MutationClass::Ins(ref seq, pos) => {  
                                                     let ref mut after_mut = seq_to_mutate.split_off(pos);
-                                                    //seq_to_mutate.append(&seq); TODO
+                                                    let mut ins = seq.clone();
+                                                    seq_to_mutate.append(& mut ins);
                                                     seq_to_mutate.append(after_mut);
                                                     },
                         indel::MutationClass::Del(length, pos) => {  
