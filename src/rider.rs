@@ -125,7 +125,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     let n_overlapping = overlapping.len() as u32;
                     println!("for group {:?} in window {} n_overlapping {} ", chr_samples, pos, n_overlapping);
-
+                    println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
                     // that encodes its genotype (using only the mutation that needs to be managed here, i.e. SNPs).
                     let genotypes : Vec<usize> = encode_genotypes(&snps_buffer, &overlapping, n_alleles, &samples);
@@ -277,32 +277,32 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     }
     ref_seq = &reference.sequence[s..e];
     seqs.push(ref_seq.to_owned());
-    //let indexes = genotypes.into_iter().somehowgetallvalues
     for i in 1..2usize.pow(n_overlapping) {
-        // if i in indexes
-        let mut seq_to_mutate = ref_seq.to_owned();
-        for (j, &(mut_idx, ref manage)) in overlapping_info.iter().enumerate() {
-            if (i >> j) & 1 == 1 {
-                let this_mut = snps_buffer.get(mut_idx as usize).unwrap();
-                match *manage {
-                    indel::MutationClass::Manage(pos) => seq_to_mutate[pos] = this_mut.sequence_alt[0],
-                    indel::MutationClass::Ins(ref seq, pos) => {  
-                                                let ref mut after_mut = seq_to_mutate.split_off(pos);
-                                                //seq_to_mutate.append(&seq); TODO
-                                                seq_to_mutate.append(after_mut);
-                                                },
-                    indel::MutationClass::Del(length, pos) => {  
-                                                let ref mut after_mut = seq_to_mutate.split_off(pos);
-                                                //let ref deleted = after_mut.split_off(pos+length); TODO
-                                                seq_to_mutate.append(after_mut);
-                                                },
-                    indel::MutationClass::Reference => { panic!("I found an indel annotated as Reference that seems mutated to me! {:?}", this_mut)}
-                }
-            } // it is possible that we will need to manage also the else branch here, because reference indels could need management
-              // to correctly manage window lenghts
+        if genotypes.iter().any(|&x| x == i) {
+            let mut seq_to_mutate = ref_seq.to_owned();
+            for (j, &(mut_idx, ref manage)) in overlapping_info.iter().enumerate() {
+                if (i >> j) & 1 == 1 {
+                    let this_mut = snps_buffer.get(mut_idx as usize).unwrap();
+                    match *manage {
+                        indel::MutationClass::Manage(pos) => seq_to_mutate[pos] = this_mut.sequence_alt[0],
+                        indel::MutationClass::Ins(ref seq, pos) => {  
+                                                    let ref mut after_mut = seq_to_mutate.split_off(pos);
+                                                    //seq_to_mutate.append(&seq); TODO
+                                                    seq_to_mutate.append(after_mut);
+                                                    },
+                        indel::MutationClass::Del(length, pos) => {  
+                                                    let ref mut after_mut = seq_to_mutate.split_off(pos);
+                                                    //let ref deleted = after_mut.split_off(pos+length); TODO
+                                                    seq_to_mutate.append(after_mut);
+                                                    },
+                        indel::MutationClass::Reference => { panic!("I found an indel annotated as Reference that seems mutated to me! {:?} {}", this_mut, mut_idx)}
+                    }
+                } // it is possible that we will need to manage also the else branch here, because reference indels could need management
+                // to correctly manage window lenghts
+            }
+            println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
+            seqs.push(seq_to_mutate);
         }
-        println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
-        seqs.push(seq_to_mutate);
     }
 }
 
