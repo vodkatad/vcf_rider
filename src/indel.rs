@@ -102,11 +102,11 @@ impl IndelRider {
     #[allow(unused_assignments)]  // WTF
     pub fn get_group_info(&self, window: & mut mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, info: & mut Vec<(usize, MutationClass)>) {
         let mut pos : u64 = 0; // relative position inside the window that we are at.
-        let mut window_end = window.end;
+        let mut len_modifier : i64 = 0;
         for (i_snp, snp) in snps_buffer.iter().enumerate() {
             if i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
-                let mut group_genotypes : Vec<bool> = Vec::with_capacity(self.groups[self.next_group].len());
-                for i_sample in self.groups[self.next_group].to_vec() {
+                let mut group_genotypes : Vec<bool> = Vec::with_capacity(self.groups[self.next_group-1].len());
+                for i_sample in self.groups[self.next_group-1].to_vec() {
                     let index = i_sample as usize % self.n_samples_tot;
                     if i_sample % 2 == 0 {
                         group_genotypes.push(snp.genotypes.get(index).unwrap().0)
@@ -134,21 +134,16 @@ impl IndelRider {
                     }
                     //for ins we get less reference since we have inserted bases for this group (snp.len is negative for ins)
                     //for del we need to get more reference since we have removed bases.   
-                    let len_modifier = snp.indel_len; // we do not modify the window here 
-                    if len_modifier < 0 {
-                        window_end -= (-len_modifier) as u64;
-                    } else {
-                        window_end +- len_modifier as u64;
-                    }
+                    len_modifier = snp.indel_len; // we do not modify the window here 
                 } else {
                     res_mutclass = MutationClass::Reference;
                     pos += 1;
                     // we have a SNP always reference in this group or an indel always reference.
                 }
                 // Determine overlap
-                // We need to use a window with a modified end that considers all indels, Before and Overlapping.
-                // But the actual window will have a length that is modified only by Overlapping.
-                let sub_window = mutations::Coordinate{ chr: window.chr.to_owned(), start: window.start+pos, end: window_end};
+                // We need to use a window with a modified end that considers all indels, Before and Overlapping -> but only to define its 
+                // start, the length will be changed only considering Overlapping indels.
+                let sub_window = mutations::Coordinate{ chr: window.chr.to_owned(), start: window.start+pos, end: window.end};
                 match snp_coords.relative_position(&sub_window) {
                     mutations::Position::Before => {},
                     mutations::Position::Overlapping => { info.push((i_snp, res_mutclass));
