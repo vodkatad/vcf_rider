@@ -22,7 +22,7 @@ impl Coordinate {
     /// Returns the position of self relative to other.
     // right now not using chr
     pub fn relative_position(&self, other : &Coordinate) -> Position {
-         if (self.start >= other.start && self.start < other.end) ||
+        if (self.start >= other.start && self.start < other.end) ||
                 (self.end > other.start && self.end <= other.end) ||
                 (self.start < other.start && self.end >= other.end) {
             Position::Overlapping
@@ -31,8 +31,7 @@ impl Coordinate {
             Position::Before
         } else {
             Position::After
-        }
-                
+        }    
     }
 }
 

@@ -121,7 +121,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     let mut overlapping : Vec<(usize, indel::MutationClass)> = Vec::new(); 
                     // or is it better to allocate it in eccess with n overlapping capacity?
                     // This will also modify the window to access the right portion of the reference genome (longer or shorter if necessary due to indels).
-                    indel_manager.get_group_info(& mut window, &snps_buffer, & mut overlapping); // He should know the group cause it is iterating on them itself.
+                    indel_manager.get_group_info(& mut window, &snps_buffer, n_overlapping, & mut overlapping); // He should know the group cause it is iterating on them itself.
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     let n_overlapping = overlapping.len() as u32;
                     println!("for group {:?} in window {} n_overlapping {} ", chr_samples, pos, n_overlapping);
@@ -297,7 +297,8 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                 let ref mut after_mut = seq_to_mutate.split_off(pos);
                                                 //let ref deleted = after_mut.split_off(pos+length); TODO
                                                 seq_to_mutate.append(after_mut);
-                                                }
+                                                },
+                    indel::MutationClass::Reference => { panic!("I found an indel annotated as Reference that seems mutated to me! {:?}", this_mut)}
                 }
             } // it is possible that we will need to manage also the else branch here, because reference indels could need management
               // to correctly manage window lenghts
