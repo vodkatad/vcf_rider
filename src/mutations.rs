@@ -174,6 +174,7 @@ impl Iterator for VcfReader {
                 }
                 len = (end[0] as i64 -1) - coord as i64; // minus one to go back to 0 based coords even for this one (I believe that the lib does not fix this).
                 // Following vcf v4.2 specs the length is only "approximate", but it is ok to use end - pos (end is exclusive).
+                coord += 1;
             } else if indel {
                 let ref_len = refe.len();
                 let alt_len = alte.len(); // what is the cost of calling .len()?
