@@ -103,7 +103,6 @@ impl IndelRider {
     pub fn get_group_info(&self, window: & mut mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, info: & mut Vec<(usize, MutationClass)>) {
         let mut len_modifier : i64 = 0;
         let mut indel_modifier_snp_pos : u64 = 0;
-        let mut pos = 0 as usize;
         for (i_snp, snp) in snps_buffer.iter().enumerate() {
             if i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
                 let mut group_genotypes : Vec<bool> = Vec::with_capacity(self.groups[self.next_group-1].len());
@@ -117,28 +116,22 @@ impl IndelRider {
                         //println!("for sample {} seen {}", i_sample, snp.genotypes.get(index).unwrap().1);
                     }
                 }
-                let mut res_mutclass = MutationClass::Manage(pos as usize); // the majority are SNPs so we start with this.
+                let mut res_mutclass = MutationClass::Manage(0); // the majority are SNPs so we start with this.
                 let mut snp_coords = mutations::Coordinate{ chr: snp.pos.chr.to_owned(), start: snp.pos.start, end: snp.pos.end };
                 println!("group {:?} genotypes {:?}", self.groups[self.next_group-1], group_genotypes);
+                // We fix coords for snps that comes after a deletion.
+                snp_coords.start -= indel_modifier_snp_pos;
+                snp_coords.end -= indel_modifier_snp_pos;
                 if group_genotypes.iter().any(|&x| x) && snp.is_indel { // shold be .all(), assert smt here?
-                    let mut is_del = false;
                     if snp.is_indel {
-                        is_del = true;
-                        if snp.indel_len < 0 {
-                            snp_coords.end += (-snp.indel_len) as u64;
-                            is_del = false;
-                        }
+                        if snp.indel_len > 0 {
+                            // we need to know how to move coords of SNPs after deletion of this bed
+                            indel_modifier_snp_pos += snp.indel_len as u64;
+                        }           
+                        //for ins we get less reference since we have inserted bases for this group (snp.len is negative for ins)
+                        //for del we need to get more reference since we have removed bases.   
+                        len_modifier = snp.indel_len; // we do not modify the window here 
                     }
-                    if is_del {
-                        res_mutclass = MutationClass::Del(snp.indel_len as u64, pos as usize);
-                        indel_modifier_snp_pos += snp.indel_len as u64;
-                        // for deletions we need to account that we have moved over the reference, we do so moving to the left successive mutations
-                    } else {
-                        res_mutclass = MutationClass::Ins(snp.sequence_alt.to_owned(), pos as usize);
-                    }
-                    //for ins we get less reference since we have inserted bases for this group (snp.len is negative for ins)
-                    //for del we need to get more reference since we have removed bases.   
-                    len_modifier = snp.indel_len; // we do not modify the window here 
                 } else {
                     res_mutclass = MutationClass::Reference;
                     // we have a SNP always reference in this group or an indel always reference.
@@ -147,16 +140,23 @@ impl IndelRider {
                 // We need to use a window with a modified end that considers all indels, Before and Overlapping -> but only to define its 
                 // start, the length will be changed only considering Overlapping indels.
                 let sub_window = mutations::Coordinate{ chr: window.chr.to_owned(), start: window.start, end: window.end};
-                snp_coords.start -= indel_modifier_snp_pos;
-                snp_coords.end -= indel_modifier_snp_pos;
                 match snp_coords.relative_position(&sub_window) {
                     mutations::Position::Before => {},
-                    mutations::Position::Overlapping => { info.push((i_snp, res_mutclass));
+                    mutations::Position::Overlapping => { 
+                                                        // Can we change pos here in a right way?
+                                                        println!("{} {} {} {}", snp_coords.start, window.start, window.end, snp_coords.end);
+                                                        let pos = (snp_coords.start-window.start) as usize;
                                                         if len_modifier < 0 {
                                                             window.end -= (-len_modifier) as u64;
-                                                        } else {
-                                                            window.end +- len_modifier as u64;
+                                                            res_mutclass = MutationClass::Ins(snp.sequence_alt.to_owned(), pos);
+                                                        } else if len_modifier > 0 {
+                                                            window.end += len_modifier as u64;
+                                                            // del length should be changed if they are across the window XXX
+                                                            res_mutclass = MutationClass::Del(snp.indel_len as u64, pos);
+                                                        } else if res_mutclass !=  MutationClass::Reference {
+                                                            res_mutclass = MutationClass::Manage(pos);
                                                         }
+                                                        info.push((i_snp, res_mutclass));
                                                      },
                     mutations::Position::After => { break } 
                 }
