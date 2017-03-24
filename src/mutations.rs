@@ -138,7 +138,7 @@ impl Iterator for VcfReader {
             if found_alt != 1 {
                 panic!("Cannot manage multi-allelic SNPs! {:?}", alt) // maybe simply skip?
             }
-            let alte = get_sequence(&alt);
+            let mut alte = get_sequence(&alt);
             let mut len = 1;
             let indel = refe.len() != 1 || alte.len() != 1;
             if alte == vec![6u8, 6u8, 6u8] {
@@ -160,6 +160,8 @@ impl Iterator for VcfReader {
                 // We add 1 to the starting coord because indel are encoded with the first base 
                 // of reference out of the insertion or deletion.
                 coord += 1;
+                // and we remove the first base from the alt allele
+                alte.remove(0);
                 // IN have a negative length, DEL a positive one.
             }
             let pos = Coordinate { chr: chr, start: coord, end: coord+1}; 
