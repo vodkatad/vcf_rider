@@ -149,7 +149,7 @@ impl IndelRider {
                 let mut snp_coords_overlap = mutations::Coordinate{ chr: snp_coords.chr.to_owned(), start: snp_coords.start, end: snp_coords.end};
                 snp_coords_overlap.end = snp_end_overlap_borders;
                 match snp_coords_overlap.relative_position_overlap(&sub_window) {
-                    (mutations::Position::Before, _) => {},
+                    (mutations::Position::Before, _) => { println!("seen {} before", snp_coords.start)},
                     (mutations::Position::Overlapping, overlap) => { 
                                                         let ov = overlap.unwrap();
                                                         println!("snp {} {} {} {}", snp_coords.start, window.start, window.end, snp_coords.end);
@@ -176,7 +176,7 @@ impl IndelRider {
                                                         }
                                                         info.push((i_snp, res_mutclass));
                                                      },
-                    (mutations::Position::After, _) => { break } 
+                    (mutations::Position::After, _) => {  println!("seen {} after", snp_coords.start); break } 
                 }
             }
         }

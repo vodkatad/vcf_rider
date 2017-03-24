@@ -3,6 +3,6 @@
 ##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
 ##ALT=<ID=DEL,Description="Deletion">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA00001	NA00002	NA00003	NA00004
-1	11	snp1	A	AGG	9.6	.	.	GT	0|0	0|0	0|0	0|0
+1	11	snp1	A	AGG	9.6	.	.	GT	1|0	0|0	0|1	0|0
 1	15	snp2	AAA	A	9.6	.	.	GT	0|0	0|0	0|0	0|0
-1	20	snp3	A	<DEL>	9.6	.	END=26	GT	1|0	0|0	0|0	0|0
+1	20	snp3	A	<DEL>	9.6	.	END=26	GT	0|0	0|0	0|1	0|1
