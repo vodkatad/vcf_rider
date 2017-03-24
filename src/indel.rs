@@ -120,6 +120,7 @@ impl IndelRider {
                 }
                 let mut res_mutclass = MutationClass::Manage(0); // the majority are SNPs so we start with this.
                 let mut snp_coords = mutations::Coordinate{ chr: snp.pos.chr.to_owned(), start: snp.pos.start, end: snp.pos.end };
+                let mut snp_end_overlap_borders = snp.pos.end;
                 println!("group {:?} genotypes {:?}", self.groups[self.next_group-1], group_genotypes);
                 // We fix coords for snps that comes after a deletion.
                 snp_coords.start -= indel_modifier_snp_pos;
@@ -129,7 +130,10 @@ impl IndelRider {
                         if snp.indel_len > 0 {
                             // we need to know how to move coords of SNPs after deletion of this bed
                             indel_modifier_snp_pos += snp.indel_len as u64;
-                        }           
+                            snp_end_overlap_borders += snp.indel_len as u64;
+                        } else {
+                            snp_end_overlap_borders += (-snp.indel_len) as u64;
+                        }
                         //for ins we get less reference since we have inserted bases for this group (snp.len is negative for ins)
                         //for del we need to get more reference since we have removed bases.   
                         len_modifier = snp.indel_len; // we do not modify the window here 
@@ -142,25 +146,37 @@ impl IndelRider {
                 // We need to use a window with a modified end that considers all indels, Before and Overlapping -> but only to define its 
                 // start, the length will be changed only considering Overlapping indels.
                 let sub_window = mutations::Coordinate{ chr: window.chr.to_owned(), start: window.start, end: window.end};
-                match snp_coords.relative_position(&sub_window) {
-                    mutations::Position::Before => {},
-                    mutations::Position::Overlapping => { 
-                                                        // Can we change pos here in a right way?
-                                                        println!("{} {} {} {}", snp_coords.start, window.start, window.end, snp_coords.end);
-                                                        let pos = (snp_coords.start-window.start) as usize;
+                let mut snp_coords_overlap = mutations::Coordinate{ chr: snp_coords.chr.to_owned(), start: snp_coords.start, end: snp_coords.end};
+                snp_coords_overlap.end = snp_end_overlap_borders;
+                match snp_coords_overlap.relative_position_overlap(&sub_window) {
+                    (mutations::Position::Before, _) => {},
+                    (mutations::Position::Overlapping, overlap) => { 
+                                                        let ov = overlap.unwrap();
+                                                        println!("snp {} {} {} {}", snp_coords.start, window.start, window.end, snp_coords.end);
+                                                        println!("ov {} {} {} {}", ov.start, window.start, window.end, ov.end);
+                                                        let pos = (ov.start-window.start) as usize;
+                                                        let ov_len_modifier = (ov.end - ov.start) as u64;
                                                         if len_modifier < 0 {
-                                                            window.end -= (-len_modifier) as u64;
-                                                            res_mutclass = MutationClass::Ins(snp.sequence_alt.to_owned(), pos);
+                                                            window.end -= ov_len_modifier as u64;
+                                                            let mut ins = snp.sequence_alt.to_owned();
+                                                            if ov.start > snp_coords.start {
+                                                                for r in snp_coords.start .. ov.start {
+                                                                    ins.remove(0);
+                                                                }
+                                                            } else if ov.end < snp_coords.end {
+                                                                ins.split_off((snp_coords.end - ov.end) as usize);
+                                                            }
+                                                            res_mutclass = MutationClass::Ins(ins, pos);
                                                         } else if len_modifier > 0 {
-                                                            window.end += len_modifier as u64;
+                                                            window.end += ov_len_modifier as u64;
                                                             // del length should be changed if they are across the window XXX
-                                                            res_mutclass = MutationClass::Del(snp.indel_len as u64, pos);
+                                                            res_mutclass = MutationClass::Del(ov_len_modifier, pos);
                                                         } else if res_mutclass !=  MutationClass::Reference {
                                                             res_mutclass = MutationClass::Manage(pos);
                                                         }
                                                         info.push((i_snp, res_mutclass));
                                                      },
-                    mutations::Position::After => { break } 
+                    (mutations::Position::After, _) => { break } 
                 }
             }
         }

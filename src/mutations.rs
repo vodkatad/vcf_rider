@@ -33,6 +33,27 @@ impl Coordinate {
             Position::After
         }    
     }
+
+    pub fn relative_position_overlap(&self, other : &Coordinate) -> (Position, Option<Coordinate>) {
+        if (self.start >= other.start && self.start < other.end) ||
+                (self.end > other.start && self.end <= other.end) ||
+                (self.start < other.start && self.end >= other.end) {
+
+            let mut ov = Coordinate{chr: self.chr.to_owned(), start: self.start, end: self.end};
+            if self.start < other.start {
+                ov.start = other.start
+            }
+            if self.end > other.end {
+                ov.end = other.end
+            }
+            (Position::Overlapping, Some(ov))
+        }
+        else if self.end <= other.start {
+            (Position::Before, None)
+        } else {
+            (Position::After, None)
+        }    
+    }
 }
 
 #[derive(Debug)]
