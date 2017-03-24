@@ -101,7 +101,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     samples.push(allele % n_samples as u32); 
                 }
                 let n_alleles = chr_samples.len();
-                println!("{}", n_alleles);
+                println!("{} {:?}", n_alleles, samples);
                 // scores will hold the scores computed for this bed/group combination.
                 let mut scores : Vec<Vec<f64>> = vec![vec![0f64; n_alleles]; n_pwm];
                 // idx_for_seq will store correspondence between our samples
@@ -130,7 +130,8 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
                     // that encodes its genotype (using only the mutation that needs to be managed here, i.e. SNPs).
-                    let genotypes : Vec<usize> = encode_genotypes(&snps_buffer, &overlapping, n_alleles, &samples);
+                    let genotypes : Vec<usize> = encode_genotypes(&snps_buffer, &overlapping, &chr_samples, n_samples, &samples);
+                    println!("encoded_genotypes {:?} ", genotypes);
                     // Obtain all the possible sequences for this group in this position.
                     let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
                     obtain_seq(& window, & snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs);
@@ -298,7 +299,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                     let ref deleted = after_mut.split_off(length as usize);
                                                     seq_to_mutate.append(after_mut);
                                                     },
-                        indel::MutationClass::Reference => { panic!("I found an indel annotated as Reference that seems mutated to me! {:?} {}", this_mut, mut_idx)}
+                        indel::MutationClass::Reference => { panic!("I found an indel annotated as Reference that seems mutated to me! {:?} {} i {}", this_mut, mut_idx, i)}
                     }
                 } // it is possible that we will need to manage also the else branch here, because reference indels could need management
                 // to correctly manage window lenghts
@@ -309,19 +310,20 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     }
 }
 
-pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>, n_alleles: usize, id_samples: & Vec<u32>) -> Vec<usize> {
-    let mut chrs : Vec<usize> = vec![0; n_alleles];
+pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>, group: &Vec<u32>, n_samples: usize, id_samples: & Vec<u32>) -> Vec<usize> {
+    let mut chrs : Vec<usize> = vec![0; group.len()];
     for &(i_snp, _) in overlapping_info.iter().rev() {
         let snp = snps_buffer.get(i_snp as usize).unwrap();
-        for i in 0 .. n_alleles {
+        for (i, &i_allele) in group.iter().enumerate() {
             chrs[i] = chrs[i] << 1;
             let allele = snp.genotypes[id_samples[i] as usize]; 
-            if i % 2 == 0 { // even if for snps on the first chr
+            println!("for allele {} sample {} we see {:?}", i, id_samples[i], allele);
+            if i_allele < n_samples as u32{ // snps on the first chr
                 match allele.0 {
                     true => chrs[i] |= 1,
                     false => ()
                 }
-            } else {  // odd for the others
+            } else {  // snps on the second chr
                 match allele.1 {
                     true => chrs[i] |= 1,
                     false => ()

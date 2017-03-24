@@ -108,14 +108,17 @@ impl IndelRider {
                 let mut group_genotypes : Vec<bool> = Vec::with_capacity(self.groups[self.next_group-1].len());
                 for i_sample in self.groups[self.next_group-1].to_vec() {
                     let index = i_sample as usize % self.n_samples_tot;
-                    if i_sample % 2 == 0 {
-                        group_genotypes.push(snp.genotypes.get(index).unwrap().0)
+                    if i_sample < self.n_samples_tot as u32 {
+                        group_genotypes.push(snp.genotypes.get(index).unwrap().0);
+                        //println!("for sample {} seen {}", i_sample, snp.genotypes.get(index).unwrap().0);
                     } else {
                         group_genotypes.push(snp.genotypes.get(index).unwrap().1);
+                        //println!("for sample {} seen {}", i_sample, snp.genotypes.get(index).unwrap().1);
                     }
                 }
                 let mut res_mutclass = MutationClass::Manage(pos as usize); // the majority are SNPs so we start with this.
                 let mut snp_coords = mutations::Coordinate{ chr: snp.pos.chr.to_owned(), start: snp.pos.start, end: snp.pos.end };
+                println!("group {:?} genotypes {:?}", self.groups[self.next_group-1], group_genotypes);
                 if group_genotypes.iter().any(|&x| x) && snp.is_indel { // shold be .all(), assert smt here?
                     let mut is_del = false;
                     if snp.is_indel {

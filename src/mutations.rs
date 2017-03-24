@@ -124,7 +124,7 @@ impl Iterator for VcfReader {
         if let Ok(_) = self.reader.read(&mut record) {
             let id = "".to_owned();
             let chr = "?".to_owned(); // where is it? rid?
-            let coord = record.pos() as u64; // Manually checked: the lib converts 1 based coords of vcf to 0 based. bed records have u64
+            let mut coord = record.pos() as u64; // Manually checked: the lib converts 1 based coords of vcf to 0 based. bed records have u64
             let alleles = record.alleles().into_iter().map(|a| a.to_owned()).collect_vec(); // I do not like this to_owned...
             let mut alt  : Vec<u8> = Vec::<u8>::with_capacity(1);
             let mut found_alt = 0;
@@ -157,6 +157,9 @@ impl Iterator for VcfReader {
                 let ref_len = refe.len();
                 let alt_len = alte.len(); // what is the cost of calling .len()?
                 len = (ref_len as i64 - alt_len as i64) as i64;
+                // We add 1 to the starting coord because indel are encoded with the first base 
+                // of reference out of the insertion or deletion.
+                coord += 1;
                 // IN have a negative length, DEL a positive one.
             }
             let pos = Coordinate { chr: chr, start: coord, end: coord+1}; 
