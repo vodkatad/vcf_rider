@@ -96,7 +96,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 println!("working on group {:?}", chr_samples);
                 let mut pos = record.start();
                 let mut samples : Vec<u32> = Vec::new();
-                // We need to obtain are the samples id for this group (XXX Do in IndelRider?)
+                // We need to obtain the samples id for this group (XXX Do in IndelRider?)
                 for allele in chr_samples.iter() {
                     samples.push(allele % n_samples as u32); 
                 }
@@ -302,7 +302,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                         indel::MutationClass::Reference => { panic!("I found an indel annotated as Reference that seems mutated to me! {:?} {} i {}", this_mut, mut_idx, i)}
                     }
                 } // it is possible that we will need to manage also the else branch here, because reference indels could need management
-                // to correctly manage window lenghts
+                // to correctly manage window lenghts: done by the IndelRider?
             }
             println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
             seqs.push(seq_to_mutate);
