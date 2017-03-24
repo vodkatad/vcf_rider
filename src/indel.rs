@@ -101,6 +101,8 @@ impl IndelRider {
     #[allow(unused_variables)]
     #[allow(unused_assignments)]  // WTF
     pub fn get_group_info(&self, window: & mut mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, info: & mut Vec<(usize, MutationClass)>) {
+        // Right now the logic is a bit twisted cause we change coords for snps when we get a deletion but we change window.end for overlapping indels...
+        // I got why I was changing in ends...to catch their overlap across window borders, but that is wrong. We need to find a way to manage indels across window borders.
         let mut len_modifier : i64 = 0;
         let mut indel_modifier_snp_pos : u64 = 0;
         for (i_snp, snp) in snps_buffer.iter().enumerate() {
