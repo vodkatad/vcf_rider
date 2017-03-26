@@ -133,7 +133,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     let genotypes : Vec<usize> = encode_genotypes(&snps_buffer, &overlapping, &chr_samples, n_samples, &samples);
                     println!("encoded_genotypes {:?} ", genotypes);
                     // Obtain all the possible sequences for this group in this position.
-                    let mut seqs : Vec<Vec<u8>> = Vec::with_capacity(2usize.pow(n_overlapping));
+                    let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
                     obtain_seq(& window, & snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs);
 
                     // TODO needs updating
@@ -147,7 +147,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     // ones and we will check to call get_score only on the right parameters
                     // for every p params.parameters call on seq
 
-                    for (i, s) in seqs.iter().enumerate() {
+                    for (i, s) in seqs.into_iter() {
                         // if i in indexes genotypes -> function that checks if it's there and fills a vector (idx_for_seq) with the indexes of the individuals that
                         if match_indexes(i, &mut idx_for_seq, &genotypes) {
                             // needs this score (i, 0|1)
@@ -155,7 +155,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                                 let p = params.parameters.get(i).unwrap();
                                 //println!("pwm name {} {} {}", p.get_name(), p.get_length(), s.len());
                                 if p.get_length() <= s.len() {
-                                    let score = p.get_score(0usize, s);
+                                    let score = p.get_score(0usize, &s);
                                     // now we need to sum (or smt else) the scores assigning them to the right individuals.
                                     // iterate over idx_for_seq and sum the right scores.
                                     for j in idx_for_seq.iter() {
@@ -265,7 +265,7 @@ pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I,
 
 #[allow(unused_variables)]
 pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>,
-                  reference: & fasta::Fasta, genotypes : &Vec<usize>, seqs : &mut Vec<Vec<u8>>) {
+                  reference: & fasta::Fasta, genotypes : &Vec<usize>, seqs : &mut Vec<(usize, Vec<u8>)>) {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences
@@ -279,7 +279,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
         e = reference.sequence.len();
     }
     ref_seq = &reference.sequence[s..e];
-    seqs.push(ref_seq.to_owned());
+    seqs.push((0, ref_seq.to_owned()));
     for i in 1..2usize.pow(n_overlapping) {
         if genotypes.iter().any(|&x| x == i) {
             let mut seq_to_mutate = ref_seq.to_owned();
@@ -305,7 +305,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                 // to correctly manage window lenghts: done by the IndelRider?
             }
             println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
-            seqs.push(seq_to_mutate);
+            seqs.push((i, seq_to_mutate));
         }
     }
 }
