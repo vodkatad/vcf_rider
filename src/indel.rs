@@ -125,7 +125,7 @@ impl IndelRider {
                 // We fix coords for snps that comes after a deletion.
                 snp_coords.start -= indel_modifier_snp_pos;
                 snp_coords.end -= indel_modifier_snp_pos;
-                if group_genotypes.iter().any(|&x| x) && snp.is_indel { // shold be .all(), assert smt here?
+                if group_genotypes.iter().any(|&x| x) {
                     if snp.is_indel {
                         if snp.indel_len > 0 {
                             // we need to know how to move coords of SNPs after deletion of this bed
