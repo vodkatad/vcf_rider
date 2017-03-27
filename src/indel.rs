@@ -103,7 +103,6 @@ impl IndelRider {
     pub fn get_group_info(&self, window: & mut mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, info: & mut Vec<(usize, MutationClass)>) {
         // Right now the logic is a bit twisted cause we change coords for snps when we get a deletion but we change window.end for overlapping indels...
         // I got why I was changing in ends...to catch their overlap across window borders, but that is wrong. We need to find a way to manage indels across window borders.
-        let mut len_modifier : i64 = 0;
         for (i_snp, snp) in snps_buffer.iter().enumerate() {
             if i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
                 let mut group_genotypes : Vec<bool> = Vec::with_capacity(self.groups[self.next_group-1].len());
@@ -120,7 +119,8 @@ impl IndelRider {
                 let mut res_mutclass = MutationClass::Manage(0); // the majority are SNPs so we start with this.
                 let snp_coords = mutations::Coordinate{ chr: snp.pos.chr.to_owned(), start: snp.pos.start, end: snp.pos.end };
                 let mut snp_end_overlap_borders = snp.pos.end;
-                //println!("group {:?} genotypes {:?}", self.groups[self.next_group-1], group_genotypes);
+                let mut len_modifier : i64 = 0;
+                println!("group {:?} genotypes {:?}", self.groups[self.next_group-1], group_genotypes);
                 // We fix coords for snps that comes after a deletion.
                 if group_genotypes.iter().any(|&x| x) {
                     if snp.is_indel {
@@ -145,12 +145,12 @@ impl IndelRider {
                 let sub_window = mutations::Coordinate{ chr: window.chr.to_owned(), start: window.start, end: window.end};
                 let snp_coords_overlap = mutations::Coordinate{ chr: snp_coords.chr.to_owned(), start: snp_coords.start, end: snp_end_overlap_borders};
                 match snp_coords_overlap.relative_position_overlap(&sub_window) {
-                    (mutations::Position::Before, _) => {   //println!("seen {} before", snp_coords.start)
+                    (mutations::Position::Before, _) => {   println!("seen {} before", snp_coords.start)
                                                         },
                     (mutations::Position::Overlapping, overlap) => { 
                                                         let ov = overlap.unwrap();
-                                                        //println!("snp {} {} {} {}", snp_coords.start, window.start, window.end, snp_coords.end);
-                                                        //println!("ov {} {} {} {}", ov.start, window.start, window.end, ov.end);
+                                                        println!("snp {} {} {} {}", snp_coords.start, window.start, window.end, snp_coords.end);
+                                                        println!("ov {} {} {} {}", ov.start, window.start, window.end, ov.end);
                                                         let pos = (ov.start-window.start) as usize;
                                                         let ov_len_modifier = (ov.end - ov.start) as u64;
                                                         if len_modifier < 0 {
@@ -173,7 +173,7 @@ impl IndelRider {
                                                         }
                                                         info.push((i_snp, res_mutclass));
                                                      },
-                    (mutations::Position::After, _) => {    //println!("seen {} after", snp_coords.start); 
+                    (mutations::Position::After, _) => {    println!("seen {} after", snp_coords.start); 
                                                             break } 
                 }
             }
