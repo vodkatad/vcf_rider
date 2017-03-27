@@ -196,7 +196,7 @@ impl Iterator for VcfReader {
                                 decode_genotype(geno_str, self.accept_phased)
                             }).collect_vec(); //useful to pre alloc?  Vec::<(bool, bool)>::with_capacity(self.samples.len());
  
-            println!("ref {:?} alt {:?} s {} e{} len {}", refe, alte, pos.start, pos.end, len);
+            //println!("ref {:?} alt {:?} s {} e{} len {}", refe, alte, pos.start, pos.end, len);
             Some(Mutation { id: id, pos: pos, sequence_ref: refe, sequence_alt: alte, genotypes : genotypes, is_indel : indel, indel_len : len})
         } else {
             return None;

@@ -93,7 +93,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             // We iterate over different groups, each group is made of single chromosomes of out samples with the same
             // combination of indels genotypes for this bed.
             while let Some(chr_samples) = indel_manager.next() {
-                println!("working on group {:?}", chr_samples);
+                //println!("working on group {:?}", chr_samples);
                 let mut pos = record.start();
                 let mut samples : Vec<u32> = Vec::new();
                 // We need to obtain the samples id for this group (XXX Do in IndelRider?)
@@ -101,7 +101,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     samples.push(allele % n_samples as u32); 
                 }
                 let n_alleles = chr_samples.len();
-                println!("{} {:?}", n_alleles, samples);
+                //println!("{} {:?}", n_alleles, samples);
                 // scores will hold the scores computed for this bed/group combination.
                 let mut scores : Vec<Vec<f64>> = vec![vec![0f64; n_alleles]; n_pwm];
                 // idx_for_seq will store correspondence between our samples
@@ -121,17 +121,17 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     let mut overlapping : Vec<(usize, indel::MutationClass)> = Vec::new(); 
                     // or is it better to allocate it in eccess with n overlapping capacity?
                     // This will also modify the window to access the right portion of the reference genome (longer or shorter if necessary due to indels).
-                    println!("The window was {:?}", window);
+                    //println!("The window was {:?}", window);
                     indel_manager.get_group_info(& mut window, &snps_buffer, n_overlapping, & mut overlapping); // He should know the group cause it is iterating on them itself.
-                    println!("And became {:?}", window);
+                    //println!("And became {:?}", window);
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     let n_overlapping = overlapping.len() as u32;
-                    println!("for group {:?} in window {} n_overlapping {} ", chr_samples, pos, n_overlapping);
-                    println!("overlapping_info {:?} ", overlapping);
+                    //println!("for group {:?} in window {} n_overlapping {} ", chr_samples, pos, n_overlapping);
+                    //println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
                     // that encodes its genotype (using only the mutation that needs to be managed here, i.e. SNPs).
                     let genotypes : Vec<usize> = encode_genotypes(&snps_buffer, &overlapping, &chr_samples, n_samples, &samples);
-                    println!("encoded_genotypes {:?} ", genotypes);
+                    //println!("encoded_genotypes {:?} ", genotypes);
                     // Obtain all the possible sequences for this group in this position.
                     let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
                     obtain_seq(& window, & snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs);
@@ -174,7 +174,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 for i in 0..n_pwm {
                     //for (j, sample) in vcf_reader.samples.iter().enumerate() {
                     for (j, chr_sample) in chr_samples.iter().enumerate() {
-                        println!("j {} chr_s {} n_samples {}", j, chr_sample, n_samples);
+                        //println!("j {} chr_s {} n_samples {}", j, chr_sample, n_samples);
                         let ref sample = vcf_reader.samples[(*chr_sample % n_samples as u32) as usize];
                         println!("{}\t{}\t{}\t{}", record.name().expect("Error reading name"), params.parameters.get(i).unwrap().get_name(), sample, scores[i][j]);
                     }
@@ -304,7 +304,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                 } // it is possible that we will need to manage also the else branch here, because reference indels could need management
                 // to correctly manage window lenghts: done by the IndelRider?
             }
-            println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
+            //println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
             seqs.push((i, seq_to_mutate));
         }
     }
@@ -317,7 +317,7 @@ pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlappin
         for (i, &i_allele) in group.iter().enumerate() {
             chrs[i] = chrs[i] << 1;
             let allele = snp.genotypes[id_samples[i] as usize]; 
-            println!("for allele {} sample {} we see {:?}", i, id_samples[i], allele);
+            //println!("for allele {} sample {} we see {:?}", i, id_samples[i], allele);
             if i_allele < n_samples as u32{ // snps on the first chr
                 match allele.0 {
                     true => chrs[i] |= 1,
