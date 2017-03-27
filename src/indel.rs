@@ -104,7 +104,6 @@ impl IndelRider {
         // Right now the logic is a bit twisted cause we change coords for snps when we get a deletion but we change window.end for overlapping indels...
         // I got why I was changing in ends...to catch their overlap across window borders, but that is wrong. We need to find a way to manage indels across window borders.
         let mut len_modifier : i64 = 0;
-        let mut indel_modifier_snp_pos : u64 = 0;
         for (i_snp, snp) in snps_buffer.iter().enumerate() {
             if i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
                 let mut group_genotypes : Vec<bool> = Vec::with_capacity(self.groups[self.next_group-1].len());
@@ -119,17 +118,15 @@ impl IndelRider {
                     }
                 }
                 let mut res_mutclass = MutationClass::Manage(0); // the majority are SNPs so we start with this.
-                let mut snp_coords = mutations::Coordinate{ chr: snp.pos.chr.to_owned(), start: snp.pos.start, end: snp.pos.end };
+                let snp_coords = mutations::Coordinate{ chr: snp.pos.chr.to_owned(), start: snp.pos.start, end: snp.pos.end };
                 let mut snp_end_overlap_borders = snp.pos.end;
                 //println!("group {:?} genotypes {:?}", self.groups[self.next_group-1], group_genotypes);
                 // We fix coords for snps that comes after a deletion.
-                snp_coords.start -= indel_modifier_snp_pos;
-                snp_coords.end -= indel_modifier_snp_pos;
                 if group_genotypes.iter().any(|&x| x) {
                     if snp.is_indel {
                         if snp.indel_len > 0 {
-                            // we need to know how to move coords of SNPs after deletion of this bed
-                            indel_modifier_snp_pos += snp.indel_len as u64;
+                            // we need to know how to move coords of SNPs after deletion of this bed: no! we modify our window end
+                            // therefore we do not need to move SNPs around.
                             snp_end_overlap_borders += snp.indel_len as u64;
                         } else {
                             snp_end_overlap_borders += (-snp.indel_len) as u64;
@@ -146,8 +143,7 @@ impl IndelRider {
                 // We need to use a window with a modified end that considers all indels, Before and Overlapping -> but only to define its 
                 // start, the length will be changed only considering Overlapping indels.
                 let sub_window = mutations::Coordinate{ chr: window.chr.to_owned(), start: window.start, end: window.end};
-                let mut snp_coords_overlap = mutations::Coordinate{ chr: snp_coords.chr.to_owned(), start: snp_coords.start, end: snp_coords.end};
-                snp_coords_overlap.end = snp_end_overlap_borders;
+                let snp_coords_overlap = mutations::Coordinate{ chr: snp_coords.chr.to_owned(), start: snp_coords.start, end: snp_end_overlap_borders};
                 match snp_coords_overlap.relative_position_overlap(&sub_window) {
                     (mutations::Position::Before, _) => {   //println!("seen {} before", snp_coords.start)
                                                         },
@@ -172,7 +168,7 @@ impl IndelRider {
                                                             window.end += ov_len_modifier as u64;
                                                             // del length should be changed if they are across the window XXX
                                                             res_mutclass = MutationClass::Del(ov_len_modifier, pos);
-                                                        } else if res_mutclass !=  MutationClass::Reference {
+                                                        } else if res_mutclass != MutationClass::Reference {
                                                             res_mutclass = MutationClass::Manage(pos);
                                                         }
                                                         info.push((i_snp, res_mutclass));
