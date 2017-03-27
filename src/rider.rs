@@ -169,7 +169,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                         }
                         idx_for_seq.clear();
                     }
-                    pos += 1;
+                    pos += 1; // if there are ins inside this window we need to avoid losing their adjacent bases. XXX
                 }
                 for i in 0..n_pwm {
                     for (j, chr_sample) in chr_samples.iter().enumerate() {
