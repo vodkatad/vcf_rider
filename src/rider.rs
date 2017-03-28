@@ -122,7 +122,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     // or is it better to allocate it in eccess with n overlapping capacity?
                     // This will also modify the window to access the right portion of the reference genome (longer or shorter if necessary due to indels).
                     println!("The window was {:?}", window);
-                    indel_manager.get_group_info(& mut window, & mut pos, &snps_buffer, n_overlapping, & mut overlapping); // He should know the group cause it is iterating on them itself.
+                    indel_manager.get_group_info(& mut window, & mut pos, & mut snps_buffer, n_overlapping, & mut overlapping); // He should know the group cause it is iterating on them itself.
                     println!("And became {:?}", window);
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     let n_overlapping = overlapping.len() as u32;
