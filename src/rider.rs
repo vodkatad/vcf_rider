@@ -126,7 +126,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     println!("And became {:?}", window);
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     let n_overlapping = overlapping.len() as u32;
-                    println!("for group {:?} in window {} n_overlapping {} ", chr_samples, pos, n_overlapping);
+                    println!("for group {:?} in window {} n_overlapping {} ", chr_samples, window.start, n_overlapping);
                     println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
                     // that encodes its genotype (using only the mutation that needs to be managed here, i.e. SNPs).

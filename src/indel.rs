@@ -104,6 +104,8 @@
             // Right now the logic is a bit twisted cause we change coords for snps when we get a deletion but we change window.end for overlapping indels...
             // I got why I was changing in ends...to catch their overlap across window borders, but that is wrong. We need to find a way to manage indels across window borders.
             let mut pos_managed: bool = false;
+            let mut window_start_mod: bool = false;
+            let mut new_window_start = 0;
             for (i_snp, snp) in snps_buffer.iter_mut().enumerate() {
                 if i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
                     let mut group_genotypes : Vec<bool> = Vec::with_capacity(self.groups[self.next_group-1].len());
@@ -159,22 +161,24 @@
                                                             let ov_len_modifier = (ov.end - ov.start) as u64;
                                                             if len_modifier < 0 {
                                                                 window.end -= ov_len_modifier as u64;
-                                                                if snp_coords.start == ov.start {
+                                                                let mut ins = snp.sequence_alt.to_owned();
+                                                                if snp_coords.start == ov.start && pos == 0 {
                                                                     // we do not have to modify the window start otherwise we risk getting wrong sequences.
                                                                     // we change our next_window and "eat out" the insertion step by step?
                                                                     // no it does not work cause it will always overlap at least a base?
                                                                     let orig_start = snp.pos.start;
-                                                                    snp.pos.start += 1;
+                                                                    //snp.pos.start += 1;
                                                                     snp.indel_len += 1;
                                                                     if snp.indel_len != 0 {
-                                                                        snp.pos.end = snp.pos.start+1;
+                                                                        //snp.pos.end = snp.pos.start+1;
                                                                         snp.sequence_alt.remove(0);
-                                                                    } else {
-                                                                        pos_managed = true; 
-                                                                        *next_pos = orig_start;
-                                                                    }
+                                                                    } //else {
+                                                                    pos_managed = true; 
+                                                                    *next_pos = orig_start;
+                                                                    //}
+                                                                    window_start_mod = true;
+                                                                    new_window_start = orig_start;
                                                                 }
-                                                                let mut ins = snp.sequence_alt.to_owned();
                                                                 if ov.start > snp_coords.start {
                                                                     for r in snp_coords.start .. ov.start {
                                                                         ins.remove(0);
@@ -205,6 +209,9 @@
             }
             if ! pos_managed {
                 *next_pos += 1;
+            }
+            if window_start_mod {
+                window.start = new_window_start;
             }
         }
     }
