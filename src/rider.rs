@@ -301,7 +301,11 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                     let ref mut after_deleted = after_mut.split_off(length as usize);
                                                     seq_to_mutate.append(after_deleted);
                                                     },
-                        indel::MutationClass::Reference => { panic!("I found an indel annotated as Reference that seems mutated to me! {:?} {} i {}", this_mut, mut_idx, i)}
+                       indel::MutationClass::Reference => { 
+                                                    if !this_mut.is_indel || this_mut.indel_len != 0 {
+                                                        panic!("I found an indel annotated as Reference that seems mutated to me! {:?} {} i {}", this_mut, mut_idx, i);
+                                                    }
+                                                    }
                     }
                 } // it is possible that we will need to manage also the else branch here, because reference indels could need management
                 // to correctly manage window lenghts: done by the IndelRider?
