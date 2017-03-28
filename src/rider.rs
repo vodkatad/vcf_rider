@@ -134,7 +134,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     //println!("encoded_genotypes {:?} ", genotypes);
                     // Obtain all the possible sequences for this group in this position.
                     let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
-                    obtain_seq(& window, & snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs);
+                    obtain_seq(& window, & snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs, bed_window.end);
 
                     // TODO needs updating
                     // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
@@ -265,7 +265,7 @@ pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I,
 
 #[allow(unused_variables)]
 pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>,
-                  reference: & fasta::Fasta, genotypes : &Vec<usize>, seqs : &mut Vec<(usize, Vec<u8>)>) {
+                  reference: & fasta::Fasta, genotypes : &Vec<usize>, seqs : &mut Vec<(usize, Vec<u8>)>, bed_end : u64) {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences
@@ -275,7 +275,10 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     let mut e = window.end as usize;
     let len = window.end - window.start;
     let n = 2usize.pow(n_overlapping);
-    if e > reference.sequence.len() {
+    if e as u64 > bed_end {
+        e = bed_end as usize;
+    }
+    if e > reference.sequence.len() { //maybe border on bed?
         e = reference.sequence.len();
     }
     ref_seq = &reference.sequence[s..e];
@@ -288,28 +291,41 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                 if (i >> j) & 1 == 1 {
                     let this_mut = snps_buffer.get(mut_idx as usize).unwrap();
                     match *manage {
-                        indel::MutationClass::Manage(pos) => { let apos = pos as isize + pos_adjust; 
-                                                               seq_to_mutate[apos as usize] = this_mut.sequence_alt[0]; },
+                        indel::MutationClass::Manage(pos) => {  let apos: usize = (pos as isize + pos_adjust) as usize; 
+                                                                if apos < seq_to_mutate.len() {
+                                                                    seq_to_mutate[apos as usize] = this_mut.sequence_alt[0]; 
+                                                                }
+                                                            },
                         indel::MutationClass::Ins(ref seq, pos) => {  
                                                     //println!("managing insertion {:?}",seq_to_mutate);
-                                                    let apos = pos as isize + pos_adjust; 
-                                                    let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
-                                                    //println!("managing insertion {:?} {:?} {}", after_mut, seq_to_mutate, pos);
-                                                    let mut ins = seq.clone();
-                                                    pos_adjust += ins.len() as isize;
-                                                    seq_to_mutate.append(& mut ins);
-                                                    seq_to_mutate.append(after_mut);
+                                                    let apos: usize = (pos as isize + pos_adjust) as usize; 
+                                                    if apos < seq_to_mutate.len() {
+                                                        let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
+                                                        //println!("managing insertion {:?} {:?} {}", after_mut, seq_to_mutate, pos);
+                                                        let mut ins = seq.clone();
+                                                        pos_adjust += ins.len() as isize;
+                                                        seq_to_mutate.append(& mut ins);
+                                                        seq_to_mutate.append(after_mut);
+                                                    } else {
+                                                        break;
+                                                    }
                                                     },
                         indel::MutationClass::Del(length, pos) => {
-                                                    let apos = pos as isize + pos_adjust; 
-                                                    let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
-                                                    let ref mut after_deleted = after_mut.split_off(length as usize);
-                                                    pos_adjust -= length as isize; 
-                                                    seq_to_mutate.append(after_deleted);
+                                                    let apos: usize = (pos as isize + pos_adjust) as usize; 
+                                                    if apos < seq_to_mutate.len() {
+                                                        let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
+                                                        let ref mut after_deleted = after_mut.split_off(length as usize);
+                                                        pos_adjust -= length as isize; 
+                                                        seq_to_mutate.append(after_deleted);
+                                                    } else {
+                                                        break;
+                                                    }
                                                     },
                        indel::MutationClass::Reference => { 
                                                     if !this_mut.is_indel || this_mut.indel_len != 0 {
                                                         panic!("I found an indel annotated as Reference that seems mutated to me! {:?} {} i {}", this_mut, mut_idx, i);
+                                                    } else {
+                                                        break;
                                                     }
                                                     }
                     }
