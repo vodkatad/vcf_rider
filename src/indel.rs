@@ -159,7 +159,7 @@
                                                             let ov_len_modifier = (ov.end - ov.start) as u64;
                                                             if len_modifier < 0 {
                                                                 window.end -= ov_len_modifier as u64;
-                                                                if pos == 0 {
+                                                                if snp_coords.start == ov.start {
                                                                     // we do not have to modify the window start otherwise we risk getting wrong sequences.
                                                                     // we change our next_window and "eat out" the insertion step by step?
                                                                     // no it does not work cause it will always overlap at least a base?
@@ -171,7 +171,7 @@
                                                                         snp.sequence_alt.remove(0);
                                                                     } else {
                                                                         pos_managed = true; 
-                                                                        *next_pos = snp.pos.start;
+                                                                        *next_pos = orig_start;
                                                                     }
                                                                 }
                                                                 let mut ins = snp.sequence_alt.to_owned();
@@ -179,8 +179,8 @@
                                                                     for r in snp_coords.start .. ov.start {
                                                                         ins.remove(0);
                                                                     }
-                                                                } else if ov.end < snp_coords.end {
-                                                                    ins.split_off((snp_coords.end - ov.end) as usize);
+                                                                } else if ov.end < snp_coords_overlap.end {
+                                                                    ins.split_off((snp_coords_overlap.end - ov.end) as usize);
                                                                 }
                                                                 res_mutclass = MutationClass::Ins(ins, pos);
                                                             } else if len_modifier > 0 {
@@ -190,7 +190,7 @@
                                                                     // this del starts with this window, the next window should start
                                                                     // right after it.
                                                                     pos_managed = true;
-                                                                    *next_pos = snp_coords_overlap.end + 1;
+                                                                    *next_pos = snp_coords_overlap.end + 1; // are we skipping smt?
                                                                 }
                                                                 res_mutclass = MutationClass::Del(ov_len_modifier, pos);
                                                             } else if res_mutclass != MutationClass::Reference {
