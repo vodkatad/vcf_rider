@@ -100,10 +100,10 @@
         // Function that given a group id and a window will return info on the overlapping SNPs for that group and on the resulting window length
         #[allow(unused_variables)]
         #[allow(unused_assignments)]  // WTF
-        pub fn get_group_info(&self, window: & mut mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, info: & mut Vec<(usize, MutationClass)>) {
+        pub fn get_group_info(&self, window: & mut mutations::Coordinate, next_pos: & mut u64, snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, info: & mut Vec<(usize, MutationClass)>) {
             // Right now the logic is a bit twisted cause we change coords for snps when we get a deletion but we change window.end for overlapping indels...
             // I got why I was changing in ends...to catch their overlap across window borders, but that is wrong. We need to find a way to manage indels across window borders.
-            let mut window_start_modified_by_indels = window.start;
+            let mut pos_managed: bool = false;
             for (i_snp, snp) in snps_buffer.iter().enumerate() {
                 if i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
                     let mut group_genotypes : Vec<bool> = Vec::with_capacity(self.groups[self.next_group-1].len());
@@ -161,7 +161,6 @@
                                                                 window.end -= ov_len_modifier as u64;
                                                                 if pos == 0 {
                                                                     // we do not have to modify the window start otherwise we risk getting wrong sequences.
-                                                                    println!("need to do smt {} {}", window_start_modified_by_indels, ov_len_modifier);
                                                                 }
                                                                 let mut ins = snp.sequence_alt.to_owned();
                                                                 if ov.start > snp_coords.start {
@@ -174,7 +173,13 @@
                                                                 res_mutclass = MutationClass::Ins(ins, pos);
                                                             } else if len_modifier > 0 {
                                                                 window.end += ov_len_modifier as u64;
-                                                                // del length should be changed if they are across the window XXX
+                                                                // del length should be changed if they are across the window
+                                                                if pos == 0 { 
+                                                                    // this del starts with this window, the next window should start
+                                                                    // right after it.
+                                                                    pos_managed = true;
+                                                                    *next_pos = snp_coords_overlap.end + 1;
+                                                                }
                                                                 res_mutclass = MutationClass::Del(ov_len_modifier, pos);
                                                             } else if res_mutclass != MutationClass::Reference {
                                                                 res_mutclass = MutationClass::Manage(pos);
@@ -186,6 +191,8 @@
                     }
                 }
             }
-            window.start = window_start_modified_by_indels;
+            if ! pos_managed {
+                *next_pos += 1;
+            }
         }
     }
