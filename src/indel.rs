@@ -169,6 +169,10 @@
                                                                         // no it does not work cause it will always overlap at least a base?
                                                                         snp.indel_len += 1;
                                                                         snp.sequence_alt.remove(0);
+                                                                        if snp_coords.end > ov.end && snp.indel_len == (snp_coords.end - ov.end) as i64 { 
+                                                                            //manage long insertion TODO XXX
+                                                                            snp.pos.start = ov.end;  
+                                                                        } 
                                                                         pos_managed = true; 
                                                                         *next_pos = snp.pos.start;
                                                                     }
