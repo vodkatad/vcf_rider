@@ -283,22 +283,28 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     for i in 1..2usize.pow(n_overlapping) {
         if genotypes.iter().any(|&x| x == i) {
             let mut seq_to_mutate = ref_seq.to_owned();
+            let mut pos_adjust : isize = 0;
             for (j, &(mut_idx, ref manage)) in overlapping_info.iter().enumerate() {
                 if (i >> j) & 1 == 1 {
                     let this_mut = snps_buffer.get(mut_idx as usize).unwrap();
                     match *manage {
-                        indel::MutationClass::Manage(pos) => seq_to_mutate[pos] = this_mut.sequence_alt[0],
+                        indel::MutationClass::Manage(pos) => { let apos = pos as isize + pos_adjust; 
+                                                               seq_to_mutate[apos as usize] = this_mut.sequence_alt[0]; },
                         indel::MutationClass::Ins(ref seq, pos) => {  
                                                     //println!("managing insertion {:?}",seq_to_mutate);
-                                                    let ref mut after_mut = seq_to_mutate.split_off(pos);
+                                                    let apos = pos as isize + pos_adjust; 
+                                                    let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
                                                     //println!("managing insertion {:?} {:?} {}", after_mut, seq_to_mutate, pos);
                                                     let mut ins = seq.clone();
+                                                    pos_adjust += ins.len() as isize;
                                                     seq_to_mutate.append(& mut ins);
                                                     seq_to_mutate.append(after_mut);
                                                     },
-                        indel::MutationClass::Del(length, pos) => {  
-                                                    let ref mut after_mut = seq_to_mutate.split_off(pos);
+                        indel::MutationClass::Del(length, pos) => {
+                                                    let apos = pos as isize + pos_adjust; 
+                                                    let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
                                                     let ref mut after_deleted = after_mut.split_off(length as usize);
+                                                    pos_adjust -= length as isize; 
                                                     seq_to_mutate.append(after_deleted);
                                                     },
                        indel::MutationClass::Reference => { 
