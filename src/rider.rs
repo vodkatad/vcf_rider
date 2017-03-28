@@ -299,7 +299,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                         indel::MutationClass::Ins(ref seq, pos) => {  
                                                     //println!("managing insertion {:?}",seq_to_mutate);
                                                     let apos: usize = (pos as isize + pos_adjust) as usize; 
-                                                    if apos < seq_to_mutate.len() {
+                                                    if apos <= seq_to_mutate.len() {
                                                         let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
                                                         //println!("managing insertion {:?} {:?} {}", after_mut, seq_to_mutate, pos);
                                                         let mut ins = seq.clone();
@@ -312,7 +312,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                     },
                         indel::MutationClass::Del(length, pos) => {
                                                     let apos: usize = (pos as isize + pos_adjust) as usize; 
-                                                    if apos < seq_to_mutate.len() {
+                                                    if apos <= seq_to_mutate.len() {
                                                         let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
                                                         let ref mut after_deleted = after_mut.split_off(length as usize);
                                                         pos_adjust -= length as isize; 
