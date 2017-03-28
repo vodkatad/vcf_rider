@@ -177,7 +177,7 @@
                                                                             ins.remove(0);
                                                                         }
                                                                     } else if ov.end < snp_coords_overlap.end {
-                                                                        ins.split_off((snp_coords_overlap.end - ov.end) as usize);
+                                                                        ins.split_off((ov.end - snp_coords_overlap.start) as usize);
                                                                     }
                                                                     res_mutclass = MutationClass::Ins(ins, pos);
                                                                 } else if len_modifier > 0 {
