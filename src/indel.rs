@@ -121,7 +121,7 @@
                     let snp_coords = mutations::Coordinate{ chr: snp.pos.chr.to_owned(), start: snp.pos.start, end: snp.pos.end };
                     let mut snp_end_overlap_borders = snp.pos.end;
                     let mut len_modifier : i64 = 0;
-                    println!("group {:?} genotypes {:?}", self.groups[self.next_group-1], group_genotypes);
+                    //println!("group {:?} genotypes {:?}", self.groups[self.next_group-1], group_genotypes);
                     // We fix coords for snps that comes after a deletion.
                     if group_genotypes.iter().any(|&x| x) {
                         if snp.is_indel {
@@ -149,15 +149,15 @@
                     }
                     let snp_coords_overlap = mutations::Coordinate{ chr: snp_coords.chr.to_owned(), start: snp_coords.start, end: snp_end_overlap_borders};
                     match snp_coords_overlap.relative_position_overlap(&sub_window) {
-                        (mutations::Position::Before, _) => {   println!("seen {} before", snp_coords.start)
+                        (mutations::Position::Before, _) => {   //println!("seen {} before", snp_coords.start)
                                                             },
                         (mutations::Position::Overlapping, overlap) => { 
                                                             if snp.indel_len == 0 { // exhausted insertion
                                                                 res_mutclass = MutationClass::Reference;
                                                             } else {
                                                                 let ov = overlap.unwrap();
-                                                                println!("snp {} {} {} {}", snp_coords.start, window.start, window.end, snp_coords.end);
-                                                                println!("ov {} {} {} {}", ov.start, window.start, window.end, ov.end);
+                                                                //println!("snp {} {} {} {}", snp_coords.start, window.start, window.end, snp_coords.end);
+                                                                //println!("ov {} {} {} {}", ov.start, window.start, window.end, ov.end);
                                                                 let pos = (ov.start-window.start) as usize;
                                                                 let ov_len_modifier = (ov.end - ov.start) as u64;
                                                                 if len_modifier < 0 {
@@ -196,7 +196,7 @@
                                                             }
                                                             info.push((i_snp, res_mutclass));
                                                         },
-                        (mutations::Position::After, _) => {    println!("seen {} after", snp_coords.start); 
+                        (mutations::Position::After, _) => {    //println!("seen {} after", snp_coords.start); 
                                                                 break } 
                     }
                 }

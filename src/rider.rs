@@ -121,13 +121,13 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     let mut overlapping : Vec<(usize, indel::MutationClass)> = Vec::new(); 
                     // or is it better to allocate it in eccess with n overlapping capacity?
                     // This will also modify the window to access the right portion of the reference genome (longer or shorter if necessary due to indels).
-                    println!("The window was {:?}", window);
+                    //println!("The window was {:?}", window);
                     indel_manager.get_group_info(& mut window, & mut pos, & mut snps_buffer, n_overlapping, & mut overlapping); // He should know the group cause it is iterating on them itself.
-                    println!("And became {:?}", window);
+                    //println!("And became {:?}", window);
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     let n_overlapping = overlapping.len() as u32;
-                    println!("for group {:?} in window {} n_overlapping {} ", chr_samples, window.start, n_overlapping);
-                    println!("overlapping_info {:?} ", overlapping);
+                    //println!("for group {:?} in window {} n_overlapping {} ", chr_samples, window.start, n_overlapping);
+                    //println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
                     // that encodes its genotype (using only the mutation that needs to be managed here, i.e. SNPs).
                     let genotypes : Vec<usize> = encode_genotypes(&snps_buffer, &overlapping, &chr_samples, n_samples, &samples);
@@ -174,7 +174,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 }
                 for i in 0..n_pwm {
                     for (j, chr_sample) in chr_samples.iter().enumerate() {
-                        println!("j {} chr_s {} n_samples {}", j, chr_sample, n_samples);
+                        //println!("j {} chr_s {} n_samples {}", j, chr_sample, n_samples);
                         let ref sample = vcf_reader.samples[(*chr_sample % n_samples as u32) as usize];
                         println!("{}\t{}\t{}\t{}", record.name().expect("Error reading name"), params.parameters.get(i).unwrap().get_name(), sample, scores[i][j]);
                     }
@@ -289,9 +289,9 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                     match *manage {
                         indel::MutationClass::Manage(pos) => seq_to_mutate[pos] = this_mut.sequence_alt[0],
                         indel::MutationClass::Ins(ref seq, pos) => {  
-                                                    println!("managing insertion {:?}",seq_to_mutate);
+                                                    //println!("managing insertion {:?}",seq_to_mutate);
                                                     let ref mut after_mut = seq_to_mutate.split_off(pos);
-                                                    println!("managing insertion {:?} {:?} {}", after_mut, seq_to_mutate, pos);
+                                                    //println!("managing insertion {:?} {:?} {}", after_mut, seq_to_mutate, pos);
                                                     let mut ins = seq.clone();
                                                     seq_to_mutate.append(& mut ins);
                                                     seq_to_mutate.append(after_mut);
@@ -310,7 +310,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                 } // it is possible that we will need to manage also the else branch here, because reference indels could need management
                 // to correctly manage window lenghts: done by the IndelRider?
             }
-            println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
+            //println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
             seqs.push((i, seq_to_mutate));
         }
     }
