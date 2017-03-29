@@ -46,12 +46,12 @@
             let n_groups = groups.iter().max().unwrap();
             let n = *n_groups as usize;
             let mut rev_groups : Vec<Vec<u32>> = vec![Vec::new(); n+1]; // functional way to do this?
-            println!("cgroups {:?}", groups);
+            //println!("cgroups {:?}", groups);
             // groups has chr samples as indexes and group ids as elements, we need to invert this array.
             for (sample, group) in groups.iter().enumerate() {
                 rev_groups[*group as usize].push(sample as u32); // Mh, use all usize and stop? XXX
             }
-            println!("cgroups {:?}", rev_groups);
+            //println!("cgroups {:?}", rev_groups);
             IndelRider{ groups: rev_groups, next_group: 0, n_samples_tot: n_samples}
         }
             
@@ -155,13 +155,13 @@
                     }
                     let snp_coords_overlap = mutations::Coordinate{ chr: snp_coords.chr.to_owned(), start: snp_coords.start, end: snp_end_overlap_borders};
                     match snp_coords_overlap.relative_position_overlap(&sub_window) {
-                        (mutations::Position::Before, _) => {   println!("seen {} before", snp_coords.start)
+                        (mutations::Position::Before, _) => {   //println!("seen {} before", snp_coords.start)
                                                             },
                         (mutations::Position::Overlapping, overlap) => { 
                                                             if snp.indel_len != 0 { // else it is an exhausted insertion and it does not overlap anymore.
                                                                 let ov = overlap.unwrap();
-                                                                println!("snp {} {} {} {}", snp_coords.start, snp_coords.end, window.start, window.end);
-                                                                println!("ov {} {}", ov.start, ov.end);
+                                                                //println!("snp {} {} {} {}", snp_coords.start, snp_coords.end, window.start, window.end);
+                                                                //println!("ov {} {}", ov.start, ov.end);
                                                                 let pos = (ov.start-window.start) as usize;
                                                                 let ov_len_modifier = (ov.end - ov.start) as u64;
                                                                 if len_modifier < 0 {
@@ -204,7 +204,7 @@
                                                                 info.push((i_snp, res_mutclass));
                                                             }
                                                         },
-                        (mutations::Position::After, _) => {    println!("seen {} after", snp_coords.start); 
+                        (mutations::Position::After, _) => {    //println!("seen {} after", snp_coords.start); 
                                                                 break } 
                     }
                 }
