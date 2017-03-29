@@ -1,5 +1,6 @@
     use super::mutations;
     use std::collections::VecDeque;
+    use std::ops::Index;
 
     // Used to classify indels and snps in groups: SNPs will be tagged as "Manage" while
     // indels with Ins or Del (if this group has their alternative allele).
@@ -27,7 +28,11 @@
             if self.next_group == self.groups.len() {
                 None
             } else {
-                let ref res = self.groups[self.next_group];
+                let mut res = self.groups.index(self.next_group);
+                while res.len() == 0 {
+                    self.next_group += 1;
+                    res = self.groups.index(self.next_group);
+                }
                 self.next_group += 1;
                 Some(res.to_vec()) //XXX FIXME but why do we need to clone it? Do we need lifetimes or...?
             }
@@ -41,10 +46,12 @@
             let n_groups = groups.iter().max().unwrap();
             let n = *n_groups as usize;
             let mut rev_groups : Vec<Vec<u32>> = vec![Vec::new(); n+1]; // functional way to do this?
+            println!("cgroups {:?}", groups);
             // groups has chr samples as indexes and group ids as elements, we need to invert this array.
             for (sample, group) in groups.iter().enumerate() {
                 rev_groups[*group as usize].push(sample as u32); // Mh, use all usize and stop? XXX
             }
+            println!("cgroups {:?}", rev_groups);
             IndelRider{ groups: rev_groups, next_group: 0, n_samples_tot: n_samples}
         }
             
