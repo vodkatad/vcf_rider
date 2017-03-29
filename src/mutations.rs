@@ -3,7 +3,7 @@ use std::io;
 use itertools::Itertools;
 use std::path::Path;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Coordinate {
     pub chr: String,
     pub start: u64, // 0 based, end inclusive
@@ -66,6 +66,13 @@ pub struct Mutation {
     pub is_indel: bool,
     pub indel_len: i64 // We use this to store the length of indels instead of pos.end.
     // the length of insertions is negative
+}
+
+impl Clone for Mutation {
+    fn clone(&self) -> Mutation {
+        Mutation{ id: self.id.to_owned(), pos: self.pos.clone(), sequence_ref: self.sequence_ref.clone(), sequence_alt: self.sequence_alt.clone(), genotypes: self.genotypes.clone(), is_indel: self.is_indel,
+        indel_len: self.indel_len }
+    }
 }
 
 pub struct VcfReader {

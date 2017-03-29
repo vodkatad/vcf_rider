@@ -93,6 +93,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             // We iterate over different groups, each group is made of single chromosomes of out samples with the same
             // combination of indels genotypes for this bed.
             while let Some(chr_samples) = indel_manager.next() {
+                let mut groups_snps_buffer = snps_buffer.clone();
                 println!("working on group {:?}", chr_samples);
                 let mut pos = record.start();
                 let mut samples : Vec<u32> = Vec::new();
@@ -122,7 +123,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     // or is it better to allocate it in eccess with n overlapping capacity?
                     // This will also modify the window to access the right portion of the reference genome (longer or shorter if necessary due to indels).
                     println!("The window was {:?}", window);
-                    indel_manager.get_group_info(& mut window, & mut pos, & mut snps_buffer, n_overlapping, & mut overlapping); // He should know the group cause it is iterating on them itself.
+                    indel_manager.get_group_info(& mut window, & mut pos, & mut groups_snps_buffer, n_overlapping, & mut overlapping); // He should know the group cause it is iterating on them itself.
                     println!("And became {:?} next {}", window, pos);
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     let n_overlapping = overlapping.len() as u32;
@@ -130,11 +131,11 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
                     // that encodes its genotype (using only the mutation that needs to be managed here, i.e. SNPs).
-                    let genotypes : Vec<usize> = encode_genotypes(&snps_buffer, &overlapping, &chr_samples, n_samples, &samples);
+                    let genotypes : Vec<usize> = encode_genotypes(&groups_snps_buffer, &overlapping, &chr_samples, n_samples, &samples);
                     println!("encoded_genotypes {:?} ", genotypes);
                     // Obtain all the possible sequences for this group in this position.
                     let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
-                    obtain_seq(& window, & snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs, bed_window.end);
+                    obtain_seq(& window, & groups_snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs, bed_window.end);
 
                     // TODO needs updating
                     // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
