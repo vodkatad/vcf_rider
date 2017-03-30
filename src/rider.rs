@@ -286,7 +286,6 @@ pub fn print_overlapping(snps_buffer: & VecDeque<mutations::Mutation>, n_overlap
     }
 }
 
-#[allow(unused_variables)]
 pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>,
                   reference: & fasta::Fasta, genotypes : &Vec<usize>, seqs : &mut Vec<(usize, Vec<u8>)>, bed_end : u64) {
     // snps_buffer will be empty or contain snps found in the previous window
@@ -296,8 +295,6 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     let ref_seq : &[u8];
     let s = window.start as usize;
     let mut e = window.end as usize;
-    let len = window.end - window.start;
-    let n = 2usize.pow(n_overlapping);
     if e as u64 > bed_end {
         e = bed_end as usize;
     }
