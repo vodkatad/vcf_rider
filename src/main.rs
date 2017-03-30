@@ -14,6 +14,7 @@ fn main() {
     let pwms_filename = get_next_arg(&mut args, "Missing pwm file argument", &binary_name);
     let bed_filename = get_next_arg(&mut args, "Missing bed file argument", &binary_name);
     let ref_filename = get_next_arg(&mut args, "Missing reference chr argument", &binary_name);
+    let associations_ofilename = get_next_arg(&mut args, "Missing filename to print snp/gene associations", &binary_name);
     let bg = vec!(0.298947240099661, 0.200854143743417, 0.200941012710477, 0.299257603446445);
     // TODO argument bg
     //println!("fasta: {}", fasta_filename);
@@ -48,18 +49,18 @@ fn main() {
     };
     
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
-        get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename);
+        get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename, &associations_ofilename);
     } else {
         panic!("Could not open bed file!");
     }
 }
 
-// TODO: use a meaningful crate for args management.
+// It there use a nice crate like getopt?.
 fn get_next_arg(args: &mut env::Args, error: &str, binary_name: &str) -> String {
     match args.next() {
         Some(x) => x,
         None => {
-            println!("Usage: {} <vcf_filename> <pwm_filename> <bed filename> <fasta ref filename>", binary_name);
+            println!("Usage: {} <vcf_filename> <pwm_filename> <bed filename> <fasta ref filename>  <associations_filename>", binary_name);
             println!("{}", error);
             std::process::exit(1);
         }

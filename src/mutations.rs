@@ -150,7 +150,7 @@ impl Iterator for VcfReader {
     fn next(&mut self) -> Option<Mutation> {
         let mut record : bcf::Record = bcf::Record::new();
         if let Ok(_) = self.reader.read(&mut record) {
-            let id = "".to_owned();
+            let id = record.pos().to_string();
             let chr = "?".to_owned(); // where is it? rid?
             let mut coord = record.pos() as u64; // Manually checked: the lib converts 1 based coords of vcf to 0 based. bed records have u64
             let alleles = record.alleles().into_iter().map(|a| a.to_owned()).collect_vec(); // I do not like this to_owned...

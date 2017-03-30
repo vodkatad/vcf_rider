@@ -1,9 +1,11 @@
 use bio::io::bed;
 use std::fs;
+use std::io::BufWriter;
 use super::fasta;
 use super::mutations;
 use super::indel;
 use std::collections::VecDeque;
+use std::io::Write;
 
 /// Our vcf_rider main function will receive a Vec<T: CanScoreSequence>
 /// and call it for every T on subsequences of the genomes of the samples
@@ -46,7 +48,7 @@ pub struct RiderParameters<'a, T : CanScoreSequence + 'a> {
 }
 
 // TODO ->
-pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &str, mut bed_reader: bed::Reader<fs::File>, ref_path: &str) {
+pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &str, mut bed_reader: bed::Reader<fs::File>, ref_path: &str, assoc_path: &str) {
 
     // #[cfg(debug_assertions)]   attributes on non-item statements and expressions are experimental. (see issue #15701)
     //{
@@ -70,6 +72,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
         }
     };
 
+    let assoc_file = fs::File::create(assoc_path).expect(&format!("Could not open {}", &assoc_path));
     //println!("Fasta ref {}", referenceseq.id);
     // load vcf -> open file, skip # headers, first real entry
     // We could use a VcfReader similar to others.
@@ -89,6 +92,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             let record = r.ok().expect("Error reading record");
             let bed_window = mutations::Coordinate{chr: "".to_owned(), start: record.start(), end: record.end()};
             let n_overlapping = find_overlapping_snps(& bed_window, &mut vcf_reader, &mut snps_buffer);
+            print_overlapping(& snps_buffer, n_overlapping as usize, & assoc_file, &record);
             let mut indel_manager = indel::IndelRider::new(&snps_buffer, n_overlapping, n_samples);
             // We iterate over different groups, each group is made of single chromosomes of out samples with the same
             // combination of indels genotypes for this bed.
@@ -184,6 +188,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             }
         }
     }
+    assoc_file.sync_all().expect("Error while writing to the associations file");
 }
 
 pub fn match_indexes(index: usize, idx: &mut Vec<(usize, bool)>, genotypes : &Vec<usize>) -> bool {
@@ -263,6 +268,15 @@ pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I,
     }
     // do we need to explicitly manage the case where VcfReader is exausted? Don't think so.
     overlapping_snps
+}
+
+pub fn print_overlapping(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: usize, outfile: & fs::File, bed_record: & bed::Record) {
+    let mut writer = BufWriter::new(outfile);
+    write!(&mut writer, "{}\t{}\t{}\t", bed_record.name().expect("Error reading name"), bed_record.start(), bed_record.end()).expect("Error writing to the associations file!");
+    for i in 0 .. n_overlapping-1 {
+        write!(&mut writer, "{},", snps_buffer.get(i).expect("error in loading SNPs").id).expect("Error writing to the associations file!");
+    }
+    writeln!(&mut writer, "{}", snps_buffer.get(n_overlapping-1).expect("error in loading SNPs").id).expect("Error writing to the associations file!");
 }
 
 #[allow(unused_variables)]
