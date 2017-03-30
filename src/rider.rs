@@ -279,10 +279,10 @@ pub fn print_overlapping(snps_buffer: & VecDeque<mutations::Mutation>, n_overlap
     let mut writer = BufWriter::new(outfile);
     write!(&mut writer, "{}\t{}\t{}\t", bed_record.name().expect("Error reading name"), bed_record.start(), bed_record.end()).expect("Error writing to the associations file!");
     for i in 0 .. n_overlapping-1 {
-        write!(&mut writer, "{},", snps_buffer.get(i).expect("error in loading SNPs").id).expect("Error writing to the associations file!");
+        write!(&mut writer, "{},", snps_buffer.get(i).expect("error in SNPs buffer").id).expect("Error writing to the associations file!");
     }
-    if n_overlapping - 1 < snps_buffer.len() {
-        writeln!(&mut writer, "{}", snps_buffer.get(n_overlapping-1).expect("error in loading SNPs").id).expect("Error writing to the associations file!");
+    if n_overlapping != 0 {
+        writeln!(&mut writer, "{}", snps_buffer.get(n_overlapping-1).expect("error in SNPs buffer").id).expect("Error writing to the associations file!");
     }
 }
 
