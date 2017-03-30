@@ -67,7 +67,7 @@
         /// * `n_sample` - the number of samples (each with two alleles for each SNP) for which we have genotypes.
         ///
         /// This needs also to define manage/do not manage
-        fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, groups: &mut Vec<u32>, n_samples: usize) {
+        pub fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, groups: &mut Vec<u32>, n_samples: usize) {
             for (i_snp, snp) in snps_buffer.iter().enumerate() {
                 if snp.is_indel && i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
                     if snp.genotypes.iter().any(|x| x.0 || x.1) {
