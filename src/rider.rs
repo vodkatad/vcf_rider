@@ -181,8 +181,13 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 for i in 0..n_pwm {
                     for (j, chr_sample) in chr_samples.iter().enumerate() {
                         //println!("j {} chr_s {} n_samples {}", j, chr_sample, n_samples);
+                        let mut phased_allele = "allele1".to_owned();
+                        if *chr_sample as usize >= n_samples {
+                            phased_allele = "allele2".to_owned();
+                        }
                         let ref sample = vcf_reader.samples[(*chr_sample % n_samples as u32) as usize];
-                        println!("{}\t{}\t{}\t{}", record.name().expect("Error reading name"), params.parameters.get(i).unwrap().get_name(), sample, scores[i][j]);
+                        println!("{}\t{}\t{}\t{}\t{}\t{}\t{}", record.name().expect("Error reading name"), record.start(), record.end(),
+                        params.parameters.get(i).unwrap().get_name(), sample, phased_allele, scores[i][j]);
                     }
                 }
             }
