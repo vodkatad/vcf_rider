@@ -340,9 +340,11 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                     if apos <= seq_to_mutate.len() {
                                                         let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
                                                         println!("managing del {:?} {:?} {} {}", after_mut, seq_to_mutate, apos, length);
-                                                        let ref mut after_deleted = after_mut.split_off(length as usize);
-                                                        pos_adjust -= length as isize; 
-                                                        seq_to_mutate.append(after_deleted);
+                                                        if length < after_mut.len() as u64 {
+                                                            let ref mut after_deleted = after_mut.split_off(length as usize);
+                                                            pos_adjust -= length as isize; 
+                                                            seq_to_mutate.append(after_deleted);
+                                                        }
                                                     } else {
                                                         break;
                                                     }
