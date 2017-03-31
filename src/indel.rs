@@ -189,14 +189,18 @@
                                                                     }
                                                                     res_mutclass = MutationClass::Ins(ins, pos);
                                                                 } else if len_modifier > 0 {
-                                                                    window.end += ov_len_modifier as u64;
-                                                                    // del length should be changed if they are across the window
                                                                     if pos == 0 { 
                                                                         // this del starts with this window, the next window should start
                                                                         // right after it.
                                                                         pos_managed = true;
                                                                         *next_pos = snp_coords_overlap.end + 1; // are we skipping smt?
+                                                                    } 
+                                                                    if snp_coords_overlap.end <= window.end { 
+                                                                        // if it is > this del eats all this window so we do not want to enlarge it otherwise we risk getting 
+                                                                        // unexistent reference bases for this deletion.
+                                                                        window.end += ov_len_modifier as u64;                                                                        
                                                                     }
+                                                                    // del length should be changed if they are across the window
                                                                     res_mutclass = MutationClass::Del(ov_len_modifier, pos);
                                                                 } else if res_mutclass != MutationClass::Reference {
                                                                     res_mutclass = MutationClass::Manage(pos);
