@@ -155,13 +155,13 @@
                     }
                     let snp_coords_overlap = mutations::Coordinate{ chr: snp_coords.chr.to_owned(), start: snp_coords.start, end: snp_end_overlap_borders};
                     match snp_coords_overlap.relative_position_overlap(&sub_window) {
-                        (mutations::Position::Before, _) => {   //println!("seen {} before", snp_coords.start)
+                        (mutations::Position::Before, _) => {   println!("seen {} before", snp_coords.start)
                                                             },
                         (mutations::Position::Overlapping, overlap) => { 
                                                             if snp.indel_len != 0 { // else it is an exhausted insertion and it does not overlap anymore.
                                                                 let ov = overlap.unwrap();
-                                                                //println!("snp {} {} {} {}", snp_coords.start, snp_coords.end, window.start, window.end);
-                                                                //println!("ov {} {}", ov.start, ov.end);
+                                                                println!("snp {} {} {} {}", snp_coords.start, snp_coords.end, window.start, window.end);
+                                                                println!("ov {} {}", ov.start, ov.end);
                                                                 let pos = (ov.start-window.start) as usize;
                                                                 let ov_len_modifier = (ov.end - ov.start) as u64;
                                                                 if len_modifier < 0 {
@@ -204,7 +204,7 @@
                                                                 info.push((i_snp, res_mutclass));
                                                             }
                                                         },
-                        (mutations::Position::After, _) => {    //println!("seen {} after", snp_coords.start); 
+                        (mutations::Position::After, _) => {    println!("seen {} after", snp_coords.start); 
                                                                 break } 
                     }
                 }
