@@ -188,6 +188,7 @@
                                                                         ins.split_off((ov.end - snp_coords_overlap.start) as usize);
                                                                     }
                                                                     res_mutclass = MutationClass::Ins(ins, pos);
+                                                                    last_del_start_win = false;
                                                                 } else if len_modifier > 0 {
                                                                     if last_del_start_win && *next_pos == snp_coords_overlap.end { 
                                                                         // very funny case with two adjacent deletions.
@@ -216,6 +217,7 @@
                                                                     res_mutclass = MutationClass::Del(ov_len_modifier, pos);
                                                                 } else if res_mutclass != MutationClass::Reference {
                                                                     res_mutclass = MutationClass::Manage(pos);
+                                                                    last_del_start_win = false;
                                                                 }
                                                                 info.push((i_snp, res_mutclass));
                                                             }
