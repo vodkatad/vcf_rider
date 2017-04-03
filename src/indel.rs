@@ -109,6 +109,7 @@
             // Right now the logic is a bit twisted cause we change coords for snps when we get a deletion but we change window.end for overlapping indels...
             // I got why I was changing in ends...to catch their overlap across window borders, but that is wrong. We need to find a way to manage indels across window borders.
             let mut pos_managed: bool = false;
+            let mut last_del_start_win: bool = false;
             for (i_snp, snp) in snps_buffer.iter_mut().enumerate() {
                 if i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
                     let mut group_genotypes : Vec<bool> = Vec::with_capacity(self.groups[self.next_group-1].len());
@@ -188,19 +189,27 @@
                                                                     }
                                                                     res_mutclass = MutationClass::Ins(ins, pos);
                                                                 } else if len_modifier > 0 {
+                                                                    if last_del_start_win && *next_pos == snp_coords_overlap.end { 
+                                                                        // very funny case with two adjacent deletions.
+                                                                        pos_managed = true;
+                                                                        *next_pos = snp_coords_overlap.end + 1; // are we skipping smt?
+                                                                    }
                                                                     if pos == 0 { 
                                                                         // this del starts with this window, the next window should start
                                                                         // right after it.
+                                                                        last_del_start_win = true;
                                                                         pos_managed = true;
                                                                         *next_pos = snp_coords_overlap.end + 1; // are we skipping smt?
-                                                                    } 
+                                                                    } else {
+                                                                        last_del_start_win = false;
+                                                                    }
                                                                     if snp_coords_overlap.end <= window.end { 
                                                                         // if it is > this del eats all this window so we do not want to enlarge it otherwise we risk getting 
                                                                         // unexistent reference bases for this deletion.
                                                                         window.end += ov_len_modifier as u64;                                                                        
                                                                     } else {
                                                                         // we enlarge it past the whole deletion but eat all of it
-                                                                        window.end = snp_coords_overlap.end + ov_len_modifier;
+                                                                        window.end = snp_coords_overlap.end + ov_len_modifier; // + ov_len_modifier to keep window of the same lengths
                                                                         ov_len_modifier = snp.indel_len as u64;
                                                                     }
                                                                     // del length should be changed if they are across the window
