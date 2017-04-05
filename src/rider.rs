@@ -71,9 +71,11 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             panic!("Error reading reference fasta")
         }
     };
-
-    let assoc_file = fs::File::create(assoc_path).expect(&format!("Could not open {}", &assoc_path));
-    let mut assoc_writer = BufWriter::new(assoc_file);
+    let mut assoc_writer : BufWriter<fs::File>;
+    if assoc_path != "" {
+        let assoc_file = fs::File::create(assoc_path).expect(&format!("Could not open {}", &assoc_path));
+        assoc_writer = BufWriter::new(assoc_file);
+    }
     //println!("Fasta ref {}", referenceseq.id);
     // load vcf -> open file, skip # headers, first real entry
     // We could use a VcfReader similar to others.
@@ -93,7 +95,9 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             let record = r.ok().expect("Error reading record");
             let bed_window = mutations::Coordinate{chr: "".to_owned(), start: record.start(), end: record.end()};
             let n_overlapping = find_overlapping_snps(& bed_window, &mut vcf_reader, &mut snps_buffer);
-            print_overlapping(& snps_buffer, n_overlapping as usize, &mut assoc_writer, &record);
+            /*if assoc_path != "" {
+                print_overlapping(& snps_buffer, n_overlapping as usize, &mut assoc_writer, &record);
+            }*/
             let mut indel_manager = indel::IndelRider::new(&snps_buffer, n_overlapping, n_samples);
             // We iterate over different groups, each group is made of single chromosomes of out samples with the same
             // combination of indels genotypes for this bed.
@@ -194,7 +198,9 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             }
         }
     }
-    assoc_writer.flush().expect("Error while writing to the associations file");
+    /*if assoc_path != "" {
+        assoc_writer.flush().expect("Error while writing to the associations file");
+    }*/
 }
 
 pub fn match_indexes(index: usize, idx: &mut Vec<(usize, bool)>, genotypes : &Vec<usize>) -> bool {

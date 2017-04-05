@@ -27,7 +27,6 @@ fn main() {
         ap.refer(& mut ref_filename).add_argument("reference", Store, "A fasta with the reference sequence for the chromosome of interest").required();
         ap.refer(& mut associations_filename).add_argument("associations", Store, "Optional filename where bed-mutations associations will be printed.");
         ap.parse_args_or_exit();
-        //ap.print_usage("?", &mut usage);
     }
     //println!("fasta: {}", ref_filename);
     //println!("pwms: {}", pwms_filename);
@@ -61,7 +60,7 @@ fn main() {
     };
     
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
-        //get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename, &associations_filename);
+        get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename, &associations_filename);
     } else {
         panic!("Could not open bed file!");
     }
