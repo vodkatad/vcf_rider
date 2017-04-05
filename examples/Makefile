@@ -7,20 +7,20 @@ all: $(OBJ)
 clean:
 	rm -rf $(OBJ)
 
-single_snp: single_snp.vcf aaaa.pwm prova.bed ref.fasta
-	$(EXE) -v $(word 1, $^) -p $(word 2, $^) -b $(word 3, $^) -r $(word 4, $^) -a $@.bedov > $@
+single_snp: single_snp.vcf aaaa.pwm prova.bed ref.fasta bg
+	$(EXE) -v $(word 1, $^) -p $(word 2, $^) -b $(word 3, $^) -r $(word 4, $^) -a $@.bedov -f $(word 5, $^) > $@
 	diff $@.cmp $@
 	diff $@.bedov.cmp $@.bedov
 	rm $@.bedov
 
-small_del: smalldel.vcf aaaa.pwm prova.bed refdel.fasta
-	$(EXE) -v $(word 1, $^) -p $(word 2, $^) -b $(word 3, $^) -r $(word 4, $^) -a $@.bedov > $@
+small_del: smalldel.vcf aaaa.pwm prova.bed refdel.fasta bg
+	$(EXE) -v $(word 1, $^) -p $(word 2, $^) -b $(word 3, $^) -r $(word 4, $^) -a $@.bedov -f $(word 5, $^) > $@
 	diff $@.cmp $@
 	diff $@.bedov.cmp $@.bedov
 	rm $@.bedov
 
-adj_dels: overlappingdel.vcf aaaa.pwm prova.bed ref_overlappingdel.fasta
-	$(EXE) -v $(word 1, $^) -p $(word 2, $^) -b $(word 3, $^) -r $(word 4, $^) -a $@.bedov > $@
+adj_dels: overlappingdel.vcf aaaa.pwm prova.bed ref_overlappingdel.fasta bg
+	$(EXE) -v $(word 1, $^) -p $(word 2, $^) -b $(word 3, $^) -r $(word 4, $^) -a $@.bedov -f $(word 5, $^) > $@
 	diff $@.cmp $@
 	diff $@.bedov.cmp $@.bedov
 	rm $@.bedov

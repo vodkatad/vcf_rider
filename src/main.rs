@@ -7,6 +7,9 @@ use vcf_rider::pwm;
 use bio::io::bed;
 use std::path::Path;
 use argparse::{ArgumentParser, Store};
+use std::io::BufReader;
+use std::fs::File;
+use std::io::BufRead;
 
 fn main() {
     let mut vcf_filename = "".to_string();
@@ -14,8 +17,7 @@ fn main() {
     let mut bed_filename = "".to_string();
     let mut ref_filename = "".to_string();
     let mut associations_filename = "".to_string();
-
-    let bg = vec!(0.298947240099661, 0.200854143743417, 0.200941012710477, 0.299257603446445);
+    let mut bg_filename = "".to_string();
     //let mut usage = std::io::Cursor::new("");
     // TODO argument bg
     { 
@@ -25,17 +27,30 @@ fn main() {
         ap.refer(& mut pwms_filename).add_option(&["-p", "--pwm"], Store, "PWM file in the format required by matrix rider (name, pos, a, c, g, t), with counts, no zeroes.").required();
         ap.refer(& mut bed_filename).add_option(&["-b", "--bed"], Store, "A bed file representing the desired genomic intervals, on a single chromosome").required();
         ap.refer(& mut ref_filename).add_option(&["-r", "--ref"], Store, "A fasta with the reference sequence for the chromosome of interest").required();
+        ap.refer(& mut bg_filename).add_option(&["-f", "--bg"], Store, "A tab delimited single line (a, c, g, t) with the background frequencies to be used").required();
         ap.refer(& mut associations_filename).add_option(&["-a", "--assoc"], Store, "Optional filename where bed-mutations associations will be printed.");
         ap.parse_args_or_exit();
     }
     //println!("fasta: {}", ref_filename);
     //println!("pwms: {}", pwms_filename);
+    let mut read_bg = match File::open(&bg_filename) {
+        Ok(file) => BufReader::new(file),
+        Err(_) =>  panic!("Error while reading bg file, does it have a single tab separated line?")
+    };
+    let mut bg = String::new();
+    let bg_vec = match read_bg.read_line(& mut bg) {
+        Ok(_) => bg.trim_right().split("\t").to_owned(),
+        Err(_) => panic!("Error while reading bg file, does it have a single tab separated line?")
+    };
+    let float_bg = bg_vec.map(|x| { x.parse::<f64>().unwrap()}).collect();
     let mut matrixes : Vec<pwm::PWM> = Vec::new();
     if let Ok(pwm_reader) = pwm::PWMReader::open_path(&pwms_filename) {
         for mut pwm in pwm_reader {
-            pwm.compute_ll(&bg);
+            pwm.compute_ll(&float_bg);
             matrixes.push(pwm);
         }
+    } else {
+        panic!("Error while reading PWM file!")
     }
 
     let assoc_file_opt = match associations_filename.as_ref() {
