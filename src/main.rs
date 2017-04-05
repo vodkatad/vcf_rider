@@ -21,19 +21,13 @@ fn main() {
     { 
         let mut ap = ArgumentParser::new();
         ap.set_description("Compute TBA on some genomic intervals for the individuals whose mutations are listed in the VCF. Needs a phased vcf. Works on single chromosomes.");
-        ap.refer(& mut vcf_filename).add_option(&["-v", "--vcf"], Store, "A phased vcf for a single chromome");
-        ap.refer(& mut pwms_filename).add_option(&["-p", "--pwm"], Store, "PWM file in the format required by matrix rider (name, pos, a, c, g, t), with counts, no zeroes.");
-        ap.refer(& mut bed_filename).add_option(&["-b", "--bed"], Store, "A bed file representing the desired genomic intervals, on a single chromosome");
-        ap.refer(& mut ref_filename).add_option(&["-r", "--ref"], Store, "A fasta with the reference sequence for the chromosome of interest");
+        ap.refer(& mut vcf_filename).add_argument("vcf", Store, "A phased vcf for a single chromome").required();
+        ap.refer(& mut pwms_filename).add_argument("pwm", Store, "PWM file in the format required by matrix rider (name, pos, a, c, g, t), with counts, no zeroes.").required();
+        ap.refer(& mut bed_filename).add_argument("bed", Store, "A bed file representing the desired genomic intervals, on a single chromosome").required();
+        ap.refer(& mut ref_filename).add_argument("reference", Store, "A fasta with the reference sequence for the chromosome of interest").required();
+        ap.refer(& mut associations_filename).add_argument("associations", Store, "Optional filename where bed-mutations associations will be printed.");
         ap.parse_args_or_exit();
         //ap.print_usage("?", &mut usage);
-    }
-    if vcf_filename == "" || pwms_filename == "" || bed_filename == "" || ref_filename == "" {
-        //ap.print_usage("?", &mut std::io::stderr()); //cannot do the if inside the scope for borrowing issues. Mh.
-        // store somehow the usage in a buffer that we print here?
-        //println!("{}", usage.get_ref()); // Noooooiaiaiaia
-        println!("One of the needed options is missing! -v, -p, -b and -r are all compulsory!");
-        std::process::exit();
     }
     //println!("fasta: {}", ref_filename);
     //println!("pwms: {}", pwms_filename);
