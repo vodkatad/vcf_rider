@@ -71,8 +71,8 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             panic!("Error reading reference fasta")
         }
     };
-    let assoc_writer : Option<&mut BufWriter<fs::File>> = match associations {
-         Some(ref x) => { 
+    let mut assoc_writer : Option<BufWriter<fs::File>> = match associations {
+         Some(x) => { 
                      let assoc_file = fs::File::create(&x).expect(&format!("Could not open {}", &x));
                      Some(BufWriter::new(assoc_file))
                     },
@@ -98,7 +98,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             let bed_window = mutations::Coordinate{chr: "".to_owned(), start: record.start(), end: record.end()};
             let n_overlapping = find_overlapping_snps(& bed_window, &mut vcf_reader, &mut snps_buffer);
             match assoc_writer {
-                Some(writer) => { print_overlapping(& snps_buffer, n_overlapping as usize, writer, &record) },
+                Some(ref mut writer) => { print_overlapping(& snps_buffer, n_overlapping as usize, writer, &record) },
                 None => {}
             }
             let mut indel_manager = indel::IndelRider::new(&snps_buffer, n_overlapping, n_samples);

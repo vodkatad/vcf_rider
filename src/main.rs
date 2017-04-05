@@ -38,9 +38,9 @@ fn main() {
         }
     }
 
-    let assoc_file_opt = match associations_filename {
-        "" => None();
-        _ => Option(associations_filename)
+    let assoc_file_opt = match associations_filename.as_ref() {
+        "" => None,
+        _ => Some(associations_filename)
     };
     // pwm_lengths is an Iter, matrixes is borrowed until end of scope. Use collect() to avoid.
     // but without collect and with .next() instead of pop() it's more efficient?
