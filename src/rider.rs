@@ -140,7 +140,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     //println!("encoded_genotypes {:?} ", genotypes);
                     // Obtain all the possible sequences for this group in this position.
                     let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
-                    obtain_seq(& window, & groups_snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs, bed_window.end);
+                    obtain_seq(& window, & groups_snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs);
 
                     // TODO needs updating
                     // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
@@ -287,7 +287,7 @@ pub fn print_overlapping(snps_buffer: & VecDeque<mutations::Mutation>, n_overlap
 }
 
 pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>,
-                  reference: & fasta::Fasta, genotypes : &Vec<usize>, seqs : &mut Vec<(usize, Vec<u8>)>, bed_end : u64) {
+                  reference: & fasta::Fasta, genotypes : &Vec<usize>, seqs : &mut Vec<(usize, Vec<u8>)>) {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences
@@ -295,9 +295,6 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     let ref_seq : &[u8];
     let s = window.start as usize;
     let mut e = window.end as usize;
-    if e as u64 > bed_end {
-        e = bed_end as usize;
-    }
     if e > reference.sequence.len() { //maybe border on bed?
         e = reference.sequence.len();
     }
