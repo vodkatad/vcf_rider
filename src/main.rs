@@ -1,23 +1,41 @@
 extern crate vcf_rider;
 extern crate bio;
+extern crate argparse;
 
 use vcf_rider::rider::*;
-use std::env;
 use vcf_rider::pwm;
 use bio::io::bed;
 use std::path::Path;
+use argparse::{ArgumentParser, Store};
 
 fn main() {
-    let mut args = env::args();
-    let binary_name =  args.nth(0).unwrap();
-    let vcf_filename = get_next_arg(&mut args, "Missing vcf file argument", &binary_name);
-    let pwms_filename = get_next_arg(&mut args, "Missing pwm file argument", &binary_name);
-    let bed_filename = get_next_arg(&mut args, "Missing bed file argument", &binary_name);
-    let ref_filename = get_next_arg(&mut args, "Missing reference chr argument", &binary_name);
-    let associations_ofilename = get_next_arg(&mut args, "Missing filename to print snp/gene associations", &binary_name);
+    let mut vcf_filename = "".to_string();
+    let mut pwms_filename = "".to_string(); 
+    let mut bed_filename = "".to_string();
+    let mut ref_filename = "".to_string();
+    let mut associations_filename = "".to_string();
+
     let bg = vec!(0.298947240099661, 0.200854143743417, 0.200941012710477, 0.299257603446445);
+    //let mut usage = std::io::Cursor::new("");
     // TODO argument bg
-    //println!("fasta: {}", fasta_filename);
+    { 
+        let mut ap = ArgumentParser::new();
+        ap.set_description("Compute TBA on some genomic intervals for the individuals whose mutations are listed in the VCF. Needs a phased vcf. Works on single chromosomes.");
+        ap.refer(& mut vcf_filename).add_option(&["-v", "--vcf"], Store, "A phased vcf for a single chromome");
+        ap.refer(& mut pwms_filename).add_option(&["-p", "--pwm"], Store, "PWM file in the format required by matrix rider (name, pos, a, c, g, t), with counts, no zeroes.");
+        ap.refer(& mut bed_filename).add_option(&["-b", "--bed"], Store, "A bed file representing the desired genomic intervals, on a single chromosome");
+        ap.refer(& mut ref_filename).add_option(&["-r", "--ref"], Store, "A fasta with the reference sequence for the chromosome of interest");
+        ap.parse_args_or_exit();
+        //ap.print_usage("?", &mut usage);
+    }
+    if vcf_filename == "" || pwms_filename == "" || bed_filename == "" || ref_filename == "" {
+        //ap.print_usage("?", &mut std::io::stderr()); //cannot do the if inside the scope for borrowing issues. Mh.
+        // store somehow the usage in a buffer that we print here?
+        //println!("{}", usage.get_ref()); // Noooooiaiaiaia
+        println!("One of the needed options is missing! -v, -p, -b and -r are all compulsory!");
+        std::process::exit();
+    }
+    //println!("fasta: {}", ref_filename);
     //println!("pwms: {}", pwms_filename);
     let mut matrixes : Vec<pwm::PWM> = Vec::new();
     if let Ok(pwm_reader) = pwm::PWMReader::open_path(&pwms_filename) {
@@ -49,20 +67,8 @@ fn main() {
     };
     
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
-        get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename, &associations_ofilename);
+        //get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename, &associations_filename);
     } else {
         panic!("Could not open bed file!");
-    }
-}
-
-// It there use a nice crate like getopt?.
-fn get_next_arg(args: &mut env::Args, error: &str, binary_name: &str) -> String {
-    match args.next() {
-        Some(x) => x,
-        None => {
-            println!("Usage: {} <vcf_filename> <pwm_filename> <bed filename> <fasta ref filename>  <associations_filename>", binary_name);
-            println!("{}", error);
-            std::process::exit(1);
-        }
     }
 }

@@ -1,9 +1,10 @@
 [package]
 name = "vcf_rider"
 version = "0.1.0"
-authors = ["Elena Grassi <grassi.e@gmail.com>"]
+authors = ["Elena Grassi <grassi.e@gmail.com>", "Federico Di Gregorio <fog@dndg.it>"]
 
 [dependencies]
 bio = "*"
 rust-htslib = { git = "https://github.com/rust-bio/rust-htslib" }
 itertools = "*"
+argparse = "*"
