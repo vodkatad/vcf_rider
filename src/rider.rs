@@ -48,7 +48,7 @@ pub struct RiderParameters<'a, T : CanScoreSequence + 'a> {
 }
 
 // TODO ->
-pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &str, mut bed_reader: bed::Reader<fs::File>, ref_path: &str, assoc_path: &str) {
+pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &str, mut bed_reader: bed::Reader<fs::File>, ref_path: &str, associations: Option<String>) {
 
     // #[cfg(debug_assertions)]   attributes on non-item statements and expressions are experimental. (see issue #15701)
     //{
@@ -71,11 +71,13 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             panic!("Error reading reference fasta")
         }
     };
-    let mut assoc_writer : BufWriter<fs::File>;
-    if assoc_path != "" {
-        let assoc_file = fs::File::create(assoc_path).expect(&format!("Could not open {}", &assoc_path));
-        assoc_writer = BufWriter::new(assoc_file);
-    }
+    let assoc_writer : Option<&mut BufWriter<fs::File>> = match associations {
+         Some(ref x) => { 
+                     let assoc_file = fs::File::create(&x).expect(&format!("Could not open {}", &x));
+                     Some(BufWriter::new(assoc_file))
+                    },
+         None => None
+    };
     //println!("Fasta ref {}", referenceseq.id);
     // load vcf -> open file, skip # headers, first real entry
     // We could use a VcfReader similar to others.
@@ -95,9 +97,10 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             let record = r.ok().expect("Error reading record");
             let bed_window = mutations::Coordinate{chr: "".to_owned(), start: record.start(), end: record.end()};
             let n_overlapping = find_overlapping_snps(& bed_window, &mut vcf_reader, &mut snps_buffer);
-            /*if assoc_path != "" {
-                print_overlapping(& snps_buffer, n_overlapping as usize, &mut assoc_writer, &record);
-            }*/
+            match assoc_writer {
+                Some(writer) => { print_overlapping(& snps_buffer, n_overlapping as usize, writer, &record) },
+                None => {}
+            }
             let mut indel_manager = indel::IndelRider::new(&snps_buffer, n_overlapping, n_samples);
             // We iterate over different groups, each group is made of single chromosomes of out samples with the same
             // combination of indels genotypes for this bed.
@@ -198,8 +201,8 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             }
         }
     }
-    /*if assoc_path != "" {
-        assoc_writer.flush().expect("Error while writing to the associations file");
+    /*if assoc_writer.is_some() {
+        assoc_writer.unwrap().flush().expect("Error while writing to the associations file");
     }*/
 }
 
@@ -282,13 +285,13 @@ pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I,
     overlapping_snps
 }
 
-pub fn print_overlapping(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: usize, mut writer: &mut BufWriter<fs::File>, bed_record: & bed::Record) {
+pub fn print_overlapping(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: usize, writer: & mut Write, bed_record: & bed::Record) {
     if n_overlapping != 0 {
-        write!(&mut writer, "{}\t{}\t{}\t", bed_record.name().expect("Error reading name"), bed_record.start(), bed_record.end()).expect("Error writing to the associations file!");
+        write!(writer, "{}\t{}\t{}\t", bed_record.name().expect("Error reading name"), bed_record.start(), bed_record.end()).expect("Error writing to the associations file!");
         for i in 0 .. n_overlapping-1 {
-        write!(&mut writer, "{},", snps_buffer.get(i).expect("error in SNPs buffer").id).expect("Error writing to the associations file!");
+        write!(writer, "{},", snps_buffer.get(i).expect("error in SNPs buffer").id).expect("Error writing to the associations file!");
         }
-        writeln!(&mut writer, "{}", snps_buffer.get(n_overlapping-1).expect("error in SNPs buffer").id).expect("Error writing to the associations file!");
+        writeln!(writer, "{}", snps_buffer.get(n_overlapping-1).expect("error in SNPs buffer").id).expect("Error writing to the associations file!");
     }
 }
 

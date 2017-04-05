@@ -37,6 +37,11 @@ fn main() {
             matrixes.push(pwm);
         }
     }
+
+    let assoc_file_opt = match associations_filename {
+        "" => None();
+        _ => Option(associations_filename)
+    };
     // pwm_lengths is an Iter, matrixes is borrowed until end of scope. Use collect() to avoid.
     // but without collect and with .next() instead of pop() it's more efficient?
     let mut pwm_lengths : Vec<usize> = matrixes.iter().map(|pwm| pwm.get_length()).collect();
@@ -60,7 +65,7 @@ fn main() {
     };
     
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
-        get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename, &associations_filename);
+        get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename, assoc_file_opt);
     } else {
         panic!("Could not open bed file!");
     }
