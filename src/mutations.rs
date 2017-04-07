@@ -169,6 +169,7 @@ impl Iterator for VcfReader {
             let mut alte = get_sequence(&alt);
             let mut len = 1;
             let indel = refe.len() != 1 || alte.len() != 1;
+            let mut end_mod = 1;
             if alte == vec![6u8, 6u8, 6u8] {
                 let info_end = record.info("END".as_bytes()).integer();
                 //let end = match info_end.unwrap_or_else(panic!("VCF with a <DEL> and no END info!")) {let end = match info_end.unwrap_or_else(panic!("VCF with a <DEL> and no END info!")) {
@@ -182,10 +183,14 @@ impl Iterator for VcfReader {
                 len = (end[0] as i64 -1) - coord as i64; // minus one to go back to 0 based coords even for this one (I believe that the lib does not fix this).
                 // Following vcf v4.2 specs the length is only "approximate", but it is ok to use end - pos (end is exclusive).
                 coord += 1;
+                end_mod = len as u64;
             } else if indel {
                 let ref_len = refe.len();
                 let alt_len = alte.len(); // what is the cost of calling .len()?
                 len = (ref_len as i64 - alt_len as i64) as i64;
+                if len > 0 {
+                    end_mod = len as u64;
+                }
                 // We add 1 to the starting coord because indel are encoded with the first base 
                 // of reference out of the insertion or deletion.
                 coord += 1;
@@ -193,7 +198,7 @@ impl Iterator for VcfReader {
                 alte.remove(0);
                 // IN have a negative length, DEL a positive one.
             }
-            let pos = Coordinate { chr: chr, start: coord, end: coord+1}; 
+            let pos = Coordinate { chr: chr, start: coord, end: coord+end_mod}; 
             //println!("alt {}", alt.iter().map(|x| *x as char).join(""));
             // remember trim_alleles(&mut self)
 
