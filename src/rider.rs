@@ -268,14 +268,20 @@ pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I,
     if window_before_next_snp {
         return overlapping_snps
     }
-    while let Some(next_mut) = reader.next() {
+    while let Some(mut next_mut) = reader.next() {
         match window.relative_position(& next_mut.pos) {
             mutations::Position::Overlapping => {
                 overlapping_snps += 1;
+                if next_mut.indel_len > 0   {
+                    next_mut.pos.end = next_mut.pos.start+1;
+                }
                 snps_buffer.push_back(next_mut);
             },
             mutations::Position::After => {},
             mutations::Position::Before => {
+                if next_mut.indel_len > 0   {
+                    next_mut.pos.end = next_mut.pos.start+1;
+                }
                 snps_buffer.push_back(next_mut);
                 break;
             }
