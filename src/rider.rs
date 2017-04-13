@@ -139,14 +139,16 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     //println!("And became {:?} next {}", window, pos);
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     let n_overlapping = overlapping.len() as u32;
-                    //println!("for group {:?} in window {} n_overlapping {} ", chr_samples, window.start, n_overlapping);
+                    //println!("for group {:?} in window {} {} n_overlapping {} ", chr_samples, window.start, window.end, n_overlapping);
                     //println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
                     // that encodes its genotype (using only the mutation that needs to be managed here, i.e. SNPs).
                     let genotypes : Vec<usize> = encode_genotypes(&groups_snps_buffer, &overlapping, &chr_samples, n_samples, &samples);
                     //println!("encoded_genotypes {:?} ", genotypes);
+                    //println!("trying to allocate {}", 2usize.pow(n_overlapping));
                     // Obtain all the possible sequences for this group in this position.
-                    let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
+                    //let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
+                    let mut seqs : Vec<(usize, Vec<u8>)> = Vec::new();
                     obtain_seq(& window, & groups_snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs, bed_window.end);
 
                     // TODO needs updating
@@ -194,8 +196,8 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                             phased_allele = "allele2".to_owned();
                         }
                         let ref sample = vcf_reader.samples[(*chr_sample % n_samples as u32) as usize];
-                        println!("{}\t{}\t{}\t{}\t{}\t{}\t{}", record.name().expect("Error reading name"), record.start(), record.end(),
-                        params.parameters.get(i).unwrap().get_name(), sample, phased_allele, scores[i][j]);
+                        //println!("{}\t{}\t{}\t{}\t{}\t{}\t{}", record.name().expect("Error reading name"), record.start(), record.end(),
+                        //params.parameters.get(i).unwrap().get_name(), sample, phased_allele, scores[i][j]);
                     }
                 }
             }
