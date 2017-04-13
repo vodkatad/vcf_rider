@@ -138,7 +138,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     indel_manager.get_group_info(& mut window, & mut pos, & mut groups_snps_buffer, n_overlapping, & mut overlapping); // He should know the group cause it is iterating on them itself.
                     //println!("And became {:?} next {}", window, pos);
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
-                    let n_overlapping = overlapping.len() as u32;
+                    //let n_overlapping = overlapping.len() as u32;
                     //println!("for group {:?} in window {} {} n_overlapping {} ", chr_samples, window.start, window.end, n_overlapping);
                     //println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
@@ -196,8 +196,8 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                             phased_allele = "allele2".to_owned();
                         }
                         let ref sample = vcf_reader.samples[(*chr_sample % n_samples as u32) as usize];
-                        //println!("{}\t{}\t{}\t{}\t{}\t{}\t{}", record.name().expect("Error reading name"), record.start(), record.end(),
-                        //params.parameters.get(i).unwrap().get_name(), sample, phased_allele, scores[i][j]);
+                        println!("{}\t{}\t{}\t{}\t{}\t{}\t{}", record.name().expect("Error reading name"), record.start(), record.end(),
+                        params.parameters.get(i).unwrap().get_name(), sample, phased_allele, scores[i][j]);
                     }
                 }
             }
