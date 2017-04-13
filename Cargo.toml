@@ -1,7 +1,7 @@
 [package]
 name = "vcf_rider"
 version = "0.1.0"
-authors = ["Elena Grassi <grassi.e@gmail.com>", "Federico Di Gregorio <fog@dndg.it>"]
+authors = ["Elena Grassi <grassi.e@gmail.com>"]
 
 [dependencies]
 bio = "*"
