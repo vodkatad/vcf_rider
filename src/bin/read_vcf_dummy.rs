@@ -12,7 +12,7 @@ fn main() {
             println!("sample {}", sample);
         }
         for snp in vcf {
-            println!("snp {:?} {:?} {:?} {}", snp.pos, snp.sequence_ref, snp.sequence_alt, snp.id);
+            println!("snp {:?} {:?} {:?} {} {:?}", snp.pos, snp.sequence_ref, snp.sequence_alt, snp.id, snp.genotypes);
         }
         
     } else {
