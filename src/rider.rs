@@ -148,7 +148,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     //println!("trying to allocate {}", 2usize.pow(n_overlapping));
                     // Obtain all the possible sequences for this group in this position.
                     //let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
-                    let mut seqs : Vec<(usize, Vec<u8>)> = Vec::new();
+                    let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(1usize);
                     obtain_seq(& window, & groups_snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs, bed_window.end);
 
                     // TODO needs updating
@@ -310,7 +310,6 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences
-    let n_overlapping = overlapping_info.len() as u32;
     let ref_seq : &[u8];
     let s = window.start as usize;
     let mut e = window.end as usize;
@@ -323,61 +322,65 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     ref_seq = &reference.sequence[s..e];
     seqs.push((0, ref_seq.to_owned()));
     //println!("non mutated window.start {} seq {:?}", s, ref_seq);
-    for i in 1..2usize.pow(n_overlapping) {
-        if genotypes.iter().any(|&x| x == i) {
-            let mut seq_to_mutate = ref_seq.to_owned();
-            let mut pos_adjust : isize = 0;
-            for (j, &(mut_idx, ref manage)) in overlapping_info.iter().enumerate() {
-                if (i >> j) & 1 == 1 {
-                    let this_mut = snps_buffer.get(mut_idx as usize).unwrap();
-                    match *manage {
-                        indel::MutationClass::Manage(pos) => {  
-                                                        let apos: usize = (pos as isize + pos_adjust) as usize; 
-                                                        if apos < seq_to_mutate.len() {
-                                                            seq_to_mutate[apos as usize] = this_mut.sequence_alt[0]; 
-                                                        } else {
-                                                            break;
-                                                        }
-                                                        },
-                        indel::MutationClass::Ins(ref seq, pos) => {  
-                                                    //println!("managing insertion {:?}",seq_to_mutate);
-                                                    let apos: usize = (pos as isize + pos_adjust) as usize; 
-                                                    if apos <= seq_to_mutate.len() {
-                                                        let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
-                                                        //println!("managing insertion {:?} {:?} {} {:?}", after_mut, seq_to_mutate, apos, seq);
-                                                        let mut ins = seq.clone();
-                                                        pos_adjust += ins.len() as isize;
-                                                        seq_to_mutate.append(& mut ins);
-                                                        seq_to_mutate.append(after_mut);
-                                                    } else {
-                                                        break;
-                                                    }
-                                                    },
-                        indel::MutationClass::Del(length, pos) => {
-                                                    //println!("managing del {:?}",seq_to_mutate);
-                                                    let apos: usize = (pos as isize + pos_adjust) as usize; 
-                                                    if apos <= seq_to_mutate.len() {
-                                                        let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
-                                                        //println!("managing del {:?} {:?} {} {}", after_mut, seq_to_mutate, apos, length);
-                                                        if length < after_mut.len() as u64 {
-                                                            let ref mut after_deleted = after_mut.split_off(length as usize);
-                                                            pos_adjust -= length as isize; 
-                                                            seq_to_mutate.append(after_deleted);
-                                                        }
-                                                    } else {
-                                                        break;
-                                                    }
-                                                    },
-                       indel::MutationClass::Reference => { 
-                                                    panic!("I found smt annotated as Reference that seems mutated to me! {:?} {} i {}", this_mut, mut_idx, i);
-                                                    }
-                    }
-                } // it is possible that we will need to manage also the else branch here, because reference indels could need management
-                // to correctly manage window lenghts: done by the IndelRider?
-            }
-            //println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
-            seqs.push((i, seq_to_mutate));
+    let mut regenotypes : Vec<usize> = genotypes.to_vec();
+    &regenotypes.sort();
+    &regenotypes.dedup();
+    for i in regenotypes.iter() {
+        if *i == 0 {
+            continue;
         }
+        let mut seq_to_mutate = ref_seq.to_owned();
+        let mut pos_adjust : isize = 0;
+        for (j, &(mut_idx, ref manage)) in overlapping_info.iter().enumerate() {
+            if ((*i) >> j) & 1 == 1 {
+                let this_mut = snps_buffer.get(mut_idx as usize).unwrap();
+                match *manage {
+                    indel::MutationClass::Manage(pos) => {  
+                                                    let apos: usize = (pos as isize + pos_adjust) as usize; 
+                                                    if apos < seq_to_mutate.len() {
+                                                        seq_to_mutate[apos as usize] = this_mut.sequence_alt[0]; 
+                                                    } else {
+                                                        break;
+                                                    }
+                                                    },
+                    indel::MutationClass::Ins(ref seq, pos) => {  
+                                                //println!("managing insertion {:?}",seq_to_mutate);
+                                                let apos: usize = (pos as isize + pos_adjust) as usize; 
+                                                if apos <= seq_to_mutate.len() {
+                                                    let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
+                                                    //println!("managing insertion {:?} {:?} {} {:?}", after_mut, seq_to_mutate, apos, seq);
+                                                    let mut ins = seq.clone();
+                                                    pos_adjust += ins.len() as isize;
+                                                    seq_to_mutate.append(& mut ins);
+                                                    seq_to_mutate.append(after_mut);
+                                                } else {
+                                                    break;
+                                                }
+                                                },
+                    indel::MutationClass::Del(length, pos) => {
+                                                //println!("managing del {:?}",seq_to_mutate);
+                                                let apos: usize = (pos as isize + pos_adjust) as usize; 
+                                                if apos <= seq_to_mutate.len() {
+                                                    let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
+                                                    //println!("managing del {:?} {:?} {} {}", after_mut, seq_to_mutate, apos, length);
+                                                    if length < after_mut.len() as u64 {
+                                                        let ref mut after_deleted = after_mut.split_off(length as usize);
+                                                        pos_adjust -= length as isize; 
+                                                        seq_to_mutate.append(after_deleted);
+                                                    }
+                                                } else {
+                                                    break;
+                                                }
+                                                },
+                    indel::MutationClass::Reference => { 
+                                                panic!("I found smt annotated as Reference that seems mutated to me! {:?} {} i {}", this_mut, mut_idx, i);
+                                                }
+                }
+            } // it is possible that we will need to manage also the else branch here, because reference indels could need management
+            // to correctly manage window lenghts: done by the IndelRider?
+        }
+        //println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
+        seqs.push((*i, seq_to_mutate));
     }
 }
 
