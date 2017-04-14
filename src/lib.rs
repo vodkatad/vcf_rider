@@ -1,6 +1,7 @@
 extern crate bio;
 extern crate rust_htslib;
 extern crate itertools;
+extern crate bit_vec;
 
 mod indel;
 pub mod fasta;

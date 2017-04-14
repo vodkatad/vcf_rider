@@ -6,7 +6,8 @@ use super::mutations;
 use super::indel;
 use std::collections::VecDeque;
 use std::io::Write;
-use std::collections::BitVec;
+//use std::collections::BitVec; ?
+use bit_vec::BitVec;
 
 /// Our vcf_rider main function will receive a Vec<T: CanScoreSequence>
 /// and call it for every T on subsequences of the genomes of the samples
@@ -321,7 +322,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
         e = reference.sequence.len();
     }
     ref_seq = &reference.sequence[s..e];
-    seqs.push((0, ref_seq.to_owned()));
+    seqs.push((BitVec::from_elem(overlapping_info.len(), false), ref_seq.to_owned()));
     println!("non mutated window.start {} seq {:?}", s, ref_seq);
     let mut regenotypes : Vec<BitVec> = genotypes.to_vec();
     &regenotypes.sort();
@@ -334,10 +335,10 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
         let mut seq_to_mutate = ref_seq.to_owned();
         let mut pos_adjust : isize = 0;
         for (j, &(mut_idx, ref manage)) in overlapping_info.iter().enumerate() {
-            if encoded_geno.get(j) {
+            if encoded_geno.get(j).unwrap() {
             //if ((*i) >> j) & 1 == 1 {
                 let this_mut = snps_buffer.get(mut_idx as usize).unwrap();
-                println!("i {} j {} {:?}", *i, j, this_mut);
+                println!("i {:?} j {} {:?}", encoded_geno, j, this_mut);
                 match *manage {
                     indel::MutationClass::Manage(pos) => {  
                                                     let apos: usize = (pos as isize + pos_adjust) as usize; 
@@ -377,20 +378,20 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                 }
                                                 },
                     indel::MutationClass::Reference => { 
-                                                panic!("I found smt annotated as Reference that seems mutated to me! {:?} {} i {}", this_mut, mut_idx, i);
+                                                panic!("I found smt annotated as Reference that seems mutated to me! {:?} {} i {:?}", this_mut, mut_idx, encoded_geno);
                                                 }
                 }
             } // it is possible that we will need to manage also the else branch here, because reference indels could need management
             // to correctly manage window lenghts: done by the IndelRider?
         }
         //println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
-        seqs.push((encoded_geno, seq_to_mutate));
+        seqs.push((*encoded_geno, seq_to_mutate));
     }
 }
 
 pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>, group: &Vec<u32>, n_samples: usize, id_samples: & Vec<u32>) -> Vec<BitVec> {
     //let mut chrs : Vec<usize> = vec![0; group.len()];
-    let mut chrs : Vec<BitVec> = BitVec::from_elem(group.len(), false); // from_elem is unstable RFC509?
+    let mut chrs : Vec<BitVec> = vec![BitVec::from_elem(overlapping_info.len(), false); group.len()]; // from_elem is unstable RFC509?
     let mut bit_index = 0;
     for &(i_snp, _) in overlapping_info.iter().rev() {
         let snp = snps_buffer.get(i_snp as usize).unwrap();

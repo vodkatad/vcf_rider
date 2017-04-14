@@ -8,3 +8,4 @@ bio = "*"
 rust-htslib = { git = "https://github.com/rust-bio/rust-htslib" }
 itertools = "*"
 argparse = "*"
+bit-vec = "*"
