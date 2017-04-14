@@ -136,17 +136,17 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     let mut overlapping : Vec<(usize, indel::MutationClass)> = Vec::new(); 
                     // or is it better to allocate it in eccess with n overlapping capacity?
                     // This will also modify the window to access the right portion of the reference genome (longer or shorter if necessary due to indels).
-                    println!("The window was {:?}", window);
+                    //println!("The window was {:?}", window);
                     indel_manager.get_group_info(& mut window, & mut pos, & mut groups_snps_buffer, n_overlapping, & mut overlapping); // He should know the group cause it is iterating on them itself.
-                    println!("And became {:?} next {}", window, pos);
+                    //println!("And became {:?} next {}", window, pos);
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     //let n_overlapping = overlapping.len() as u32;
-                    println!("for group {:?} in window {} {} n_overlapping {} ", chr_samples, window.start, window.end, n_overlapping);
-                    println!("overlapping_info {:?} ", overlapping);
+                    //println!("for group {:?} in window {} {} n_overlapping {} ", chr_samples, window.start, window.end, n_overlapping);
+                    //println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
                     // that encodes its genotype (using only the mutation that needs to be managed here, i.e. SNPs).
                     let genotypes : Vec<BitVec> = encode_genotypes(&groups_snps_buffer, &overlapping, &chr_samples, n_samples, &samples);
-                    println!("encoded_genotypes {:?} ", genotypes);
+                    //println!("encoded_genotypes {:?} ", genotypes);
                     //println!("trying to allocate {}", 2usize.pow(n_overlapping));
                     // Obtain all the possible sequences for this group in this position.
                     //let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
@@ -323,22 +323,21 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     }
     ref_seq = &reference.sequence[s..e];
     seqs.push((BitVec::from_elem(overlapping_info.len(), false), ref_seq.to_owned()));
-    println!("non mutated window.start {} seq {:?}", s, ref_seq);
+    //println!("non mutated window.start {} seq {:?}", s, ref_seq);
     let mut regenotypes : Vec<BitVec> = genotypes.to_vec();
     &regenotypes.sort();
     &regenotypes.dedup();
     for encoded_geno in regenotypes.iter() {
-        //if *encoded_geno == 0 {
-        //    continue;
-        //}
-        // not needed cause we will go on only if there is at least a 1 in the BitVec
+        if encoded_geno.none() {
+            continue;
+        }
         let mut seq_to_mutate = ref_seq.to_owned();
         let mut pos_adjust : isize = 0;
         for (j, &(mut_idx, ref manage)) in overlapping_info.iter().enumerate() {
             if encoded_geno.get(j).unwrap() {
             //if ((*i) >> j) & 1 == 1 {
                 let this_mut = snps_buffer.get(mut_idx as usize).unwrap();
-                println!("i {:?} j {} {:?}", encoded_geno, j, this_mut);
+                //println!("i {:?} j {} {:?}", encoded_geno, j, this_mut);
                 match *manage {
                     indel::MutationClass::Manage(pos) => {  
                                                     let apos: usize = (pos as isize + pos_adjust) as usize; 
@@ -349,11 +348,11 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                     }
                                                     },
                     indel::MutationClass::Ins(ref seq, pos) => {  
-                                                println!("managing insertion {:?}",seq_to_mutate);
+                                                //println!("managing insertion {:?}",seq_to_mutate);
                                                 let apos: usize = (pos as isize + pos_adjust) as usize; 
                                                 if apos <= seq_to_mutate.len() {
                                                     let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
-                                                    println!("managing insertion {:?} {:?} {} {:?}", after_mut, seq_to_mutate, apos, seq);
+                                                    //println!("managing insertion {:?} {:?} {} {:?}", after_mut, seq_to_mutate, apos, seq);
                                                     let mut ins = seq.clone();
                                                     pos_adjust += ins.len() as isize;
                                                     seq_to_mutate.append(& mut ins);
@@ -363,11 +362,11 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                 }
                                                 },
                     indel::MutationClass::Del(length, pos) => {
-                                                println!("managing del {:?}",seq_to_mutate);
+                                                //println!("managing del {:?}",seq_to_mutate);
                                                 let apos: usize = (pos as isize + pos_adjust) as usize; 
                                                 if apos <= seq_to_mutate.len() {
                                                     let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
-                                                    println!("managing del {:?} {:?} {} {}", after_mut, seq_to_mutate, apos, length);
+                                                    //println!("managing del {:?} {:?} {} {}", after_mut, seq_to_mutate, apos, length);
                                                     if length < after_mut.len() as u64 {
                                                         let ref mut after_deleted = after_mut.split_off(length as usize);
                                                         pos_adjust -= length as isize; 
