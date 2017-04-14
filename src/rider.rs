@@ -149,7 +149,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     //println!("trying to allocate {}", 2usize.pow(n_overlapping));
                     // Obtain all the possible sequences for this group in this position.
                     //let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
-                    let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(1usize);
+                    let mut seqs : Vec<(BitVec, Vec<u8>)> = Vec::with_capacity(1usize);
                     obtain_seq(& window, & groups_snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs, bed_window.end);
 
                     // TODO needs updating
@@ -209,7 +209,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
     }*/
 }
 
-pub fn match_indexes(index: usize, idx: &mut Vec<(usize, bool)>, genotypes : &Vec<usize>) -> bool {
+pub fn match_indexes(index: BitVec, idx: &mut Vec<(usize, bool)>, genotypes : &Vec<BitVec>) -> bool {
     let mut res = false;
     for (i, allelic_tuple) in genotypes.iter().enumerate() { //could seek in a smarter way
         if *allelic_tuple == index {
@@ -307,7 +307,7 @@ pub fn print_overlapping(snps_buffer: & VecDeque<mutations::Mutation>, n_overlap
 }
 
 pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>,
-                  reference: & fasta::Fasta, genotypes : &Vec<BitVec>, seqs : &mut Vec<(usize, Vec<u8>)>, bed_end : u64) {
+                  reference: & fasta::Fasta, genotypes : &Vec<BitVec>, seqs : &mut Vec<(BitVec, Vec<u8>)>, bed_end : u64) {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences
@@ -323,17 +323,19 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     ref_seq = &reference.sequence[s..e];
     seqs.push((0, ref_seq.to_owned()));
     println!("non mutated window.start {} seq {:?}", s, ref_seq);
-    let mut regenotypes : Vec<usize> = genotypes.to_vec();
+    let mut regenotypes : Vec<BitVec> = genotypes.to_vec();
     &regenotypes.sort();
     &regenotypes.dedup();
-    for i in regenotypes.iter() {
-        if *i == 0 {
-            continue;
-        }
+    for encoded_geno in regenotypes.iter() {
+        //if *encoded_geno == 0 {
+        //    continue;
+        //}
+        // not needed cause we will go on only if there is at least a 1 in the BitVec
         let mut seq_to_mutate = ref_seq.to_owned();
         let mut pos_adjust : isize = 0;
         for (j, &(mut_idx, ref manage)) in overlapping_info.iter().enumerate() {
-            if ((*i) >> j) & 1 == 1 {
+            if encoded_geno.get(j) {
+            //if ((*i) >> j) & 1 == 1 {
                 let this_mut = snps_buffer.get(mut_idx as usize).unwrap();
                 println!("i {} j {} {:?}", *i, j, this_mut);
                 match *manage {
@@ -382,7 +384,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
             // to correctly manage window lenghts: done by the IndelRider?
         }
         //println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
-        seqs.push((*i, seq_to_mutate));
+        seqs.push((encoded_geno, seq_to_mutate));
     }
 }
 
