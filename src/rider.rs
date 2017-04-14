@@ -378,7 +378,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                 }
                                                 },
                     indel::MutationClass::Reference => { 
-                                                panic!("I found smt annotated as Reference that seems mutated to me! {:?} {} i {:?}", this_mut, mut_idx, encoded_geno);
+                                                panic!("I found smt annotated as Reference that seems mutated to me! {:?} {} i {:?} j {}", this_mut, mut_idx, encoded_geno, j);
                                                 }
                 }
             } // it is possible that we will need to manage also the else branch here, because reference indels could need management
@@ -393,7 +393,7 @@ pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlappin
     //let mut chrs : Vec<usize> = vec![0; group.len()];
     let mut chrs : Vec<BitVec> = vec![BitVec::from_elem(overlapping_info.len(), false); group.len()]; // from_elem is unstable RFC509?
     let mut bit_index = 0;
-    for &(i_snp, _) in overlapping_info.iter().rev() {
+    for &(i_snp, _) in overlapping_info.iter() {
         let snp = snps_buffer.get(i_snp as usize).unwrap();
         for (i, &i_allele) in group.iter().enumerate() {
             // chrs[i] = chrs[i] << 1;
