@@ -385,7 +385,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
             // to correctly manage window lenghts: done by the IndelRider?
         }
         //println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
-        seqs.push((*encoded_geno, seq_to_mutate));
+        seqs.push((encoded_geno.clone(), seq_to_mutate));
     }
 }
 
