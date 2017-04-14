@@ -6,6 +6,7 @@ use super::mutations;
 use super::indel;
 use std::collections::VecDeque;
 use std::io::Write;
+use std::collections::BitVec;
 
 /// Our vcf_rider main function will receive a Vec<T: CanScoreSequence>
 /// and call it for every T on subsequences of the genomes of the samples
@@ -134,17 +135,17 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     let mut overlapping : Vec<(usize, indel::MutationClass)> = Vec::new(); 
                     // or is it better to allocate it in eccess with n overlapping capacity?
                     // This will also modify the window to access the right portion of the reference genome (longer or shorter if necessary due to indels).
-                    //println!("The window was {:?}", window);
+                    println!("The window was {:?}", window);
                     indel_manager.get_group_info(& mut window, & mut pos, & mut groups_snps_buffer, n_overlapping, & mut overlapping); // He should know the group cause it is iterating on them itself.
-                    //println!("And became {:?} next {}", window, pos);
+                    println!("And became {:?} next {}", window, pos);
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     //let n_overlapping = overlapping.len() as u32;
-                    //println!("for group {:?} in window {} {} n_overlapping {} ", chr_samples, window.start, window.end, n_overlapping);
-                    //println!("overlapping_info {:?} ", overlapping);
+                    println!("for group {:?} in window {} {} n_overlapping {} ", chr_samples, window.start, window.end, n_overlapping);
+                    println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
                     // that encodes its genotype (using only the mutation that needs to be managed here, i.e. SNPs).
-                    let genotypes : Vec<usize> = encode_genotypes(&groups_snps_buffer, &overlapping, &chr_samples, n_samples, &samples);
-                    //println!("encoded_genotypes {:?} ", genotypes);
+                    let genotypes : Vec<BitVec> = encode_genotypes(&groups_snps_buffer, &overlapping, &chr_samples, n_samples, &samples);
+                    println!("encoded_genotypes {:?} ", genotypes);
                     //println!("trying to allocate {}", 2usize.pow(n_overlapping));
                     // Obtain all the possible sequences for this group in this position.
                     //let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
@@ -306,7 +307,7 @@ pub fn print_overlapping(snps_buffer: & VecDeque<mutations::Mutation>, n_overlap
 }
 
 pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>,
-                  reference: & fasta::Fasta, genotypes : &Vec<usize>, seqs : &mut Vec<(usize, Vec<u8>)>, bed_end : u64) {
+                  reference: & fasta::Fasta, genotypes : &Vec<BitVec>, seqs : &mut Vec<(usize, Vec<u8>)>, bed_end : u64) {
     // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences
@@ -321,7 +322,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     }
     ref_seq = &reference.sequence[s..e];
     seqs.push((0, ref_seq.to_owned()));
-    //println!("non mutated window.start {} seq {:?}", s, ref_seq);
+    println!("non mutated window.start {} seq {:?}", s, ref_seq);
     let mut regenotypes : Vec<usize> = genotypes.to_vec();
     &regenotypes.sort();
     &regenotypes.dedup();
@@ -334,6 +335,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
         for (j, &(mut_idx, ref manage)) in overlapping_info.iter().enumerate() {
             if ((*i) >> j) & 1 == 1 {
                 let this_mut = snps_buffer.get(mut_idx as usize).unwrap();
+                println!("i {} j {} {:?}", *i, j, this_mut);
                 match *manage {
                     indel::MutationClass::Manage(pos) => {  
                                                     let apos: usize = (pos as isize + pos_adjust) as usize; 
@@ -344,11 +346,11 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                     }
                                                     },
                     indel::MutationClass::Ins(ref seq, pos) => {  
-                                                //println!("managing insertion {:?}",seq_to_mutate);
+                                                println!("managing insertion {:?}",seq_to_mutate);
                                                 let apos: usize = (pos as isize + pos_adjust) as usize; 
                                                 if apos <= seq_to_mutate.len() {
                                                     let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
-                                                    //println!("managing insertion {:?} {:?} {} {:?}", after_mut, seq_to_mutate, apos, seq);
+                                                    println!("managing insertion {:?} {:?} {} {:?}", after_mut, seq_to_mutate, apos, seq);
                                                     let mut ins = seq.clone();
                                                     pos_adjust += ins.len() as isize;
                                                     seq_to_mutate.append(& mut ins);
@@ -358,11 +360,11 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                 }
                                                 },
                     indel::MutationClass::Del(length, pos) => {
-                                                //println!("managing del {:?}",seq_to_mutate);
+                                                println!("managing del {:?}",seq_to_mutate);
                                                 let apos: usize = (pos as isize + pos_adjust) as usize; 
                                                 if apos <= seq_to_mutate.len() {
                                                     let ref mut after_mut = seq_to_mutate.split_off(apos as usize);
-                                                    //println!("managing del {:?} {:?} {} {}", after_mut, seq_to_mutate, apos, length);
+                                                    println!("managing del {:?} {:?} {} {}", after_mut, seq_to_mutate, apos, length);
                                                     if length < after_mut.len() as u64 {
                                                         let ref mut after_deleted = after_mut.split_off(length as usize);
                                                         pos_adjust -= length as isize; 
@@ -384,26 +386,32 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     }
 }
 
-pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>, group: &Vec<u32>, n_samples: usize, id_samples: & Vec<u32>) -> Vec<usize> {
-    let mut chrs : Vec<usize> = vec![0; group.len()];
+pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>, group: &Vec<u32>, n_samples: usize, id_samples: & Vec<u32>) -> Vec<BitVec> {
+    //let mut chrs : Vec<usize> = vec![0; group.len()];
+    let mut chrs : Vec<BitVec> = BitVec::from_elem(group.len(), false); // from_elem is unstable RFC509?
+    let mut bit_index = 0;
     for &(i_snp, _) in overlapping_info.iter().rev() {
         let snp = snps_buffer.get(i_snp as usize).unwrap();
         for (i, &i_allele) in group.iter().enumerate() {
-            chrs[i] = chrs[i] << 1;
+            // chrs[i] = chrs[i] << 1;
+            // we track the bit that we are modifying with bit_index and no more with shifting.
             let allele = snp.genotypes[id_samples[i] as usize]; 
             //println!("for allele {} sample {} we see {:?}", i, id_samples[i], allele);
             if i_allele < n_samples as u32{ // snps on the first chr
                 match allele.0 {
-                    true => chrs[i] |= 1,
+                    //true => chrs[i] |= 1,
+                    true => chrs[i].set(bit_index, true),
                     false => ()
                 }
             } else {  // snps on the second chr
                 match allele.1 {
-                    true => chrs[i] |= 1,
+                    //true => chrs[i] |= 1,
+                    true => chrs[i].set(bit_index, true),
                     false => ()
                 }
             }
         }
+        bit_index += 1;
     }
     chrs
 }
