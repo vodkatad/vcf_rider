@@ -42,3 +42,9 @@ bigdel_before: bigdelbefore.vcf aaaa.pwm bigdelbefore.bed ref.fasta bg
 	diff $@.cmp $@
 	diff $@.bedov.cmp $@.bedov
 	rm $@.bedov
+
+overlapping_ins: overlapping_ins.vcf aaaa.pwm prova.bed ref_overlapping_ins.fasta bg
+	$(EXE) -v $(word 1, $^) -p $(word 2, $^) -b $(word 3, $^) -r $(word 4, $^) -a $@.bedov -f $(word 5, $^) > $@
+	diff $@.cmp $@
+	diff $@.bedov.cmp $@.bedov
+	rm $@.bedov
