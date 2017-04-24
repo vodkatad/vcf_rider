@@ -132,7 +132,7 @@ fn decode_genotype(geno: String, accept_phased: bool) -> (bool, bool) {
     let mut genos = geno.chars();
     let a1 = genos.next().unwrap();
     if a1 == '.' {
-        return (true, true) // missing data as reference.
+        return (false, false) // missing data as reference.
     }
     let sep = genos.next().unwrap();
     let a2 = genos.next().unwrap();
