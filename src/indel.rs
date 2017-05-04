@@ -1,9 +1,7 @@
     use super::mutations;
     use std::collections::VecDeque;
-    use std::ops::Index;
     use std::collections::HashMap;
     
-
     // Used to classify indels and snps in groups: SNPs will be tagged as "Manage" while
     // indels with Ins or Del (if this group has their alternative allele).
     // String is the sequence that needs to be inserted for ins, usize is the coord inside the window
@@ -16,10 +14,9 @@
         Reference
     }
 
-    #[allow(dead_code)]
     pub struct IndelRider {
         //groups: Vec<Vec<u32>>, // groups has groups ids as indexes and all the samples id of that group as elements.
-        groups: Iterator<Item=Vec<u32>>,
+        groups: HashMap<usize, Vec<u32>>,
         next_group: usize,
         n_samples_tot: usize
     }
@@ -31,10 +28,10 @@
             if self.next_group == self.groups.len() {
                 None
             } else {
-                let mut res = self.groups.index(self.next_group);
+                let mut res = self.groups.get(& self.next_group).unwrap();
                 while res.len() == 0 {
                     self.next_group += 1;
-                    res = self.groups.index(self.next_group);
+                    res = self.groups.get(& self.next_group).unwrap();
                 }
                 self.next_group += 1;
                 Some(res.to_vec()) //XXX FIXME but why do we need to clone it? Do we need lifetimes or...?
@@ -46,21 +43,24 @@
         pub fn new(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> IndelRider {
             let mut groups : Vec<u32> =  vec![0; n_samples*2];
             IndelRider::count_groups(snps_buffer, n_overlapping, & mut groups, n_samples);
-            let n_groups = groups.iter().max().unwrap();
-            let n = *n_groups as usize;
+            //let n_groups = groups.iter().max().unwrap();
+            //let n = *n_groups as usize;
             //let mut rev_groups : Vec<Vec<u32>> = vec![Vec::new(); n+1]; // functional way to do this?
             let mut rev_groups : HashMap<usize, Vec<u32>> = HashMap::new();
             //println!("cgroups {:?}", groups);
             // groups has chr samples as indexes and group ids as elements, we need to invert this array.
             for (sample, group) in groups.iter().enumerate() {
                 //rev_groups[*group as usize].push(sample as u32); // Mh, use all usize and stop? XXX
-                match rev_groups.get_mut(*group as usize) {
-                    Some(samples) => samples.push(sample as u32),
-                    None => rev_groups.insert(*group as usize, vec![sample as u32])
+                if rev_groups.contains_key(&(*group as usize)) {
+                    let mut samples = rev_groups.get_mut(&(*group as usize)).unwrap();
+                    samples.push(sample as u32);
+                } else {
+                    rev_groups.insert(*group as usize, vec![sample as u32]);
                 }
             }
             //println!("cgroups {:?}", rev_groups);
-            IndelRider{ groups: rev_groups.values(), next_group: 0, n_samples_tot: n_samples}
+            IndelRider{ groups: rev_groups, next_group: 0, n_samples_tot: n_samples}
+            //  IndelRider{ groups: rev_groups, next_group: 0, n_samples_tot: n_samples}
         }
             
         /// Function that assigns chr samples to different groups depending on their overlapping indel alleles.
@@ -120,8 +120,9 @@
             let mut last_del_start_win: bool = false;
             for (i_snp, snp) in snps_buffer.iter_mut().enumerate() {
                 if i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
-                    let mut group_genotypes : Vec<bool> = Vec::with_capacity(self.groups[self.next_group-1].len());
-                    for i_sample in self.groups[self.next_group-1].to_vec() {
+                    let this_g_v = self.groups.get(&(self.next_group-1)).unwrap();
+                    let mut group_genotypes : Vec<bool> = Vec::with_capacity(this_g_v.len());
+                    for i_sample in this_g_v.to_vec() {
                         let index = i_sample as usize % self.n_samples_tot;
                         if i_sample < self.n_samples_tot as u32 {
                             group_genotypes.push(snp.genotypes.get(index).unwrap().0);
