@@ -31,7 +31,11 @@
                 let mut res = self.groups.get(& self.next_group).unwrap();
                 while res.len() == 0 {
                     self.next_group += 1;
-                    res = self.groups.get(& self.next_group).unwrap();
+                    if self.next_group < self.groups.len() {
+                        res = self.groups.get(& self.next_group).unwrap();
+                    } else {
+                        return None 
+                    }
                 }
                 self.next_group += 1;
                 Some(res.to_vec()) //XXX FIXME but why do we need to clone it? Do we need lifetimes or...?
