@@ -17,6 +17,7 @@
     pub struct IndelRider {
         //groups: Vec<Vec<u32>>, // groups has groups ids as indexes and all the samples id of that group as elements.
         groups: HashMap<usize, Vec<u32>>,
+        indexes: Vec<usize>,
         next_group: usize,
         n_samples_tot: usize
     }
@@ -25,18 +26,11 @@
         type Item = Vec<u32>;
 
         fn next(&mut self) -> Option<Vec<u32>> {
-            if self.next_group == self.groups.len() {
+            if self.next_group == self.indexes.len() {
                 None
             } else {
-                let mut res = self.groups.get(& self.next_group).unwrap();
-                while res.len() == 0 {
-                    self.next_group += 1;
-                    if self.next_group < self.groups.len() {
-                        res = self.groups.get(& self.next_group).unwrap();
-                    } else {
-                        return None 
-                    }
-                }
+                let next_group_i = self.indexes[self.next_group];
+                let res = self.groups.get(& next_group_i).unwrap();
                 self.next_group += 1;
                 Some(res.to_vec()) //XXX FIXME but why do we need to clone it? Do we need lifetimes or...?
             }
@@ -63,7 +57,8 @@
                 }
             }
             //println!("cgroups {:?}", rev_groups);
-            IndelRider{ groups: rev_groups, next_group: 0, n_samples_tot: n_samples}
+            let groups_indexes : Vec<usize> = rev_groups.keys().map(|&x| x).collect(); 
+            IndelRider{ groups: rev_groups, indexes: groups_indexes, next_group: 0, n_samples_tot: n_samples}
             //  IndelRider{ groups: rev_groups, next_group: 0, n_samples_tot: n_samples}
         }
             
@@ -124,7 +119,8 @@
             let mut last_del_start_win: bool = false;
             for (i_snp, snp) in snps_buffer.iter_mut().enumerate() {
                 if i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
-                    let this_g_v = self.groups.get(&(self.next_group-1)).unwrap();
+                    let next_group_i = self.indexes[self.next_group-1];
+                    let this_g_v = self.groups.get(&(next_group_i)).unwrap();
                     let mut group_genotypes : Vec<bool> = Vec::with_capacity(this_g_v.len());
                     for i_sample in this_g_v.to_vec() {
                         let index = i_sample as usize % self.n_samples_tot;
