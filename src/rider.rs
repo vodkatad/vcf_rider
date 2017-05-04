@@ -394,7 +394,7 @@ pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlappin
     let mut chrs : Vec<BitVec> = vec![BitVec::from_elem(overlapping_info.len(), false); group.len()]; // from_elem is unstable RFC509?
     let mut bit_index = 0;
     for &(i_snp, _) in overlapping_info.iter() {
-        let snp = snps_buffer.get(i_snp as usize).unwrap(); // XXX no as
+        let snp = snps_buffer.get(i_snp).unwrap();
         for (i, &i_allele) in group.iter().enumerate() {
             // chrs[i] = chrs[i] << 1;
             // we track the bit that we are modifying with bit_index and no more with shifting.
