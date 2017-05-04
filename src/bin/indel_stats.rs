@@ -50,10 +50,10 @@ fn main() {
     }
 }
 
-fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, groups: &mut Vec<u32>, n_samples: usize) -> u32 {
+fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: usize, groups: &mut Vec<u32>, n_samples: usize) -> u32 {
     let mut n_indel = 0;    
     for (i_snp, snp) in snps_buffer.iter().enumerate() {
-        if snp.is_indel && i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
+        if snp.is_indel && i_snp < n_overlapping { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
             n_indel += 1;
             if snp.genotypes.iter().any(|x| x.0 || x.1) {
                 // we have a bisection

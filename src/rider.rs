@@ -234,12 +234,12 @@ pub fn match_indexes(index: BitVec, idx: &mut Vec<(usize, bool)>, genotypes : &V
 /// * `snps_buffer`- a mutable reference to the VecDeque that is used as a buffer for SNPs. SNPs before the given window will
 ///                  be removed, the overlapping ones will be at positions 0..returned value and the first SNPs after the given window
 ///                  will be the last element.
-pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I, snps_buffer: &mut VecDeque<mutations::Mutation>) -> u32
+pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I, snps_buffer: &mut VecDeque<mutations::Mutation>) -> usize
     where I: Iterator<Item=mutations::Mutation> {
     // We assume to receive ordered vcf and bed therefore we can skip vcf entries < r.start
     // if vcf > r.start+r.end empty snps_on_seq and return ---> not empty! leave them there
     // We could use a VcfReader as reader but to be able to write unit tests more easily it is an Iterator of Mutation.
-    let mut overlapping_snps = 0u32;
+    let mut overlapping_snps = 0usize;
     let mut i = 0;
     let mut n_to_be_removed = 0;
     let mut window_before_next_snp = false;
