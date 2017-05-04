@@ -1,6 +1,8 @@
     use super::mutations;
     use std::collections::VecDeque;
     use std::ops::Index;
+    use std::collections::HashMap;
+    
 
     // Used to classify indels and snps in groups: SNPs will be tagged as "Manage" while
     // indels with Ins or Del (if this group has their alternative allele).
@@ -16,7 +18,8 @@
 
     #[allow(dead_code)]
     pub struct IndelRider {
-        groups: Vec<Vec<u32>>, // groups has groups ids as indexes and all the samples id of that group as elements.
+        //groups: Vec<Vec<u32>>, // groups has groups ids as indexes and all the samples id of that group as elements.
+        groups: Iterator<Item=Vec<u32>>,
         next_group: usize,
         n_samples_tot: usize
     }
@@ -45,14 +48,19 @@
             IndelRider::count_groups(snps_buffer, n_overlapping, & mut groups, n_samples);
             let n_groups = groups.iter().max().unwrap();
             let n = *n_groups as usize;
-            let mut rev_groups : Vec<Vec<u32>> = vec![Vec::new(); n+1]; // functional way to do this?
+            //let mut rev_groups : Vec<Vec<u32>> = vec![Vec::new(); n+1]; // functional way to do this?
+            let mut rev_groups : HashMap<usize, Vec<u32>> = HashMap::new();
             //println!("cgroups {:?}", groups);
             // groups has chr samples as indexes and group ids as elements, we need to invert this array.
             for (sample, group) in groups.iter().enumerate() {
-                rev_groups[*group as usize].push(sample as u32); // Mh, use all usize and stop? XXX
+                //rev_groups[*group as usize].push(sample as u32); // Mh, use all usize and stop? XXX
+                match rev_groups.get_mut(*group as usize) {
+                    Some(samples) => samples.push(sample as u32),
+                    None => rev_groups.insert(*group as usize, vec![sample as u32])
+                }
             }
             //println!("cgroups {:?}", rev_groups);
-            IndelRider{ groups: rev_groups, next_group: 0, n_samples_tot: n_samples}
+            IndelRider{ groups: rev_groups.values(), next_group: 0, n_samples_tot: n_samples}
         }
             
         /// Function that assigns chr samples to different groups depending on their overlapping indel alleles.
