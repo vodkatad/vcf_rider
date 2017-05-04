@@ -1,3 +1,7 @@
+- still u32:
+- n overlapping
+- samples id in new IndelRider
+
 - docs
 - tests
 

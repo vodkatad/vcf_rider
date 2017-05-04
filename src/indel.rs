@@ -4,8 +4,8 @@
     
     // Used to classify indels and snps in groups: SNPs will be tagged as "Manage" while
     // indels with Ins or Del (if this group has their alternative allele).
-    // String is the sequence that needs to be inserted for ins, usize is the coord inside the window
-    // and u32 the length of deletions.
+    // String (Vec<u8>) is the sequence that needs to be inserted for ins, usize is the coord inside the window
+    // and u64 the length of deletions.
     #[derive(Eq, PartialEq, Debug)]
     pub enum MutationClass {
         Manage(usize),
@@ -15,8 +15,7 @@
     }
 
     pub struct IndelRider {
-        //groups: Vec<Vec<u32>>, // groups has groups ids as indexes and all the samples id of that group as elements.
-        groups: HashMap<usize, Vec<u32>>,
+        groups: HashMap<usize, Vec<u32>>, // Vec of u32 (needs to become usize XXX) usize for samples indexes, usize indexes are groups ids.
         indexes: Vec<usize>,
         next_group: usize,
         n_samples_tot: usize
@@ -39,21 +38,18 @@
 
     impl IndelRider {
         pub fn new(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> IndelRider {
-            let mut groups : Vec<u32> =  vec![0; n_samples*2];
+            let mut groups : Vec<usize> =  vec![0; n_samples*2];
             IndelRider::count_groups(snps_buffer, n_overlapping, & mut groups, n_samples);
-            //let n_groups = groups.iter().max().unwrap();
-            //let n = *n_groups as usize;
-            //let mut rev_groups : Vec<Vec<u32>> = vec![Vec::new(); n+1]; // functional way to do this?
             let mut rev_groups : HashMap<usize, Vec<u32>> = HashMap::new();
             //println!("cgroups {:?}", groups);
-            // groups has chr samples as indexes and group ids as elements, we need to invert this array.
+            // groups has chr samples as indexes and group ids as elements, we need to invert our perspective to iterate easily on groups.
             for (sample, group) in groups.iter().enumerate() {
                 //rev_groups[*group as usize].push(sample as u32); // Mh, use all usize and stop? XXX
-                if rev_groups.contains_key(&(*group as usize)) {
-                    let mut samples = rev_groups.get_mut(&(*group as usize)).unwrap();
+                if rev_groups.contains_key(group) {
+                    let mut samples = rev_groups.get_mut(group).unwrap();
                     samples.push(sample as u32);
                 } else {
-                    rev_groups.insert(*group as usize, vec![sample as u32]);
+                    rev_groups.insert(*group, vec![sample as u32]);
                 }
             }
             //println!("cgroups {:?}", rev_groups);
@@ -64,17 +60,17 @@
             
         /// Function that assigns chr samples to different groups depending on their overlapping indel alleles.
         /// chr in the same group have the same alleles of the same indels, i.e. their coords are in sync.
+        /// CAUTION: if there are more than 64 indels it will incurr in overflow errors! FIXME
         ///
         /// # Arguments
         ///
         /// * `snps_buffer`- a mutable reference to the VecDeque that is used as a buffer for SNPs. Should contain the SNPs
         ///    overlapping the bed that we are interested in.
         /// * `n_overlapping` - the number of overlapping SNPs, since buffer will have one more.
-        /// * `groups` - a mutable reference to a Vec of u32 that will be filled with groups info. Indexes: samples id. Elements: groups id.
+        /// * `groups` - a mutable reference to a Vec of usize that will be filled with groups info. Indexes: samples id. Elements: groups id.
         /// * `n_sample` - the number of samples (each with two alleles for each SNP) for which we have genotypes.
         ///
-        /// This needs also to define manage/do not manage
-        pub fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, groups: &mut Vec<u32>, n_samples: usize) {
+        pub fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, groups: &mut Vec<usize>, n_samples: usize) {
             for (i_snp, snp) in snps_buffer.iter().enumerate() {
                 if snp.is_indel && i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
                     if snp.genotypes.iter().any(|x| x.0 || x.1) {
