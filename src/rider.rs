@@ -110,10 +110,10 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 let mut groups_snps_buffer = snps_buffer.clone();
                 //println!("working on group {:?}", chr_samples);
                 let mut pos = record.start();
-                let mut samples : Vec<u32> = Vec::new();
+                let mut samples : Vec<usize> = Vec::new();
                 // We need to obtain the samples id for this group (XXX Do in IndelRider?)
                 for allele in chr_samples.iter() {
-                    samples.push(allele % n_samples as u32); 
+                    samples.push(allele % n_samples); 
                 }
                 let n_alleles = chr_samples.len();
                 //println!("{} {:?}", n_alleles, samples);
@@ -195,10 +195,10 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     for (j, chr_sample) in chr_samples.iter().enumerate() {
                         //println!("j {} chr_s {} n_samples {}", j, chr_sample, n_samples);
                         let mut phased_allele = "allele1".to_owned();
-                        if *chr_sample as usize >= n_samples {
+                        if *chr_sample >= n_samples {
                             phased_allele = "allele2".to_owned();
                         }
-                        let ref sample = vcf_reader.samples[(*chr_sample % n_samples as u32) as usize];
+                        let ref sample = vcf_reader.samples[(*chr_sample % n_samples)];
                         println!("{}\t{}\t{}\t{}\t{}\t{}\t{}", record.name().expect("Error reading name"), record.start(), record.end(),
                         params.parameters.get(i).unwrap().get_name(), sample, phased_allele, scores[i][j]);
                     }
@@ -389,18 +389,18 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     }
 }
 
-pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>, group: &Vec<u32>, n_samples: usize, id_samples: & Vec<u32>) -> Vec<BitVec> {
+pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>, group: &Vec<usize>, n_samples: usize, id_samples: & Vec<usize>) -> Vec<BitVec> {
     //let mut chrs : Vec<usize> = vec![0; group.len()];
     let mut chrs : Vec<BitVec> = vec![BitVec::from_elem(overlapping_info.len(), false); group.len()]; // from_elem is unstable RFC509?
     let mut bit_index = 0;
     for &(i_snp, _) in overlapping_info.iter() {
-        let snp = snps_buffer.get(i_snp as usize).unwrap();
+        let snp = snps_buffer.get(i_snp as usize).unwrap(); // XXX no as
         for (i, &i_allele) in group.iter().enumerate() {
             // chrs[i] = chrs[i] << 1;
             // we track the bit that we are modifying with bit_index and no more with shifting.
-            let allele = snp.genotypes[id_samples[i] as usize]; 
+            let allele = snp.genotypes[id_samples[i]]; 
             //println!("for allele {} sample {} we see {:?}", i, id_samples[i], allele);
-            if i_allele < n_samples as u32{ // snps on the first chr
+            if i_allele < n_samples { // snps on the first chr
                 match allele.0 {
                     //true => chrs[i] |= 1,
                     true => chrs[i].set(bit_index, true),

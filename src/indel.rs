@@ -15,16 +15,16 @@
     }
 
     pub struct IndelRider {
-        groups: HashMap<usize, Vec<u32>>, // Vec of u32 (needs to become usize XXX) usize for samples indexes, usize indexes are groups ids.
+        groups: HashMap<usize, Vec<usize>>, // Vec of usize for samples indexes, usize keys are groups ids.
         indexes: Vec<usize>,
         next_group: usize,
         n_samples_tot: usize
     }
 
     impl Iterator for IndelRider {
-        type Item = Vec<u32>;
+        type Item = Vec<usize>;
 
-        fn next(&mut self) -> Option<Vec<u32>> {
+        fn next(&mut self) -> Option<Vec<usize>> {
             if self.next_group == self.indexes.len() {
                 None
             } else {
@@ -40,16 +40,16 @@
         pub fn new(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: u32, n_samples: usize) -> IndelRider {
             let mut groups : Vec<usize> =  vec![0; n_samples*2];
             IndelRider::count_groups(snps_buffer, n_overlapping, & mut groups, n_samples);
-            let mut rev_groups : HashMap<usize, Vec<u32>> = HashMap::new();
+            let mut rev_groups : HashMap<usize, Vec<usize>> = HashMap::new();
             //println!("cgroups {:?}", groups);
             // groups has chr samples as indexes and group ids as elements, we need to invert our perspective to iterate easily on groups.
             for (sample, group) in groups.iter().enumerate() {
                 //rev_groups[*group as usize].push(sample as u32); // Mh, use all usize and stop? XXX
                 if rev_groups.contains_key(group) {
                     let mut samples = rev_groups.get_mut(group).unwrap();
-                    samples.push(sample as u32);
+                    samples.push(sample);
                 } else {
-                    rev_groups.insert(*group, vec![sample as u32]);
+                    rev_groups.insert(*group, vec![sample]);
                 }
             }
             //println!("cgroups {:?}", rev_groups);
@@ -120,7 +120,7 @@
                     let mut group_genotypes : Vec<bool> = Vec::with_capacity(this_g_v.len());
                     for i_sample in this_g_v.to_vec() {
                         let index = i_sample as usize % self.n_samples_tot;
-                        if i_sample < self.n_samples_tot as u32 {
+                        if i_sample < self.n_samples_tot {
                             group_genotypes.push(snp.genotypes.get(index).unwrap().0);
                             //println!("for sample {} seen {}", i_sample, snp.genotypes.get(index).unwrap().0);
                         } else {
