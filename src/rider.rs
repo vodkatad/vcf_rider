@@ -141,7 +141,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     //println!("And became {:?} next {}", window, pos);
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     //let n_overlapping = overlapping.len() as u32;
-                    println!("for group {:?} in window {} {} n_overlapping {} ", chr_samples, window.start, window.end, n_overlapping);
+                    //println!("for group {:?} in window {} {} n_overlapping {} ", chr_samples, window.start, window.end, n_overlapping);
                     //println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
                     // that encodes its genotype (using only the mutation that needs to be managed here, i.e. SNPs).
@@ -152,7 +152,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     //let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
                     let mut seqs : Vec<(BitVec, Vec<u8>)> = Vec::with_capacity(1usize);
                     
-                    /*obtain_seq(& window, & groups_snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs, bed_window.end);
+                    obtain_seq(& window, & groups_snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs, bed_window.end);
 
                     // TODO needs updating
                     // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
@@ -202,7 +202,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                         println!("{}\t{}\t{}\t{}\t{}\t{}\t{}", record.name().expect("Error reading name"), record.start(), record.end(),
                         params.parameters.get(i).unwrap().get_name(), sample, phased_allele, scores[i][j]);
                     }
-                }*/
+                }
             }
         }
     }
