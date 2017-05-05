@@ -18,8 +18,6 @@ fn main() {
     let mut ref_filename = "".to_string();
     let mut associations_filename = "".to_string();
     let mut bg_filename = "".to_string();
-    //let mut usage = std::io::Cursor::new("");
-    // TODO argument bg
     { 
         let mut ap = ArgumentParser::new();
         ap.set_description("Compute TBA on some genomic intervals for the individuals whose mutations are listed in the VCF. Needs a phased vcf. Works on single chromosomes.");
@@ -78,7 +76,11 @@ fn main() {
             panic!("No PWM were found in the matrixes file!");
         }
     };
-    
+    // get_scores is the workhorse of our library, given some RiderParameters (i.e. a set of objects which can "score" a sequence,
+    // in this case PWMs, and their minimum and maximum needed sequence lengths), a vcf filename, a bed reader, a fasta file name with the
+    // reference sequence and an optional file where it will print bed entries with their overlapping snps (only for entries with at least an overlapping SNP.)
+    // In the end it is not good to print directly results inside the library so it will return an appropriate data structure with results that will be printed here.
+    // Right now for our pipelines it is ok to print inside it.
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
         get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename, assoc_file_opt);
     } else {
