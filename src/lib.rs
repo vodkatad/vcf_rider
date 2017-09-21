@@ -1,9 +1,16 @@
+//! vcf_rider: a library to efficiently compute score on individual genomes starting from vcf files 
+//!
+//! TODO
+
 extern crate bio;
 extern crate rust_htslib;
 extern crate itertools;
 extern crate bit_vec;
 
 mod indel;
+/// The module used for reading the fasta file representing the genome of interest.
+/// Right now it should contain a single chromosome to be used by [`vcf_rider`], but the module can handle also multifasta files.
+/// The id of the fasta should be the same used in the vcf file and with genomic regions represented in the used bed.
 pub mod fasta;
 pub mod pwm;
 pub mod rider;

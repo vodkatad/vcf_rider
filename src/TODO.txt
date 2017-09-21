@@ -1,4 +1,5 @@
 - docs
+#![warn(missing_docs)]
 - tests
 
 - bed out of chr is not managed:
