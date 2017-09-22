@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Header","A BAM header."],["HeaderRecord","Header record."]]});

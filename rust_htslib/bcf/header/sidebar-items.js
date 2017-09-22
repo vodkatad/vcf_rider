@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["RidError",""],["SubsetError",""],["TagLength",""],["TagType",""],["TagTypeError",""]],"struct":[["Header","A BCF header."],["HeaderView",""]],"type":[["SampleSubset",""]]});

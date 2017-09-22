@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Aux","Auxiliary record data."],["Cigar",""]],"struct":[["Record","A BAM record."],["Seq","The sequence of a record."]]});
