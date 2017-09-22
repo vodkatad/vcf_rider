@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Position",""]],"struct":[["Coordinate",""],["Mutation",""],["VcfReader",""]]});
