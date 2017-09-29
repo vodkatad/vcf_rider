@@ -17,7 +17,7 @@
     
     
 </head>
-<body class="rustdoc">
+<body class="rustdoc fn">
     <!--[if lte IE 8]>
     <div class="warning">
         This old browser is unsupported and will most likely display funky
@@ -43,13 +43,13 @@
         </form>
     </nav>
 
-    <section id='main' class="content fn">
-<h1 class='fqn'><span class='in-band'>Function <a href='../index.html'>vcf_rider</a>::<wbr><a href='index.html'>rider</a>::<wbr><a class='fn' href=''>find_overlapping_snps</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Function <a href='../index.html'>vcf_rider</a>::<wbr><a href='index.html'>rider</a>::<wbr><a class="fn" href=''>find_overlapping_snps</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
                </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#236-296' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub fn find_overlapping_snps&lt;I&gt;(window: &amp;<a class='struct' href='../../vcf_rider/mutations/struct.Coordinate.html' title='vcf_rider::mutations::Coordinate'>Coordinate</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; reader: &amp;mut I,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; snps_buffer: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec_deque/struct.VecDeque.html' title='collections::vec_deque::VecDeque'>VecDeque</a>&lt;<a class='struct' href='../../vcf_rider/mutations/struct.Mutation.html' title='vcf_rider::mutations::Mutation'>Mutation</a>&gt;)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a> <span class='where fmt-newline'>where I: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html' title='core::iter::iterator::Iterator'>Iterator</a>&lt;Item=<a class='struct' href='../../vcf_rider/mutations/struct.Mutation.html' title='vcf_rider::mutations::Mutation'>Mutation</a>&gt;</span></pre><div class='docblock'><p>Function that advances on the VcfReader (Iterator of Mutation) until the first snp that does not overlap with the given window, putting
+<pre class='rust fn'>pub fn find_overlapping_snps&lt;I&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;window: &amp;<a class="struct" href="../../vcf_rider/mutations/struct.Coordinate.html" title="struct vcf_rider::mutations::Coordinate">Coordinate</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;reader: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>I, <br>&nbsp;&nbsp;&nbsp;&nbsp;snps_buffer: &amp;mut <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec_deque/struct.VecDeque.html" title="struct alloc::vec_deque::VecDeque">VecDeque</a>&lt;<a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a>&gt;<br>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;I: <a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html" title="trait core::iter::iterator::Iterator">Iterator</a>&lt;Item = <a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a>&gt;,&nbsp;</span></pre><div class='docblock'><p>Function that advances on the VcfReader (Iterator of Mutation) until the first snp that does not overlap with the given window, putting
 in snps_buffer all the overlapping snps and their number and then the first not overlapping snp.</p>
 
 <h1 id='arguments' class='section-header'><a href='#arguments'>Arguments</a></h1>
@@ -117,7 +117,6 @@ in snps_buffer all the overlapping snps and their number and then the first not 
         window.rootPath = "../../";
         window.currentCrate = "vcf_rider";
     </script>
-    <script src="../../jquery.js"></script>
     <script src="../../main.js"></script>
     <script defer src="../../search-index.js"></script>
 </body>

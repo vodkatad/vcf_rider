@@ -17,7 +17,7 @@
     
     
 </head>
-<body class="rustdoc">
+<body class="rustdoc mod">
     <!--[if lte IE 8]>
     <div class="warning">
         This old browser is unsupported and will most likely display funky
@@ -29,7 +29,7 @@
 
     <nav class="sidebar">
         
-        <p class='location'></p><script>window.sidebarCurrent = {name: 'vcf_rider', ty: 'mod', relpath: '../'};</script>
+        <p class='location'>Crate vcf_rider</p><div class="block items"><ul><li><a href="#modules">Modules</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'vcf_rider', ty: 'mod', relpath: '../'};</script>
     </nav>
 
     <nav class="sub">
@@ -43,20 +43,25 @@
         </form>
     </nav>
 
-    <section id='main' class="content mod">
-<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>vcf_rider</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Crate <a class="mod" href=''>vcf_rider</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../src/vcf_rider/lib.rs.html#1-324' title='goto source code'>[src]</a></span></h1>
-<div class='docblock'><p>vcf_rider: a library to efficiently compute score on individual genomes starting from vcf files</p>
+               </span><a class='srclink' href='../src/vcf_rider/lib.rs.html#1-334' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>vcf_rider: a library to efficiently compute score on individual genomes starting from vcf files </p>
 
-<p>TODO</p>
+<p>The idea behind vcf_rider is to exploit the fact that polymorphisms are rare. If one needs to compute
+a sequence based score (i.e. CpG/CG content, number of PWM hits, number of miRNA seeds, Total Binding Affinity) that can
+be computed on defined and independent windows it is not needed to reconstruct every individual genome and then compute the scores
+separatedly. vcf_rider is able to compute scores on windows that are the same for all individuals only once. Even for polimorphic subsequences
+it computes the scores only for the number of extant sequences and correctly assigns them to different individuals.
+Scores for different windows can be put together in different ways - right now (TODO)</p>
 </div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
                        <tr class=' module-item'>
-                           <td><a class='mod' href='fasta/index.html'
-                                  title='vcf_rider::fasta'>fasta</a></td>
+                           <td><a class="mod" href="fasta/index.html"
+                                  title='mod vcf_rider::fasta'>fasta</a></td>
                            <td class='docblock-short'>
                                 <p>The module used for reading the fasta file representing the genome of interest.
 Right now it should contain a single chromosome to be used with <code>vcf_rider</code>, but the module can handle also multifasta files.
@@ -64,24 +69,24 @@ The id of the fasta should be the same used in the vcf file and with genomic reg
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='mod' href='mutations/index.html'
-                                  title='vcf_rider::mutations'>mutations</a></td>
+                           <td><a class="mod" href="mutations/index.html"
+                                  title='mod vcf_rider::mutations'>mutations</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>Module able to load mutations from a vcf file.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='mod' href='pwm/index.html'
-                                  title='vcf_rider::pwm'>pwm</a></td>
+                           <td><a class="mod" href="pwm/index.html"
+                                  title='mod vcf_rider::pwm'>pwm</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>Module representing Positional Weight Matrixes and that is able to compute their score on a given sequence.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='mod' href='rider/index.html'
-                                  title='vcf_rider::rider'>rider</a></td>
+                           <td><a class="mod" href="rider/index.html"
+                                  title='mod vcf_rider::rider'>rider</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>Main module of vcf_rider, its function <code>get_scores</code> is the entry point of the whole analysis.</p>
                            </td>
                        </tr></table></section>
     <section id='search' class="content hidden"></section>
@@ -140,7 +145,6 @@ The id of the fasta should be the same used in the vcf file and with genomic reg
         window.rootPath = "../";
         window.currentCrate = "vcf_rider";
     </script>
-    <script src="../jquery.js"></script>
     <script src="../main.js"></script>
     <script defer src="../search-index.js"></script>
 </body>

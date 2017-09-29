@@ -17,7 +17,7 @@
     
     
 </head>
-<body class="rustdoc">
+<body class="rustdoc mod">
     <!--[if lte IE 8]>
     <div class="warning">
         This old browser is unsupported and will most likely display funky
@@ -29,7 +29,7 @@
 
     <nav class="sidebar">
         
-        <p class='location'><a href='../index.html'>vcf_rider</a></p><script>window.sidebarCurrent = {name: 'pwm', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
+        <p class='location'>Module pwm</p><div class="block items"><ul><li><a href="#structs">Structs</a></li></ul></div><p class='location'><a href='../index.html'>vcf_rider</a></p><script>window.sidebarCurrent = {name: 'pwm', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
     </nav>
 
     <nav class="sub">
@@ -43,33 +43,42 @@
         </form>
     </nav>
 
-    <section id='main' class="content mod">
-<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>vcf_rider</a>::<wbr><a class='mod' href=''>pwm</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>vcf_rider</a>::<wbr><a class="mod" href=''>pwm</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/vcf_rider/pwm.rs.html#1-208' title='goto source code'>[src]</a></span></h1>
-<h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+               </span><a class='srclink' href='../../src/vcf_rider/pwm.rs.html#1-287' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Module representing Positional Weight Matrixes and that is able to compute their score on a given sequence.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                        <tr class=' module-item'>
-                           <td><a class='struct' href='struct.Matrix.html'
-                                  title='vcf_rider::pwm::Matrix'>Matrix</a></td>
+                           <td><a class="struct" href="struct.Matrix.html"
+                                  title='struct vcf_rider::pwm::Matrix'>Matrix</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>Struct used to represent PWM likelihoods/nucleotide frequencies. 
+ncols is used to be able to represent 4 and 5 nucleotides PWMs (to manage N in sequences).
+No consistency checks are performed for get/set operations for efficiency.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='struct' href='struct.PWM.html'
-                                  title='vcf_rider::pwm::PWM'>PWM</a></td>
+                           <td><a class="struct" href="struct.PWM.html"
+                                  title='struct vcf_rider::pwm::PWM'>PWM</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>Struct representing a whole Positional Weight Matrix.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='struct' href='struct.PWMReader.html'
-                                  title='vcf_rider::pwm::PWMReader'>PWMReader</a></td>
+                           <td><a class="struct" href="struct.PWMReader.html"
+                                  title='struct vcf_rider::pwm::PWMReader'>PWMReader</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>Struct used to read PWM. It will be implement an Iterator of <code>PWM</code> structs.
+The String buffer is used to get characters from the <code>BufReader</code> one by one and load
+the <code>freq</code> for the loaded <code>PWM</code> structs.
+The expected format is the same used by matrix_rider in C, therefore a tab delimited file
+with these columns:
+pwm_name, pos, count_a, count_c, count_g, count_t
+pos is ignored, count_x should be positive integer different from 0.</p>
                            </td>
                        </tr></table></section>
     <section id='search' class="content hidden"></section>
@@ -128,7 +137,6 @@
         window.rootPath = "../../";
         window.currentCrate = "vcf_rider";
     </script>
-    <script src="../../jquery.js"></script>
     <script src="../../main.js"></script>
     <script defer src="../../search-index.js"></script>
 </body>

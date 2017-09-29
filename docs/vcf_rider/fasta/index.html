@@ -17,7 +17,7 @@
     
     
 </head>
-<body class="rustdoc">
+<body class="rustdoc mod">
     <!--[if lte IE 8]>
     <div class="warning">
         This old browser is unsupported and will most likely display funky
@@ -29,7 +29,7 @@
 
     <nav class="sidebar">
         
-        <p class='location'><a href='../index.html'>vcf_rider</a></p><script>window.sidebarCurrent = {name: 'fasta', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
+        <p class='location'>Module fasta</p><div class="block items"><ul><li><a href="#structs">Structs</a></li></ul></div><p class='location'><a href='../index.html'>vcf_rider</a></p><script>window.sidebarCurrent = {name: 'fasta', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
     </nav>
 
     <nav class="sub">
@@ -43,32 +43,32 @@
         </form>
     </nav>
 
-    <section id='main' class="content mod">
-<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>vcf_rider</a>::<wbr><a class='mod' href=''>fasta</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>vcf_rider</a>::<wbr><a class="mod" href=''>fasta</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/vcf_rider/fasta.rs.html#1-97' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../../src/vcf_rider/fasta.rs.html#1-98' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>The module used for reading the fasta file representing the genome of interest.
 Right now it should contain a single chromosome to be used with <code>vcf_rider</code>, but the module can handle also multifasta files.
 The id of the fasta should be the same used in the vcf file and with genomic regions represented in the used bed.</p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                        <tr class=' module-item'>
-                           <td><a class='struct' href='struct.Fasta.html'
-                                  title='vcf_rider::fasta::Fasta'>Fasta</a></td>
+                           <td><a class="struct" href="struct.Fasta.html"
+                                  title='struct vcf_rider::fasta::Fasta'>Fasta</a></td>
                            <td class='docblock-short'>
                                 <p>Struct representing a fasta: its id, then the sequence (encoded by a vector of u8, with ACGTN -&gt; 01234) and the background frequencies of nucleotides (needed
 to compute TBA values)</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class='struct' href='struct.FastaReader.html'
-                                  title='vcf_rider::fasta::FastaReader'>FastaReader</a></td>
+                           <td><a class="struct" href="struct.FastaReader.html"
+                                  title='struct vcf_rider::fasta::FastaReader'>FastaReader</a></td>
                            <td class='docblock-short'>
-                                <p>Struct used to read fasta files. It will be implement an Iterator of Fasta structs.
-The String buffer is used to get characters from the BufReader one by one and convert
-them to our internal Vec<u8> representation.</p>
+                                <p>Struct used to read fasta files. It will be implement an Iterator of <code>Fasta</code> structs.
+The String buffer is used to get characters from the <code>BufReader</code> one by one and convert
+them to our internal <code>Vec&lt;u8&gt;</code> representation.</p>
                            </td>
                        </tr></table></section>
     <section id='search' class="content hidden"></section>
@@ -127,7 +127,6 @@ them to our internal Vec<u8> representation.</p>
         window.rootPath = "../../";
         window.currentCrate = "vcf_rider";
     </script>
-    <script src="../../jquery.js"></script>
     <script src="../../main.js"></script>
     <script defer src="../../search-index.js"></script>
 </body>
