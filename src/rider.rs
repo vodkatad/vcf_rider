@@ -34,7 +34,7 @@ pub trait CanScoreSequence {
     /// * `self` - the object with trait CanScoreSequence.
     fn get_length(&self) -> usize;
 
-    /// Returns the name of this.
+    /// Returns the name of this object.
     ///
     /// # Arguments
     ///
