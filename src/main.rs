@@ -11,6 +11,7 @@ use std::io::BufReader;
 use std::fs::File;
 use std::io::BufRead;
 
+// TODO move this to bin? This could be called vcf_rider_tba
 fn main() {
     let mut vcf_filename = "".to_string();
     let mut pwms_filename = "".to_string(); 
@@ -78,7 +79,7 @@ fn main() {
     };
     // get_scores is the workhorse of our library, given some RiderParameters (i.e. a set of objects which can "score" a sequence,
     // in this case PWMs, and their minimum and maximum needed sequence lengths), a vcf filename, a bed reader, a fasta file name with the
-    // reference sequence and an optional file where it will print bed entries with their overlapping snps (only for entries with at least an overlapping SNP.)
+    // reference sequence and an optional file where it will print bed entries with their overlapping snps (only for entries with at least one overlapping SNP.)
     // In the end it is not good to print directly results inside the library so it will return an appropriate data structure with results that will be printed here.
     // Right now for our pipelines it is ok to print inside it.
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {

@@ -12,23 +12,24 @@ pub struct Fasta {
     pub id: String,
     /// The u8 encoded sequence
     pub sequence: Vec<u8>,
-    /// Background frequences of ACGT in this fasta
+    /// Background frequencies of ACGT in this fasta
     pub background: Vec<f64>
 }
 
-/// Struct used to read fasta files. It will be implement an Iterator of Fasta structs.
-/// The String buffer is used to get characters from the BufReader one by one and convert
-/// them to our internal Vec<u8> representation.
+/// Struct used to read fasta files. It will be implement an Iterator of `Fasta` structs.
+/// The String buffer is used to get characters from the `BufReader` one by one and convert
+/// them to our internal `Vec<u8>` representation.
 ///
 /// # Panics 
-/// While iterating on it, if there is a not allowed nucleotide (only ACTGN are allowed).
+/// While iterating on it if it encounters a not allowed nucleotide (only ACTGN are allowed). 
+//FIXME TODO better to have an Error here?
 pub struct FastaReader {
     reader: BufReader<File>,
     buffer: String
 }
 
 impl FastaReader {
-    /// Opens a fasta file returning a Result<FastaReader>.
+    /// Opens a fasta file returning a `Result<FastaReader>`.
     /// # Arguments
     ///
     /// * `file` - the fasta File
@@ -44,7 +45,7 @@ impl FastaReader {
         }
     }
     
-    /// Opens a fasta file returning a Result<FastaReader>.
+    /// Opens a fasta file returning a `Result<FastaReader>`.
     /// # Arguments
     ///
     /// * `path` - the path to the fasta file

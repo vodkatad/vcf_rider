@@ -1,5 +1,8 @@
 - docs
 #![warn(missing_docs)]
+
+avoid building other crates doc and automate move to docs/push: https://hoverbear.org/2015/03/07/rust-travis-github-pages/
+
 - tests
 
 - bed out of chr is not managed:

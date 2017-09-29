@@ -1,19 +1,29 @@
 //! vcf_rider: a library to efficiently compute score on individual genomes starting from vcf files 
 //!
-//! TODO
+//! The idea behind vcf_rider is to exploit the fact that polymorphisms are rare. If one needs to compute
+//! a sequence based score (i.e. CpG/CG content, number of PWM hits, number of miRNA seeds, Total Binding Affinity) that can
+//! be computed on defined and independent windows it is not needed to reconstruct every individual genome and then compute the scores
+//! separatedly. vcf_rider is able to compute scores on windows that are the same for all individuals only once. Even for polimorphic subsequences
+//! it computes the scores only for the number of extant sequences and correctly assigns them to different individuals.
+//! Scores for different windows can be put together in different ways - right now (TODO)
 
 extern crate bio;
 extern crate rust_htslib;
 extern crate itertools;
 extern crate bit_vec;
 
+/// Module needed to correctly manage indels when computing scores. Indels represent a problem because they make genomes of different individuals
+/// 'out of phase' and force us to divide them in different groups.
 mod indel;
 /// The module used for reading the fasta file representing the genome of interest.
-/// Right now it should contain a single chromosome to be used by [`vcf_rider`], but the module can handle also multifasta files.
+/// Right now it should contain a single chromosome to be used with `vcf_rider`, but the module can handle also multifasta files.
 /// The id of the fasta should be the same used in the vcf file and with genomic regions represented in the used bed.
 pub mod fasta;
+/// Module representing Positional Weight Matrixes and that is able to compute their score on a given sequence.
 pub mod pwm;
+/// Main module of vcf_rider, its function `get_scores` is the entry point of the whole analysis.
 pub mod rider;
+/// Module able to load mutations from a vcf file.
 pub mod mutations; 
 
 #[cfg(test)]
