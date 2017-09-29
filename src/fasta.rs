@@ -35,7 +35,8 @@ impl FastaReader {
     /// * `file` - the fasta File
     ///
     /// # Errors 
-    /// When the first file of the fasta file cannot be read, the Error returned by read_line.
+    /// When the first line of the fasta file cannot be read, the Error returned by read_line.
+    /// Or the error returned by `File::open` if the file is not readable.
     pub fn open(file: File) -> io::Result<FastaReader> {
         let mut b = String::new();
         let mut r = BufReader::new(file);
@@ -51,7 +52,8 @@ impl FastaReader {
     /// * `path` - the path to the fasta file
     ///
     /// # Errors 
-    /// When the first file of the fasta file cannot be read, the Error returned by read_line
+    /// When the first line of the fasta file cannot be read, the Error returned by read_line.
+    /// Or the error returned by `File::open` if the file is not readable.
     pub fn open_path(path: &str) -> io::Result<FastaReader> {
         match File::open(path) {
             Ok(file) => FastaReader::open(file),

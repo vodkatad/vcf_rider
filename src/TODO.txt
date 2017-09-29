@@ -1,6 +1,11 @@
 - docs
 #![warn(missing_docs)]
 
+- mutations.rs
+- rider.rs
+- indel.rs
+- lib.rs
+
 avoid building other crates doc and automate move to docs/push: https://hoverbear.org/2015/03/07/rust-travis-github-pages/
 
 - tests

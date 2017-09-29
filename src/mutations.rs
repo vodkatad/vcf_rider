@@ -3,14 +3,18 @@ use std::io;
 use itertools::Itertools;
 use std::path::Path;
 
+/// Struct to represent genomic coordinates.  0 based, end exclusive.
 #[derive(Debug, Clone)]
 pub struct Coordinate {
+    /// The chromosome
     pub chr: String,
-    pub start: u64, // 0 based, end inclusive
+    /// The starting coord, 0 based
+    pub start: u64,
+    /// The ending coord, exclusive
     pub end: u64
 }
 
-// use cmp and Ordering::Less? 
+/// Enum used to represent the relative position of two `Coordinate`.
 #[derive(Eq, PartialEq, Debug)]
 pub enum Position {
     Before,
@@ -19,8 +23,7 @@ pub enum Position {
 }
 
 impl Coordinate {
-    /// Returns the position of self relative to other.
-    // right now not using chr
+    /// Returns the `Position` of self relative to other.
     pub fn relative_position(&self, other : &Coordinate) -> Position {
         if (self.start >= other.start && self.start < other.end) ||
                 (self.end > other.start && self.end <= other.end) ||
@@ -34,6 +37,8 @@ impl Coordinate {
         }    
     }
 
+    /// Returns a tuple representing the relative position of self relative to other
+    /// and if they overlap the `Coordinate` of their overlap.
     pub fn relative_position_overlap(&self, other : &Coordinate) -> (Position, Option<Coordinate>) {
         if (self.start >= other.start && self.start < other.end) ||
                 (self.end > other.start && self.end <= other.end) ||
@@ -56,16 +61,26 @@ impl Coordinate {
     }
 }
 
+/// Struct used to represent SNPs and indels loaded from vcf files. Suitable only for biallelic polymorphisms.
 #[derive(Debug)]
 pub struct Mutation {
+    /// The id of this mutation.
+    /// Right now I was not able to obtain it from rust_htslib therefore it is based on the mutation coordinates.
     pub id: String,
-    pub pos: Coordinate, // Always end=start+1 to compute overlaps safely.
+    /// The coordinate of this mutation. Also indels are represented by a one base interval on the genome to safely
+    /// compute overlaps (TODO maybe expand), their length is represented in another field (`indel_len`).
+    pub pos: Coordinate,
+    /// The reference sequence
     pub sequence_ref: Vec<u8>,
+    /// The alternate sequence
     pub sequence_alt: Vec<u8>,
+    /// A vector of tuples representing the genotypes of the individuals represented in the vcf
     pub genotypes: Vec<(bool, bool)>,
+    /// Is this `Mutation` an indel?
     pub is_indel: bool,
-    pub indel_len: i64 // We use this to store the length of indels instead of pos.end.
-    // the length of insertions is negative
+    /// Length of this indels, it has no meaning for snps (`is_indel == true`)
+    /// Length is negative for insertions and positive pos deletions.
+    pub indel_len: i64 
 }
 
 impl Clone for Mutation {
@@ -75,14 +90,28 @@ impl Clone for Mutation {
     }
 }
 
+/// Struct used to load vcf, it will be used as an `Iterator<Mutation>`.
+/// If accept_phased is false it will panic if there are any unphased mutations, otherwise it will
+/// accept them, but beware: sequence where the score will be computed for vcf_rider usually needs to
+/// be phased (suppose that two SNPs falls "inside" the same PWM match for the TBA: their phasing will 
+/// influence the computed score XXX check).
 pub struct VcfReader {
     reader: bcf::Reader,
-    accept_phased: bool,
+    accept_phased: bool, // TODO fire up tests and change to accept_unphased
+    /// A vector of the individual/samples ids whose genotype is represented in this VcfReader
     pub samples: Vec<String>
 }
 
-// Adding a layer of abstration, I am not sure that we will use the lib.
+// Adding a layer of abstration even if we are already using a lib. So we will
+// be able to change it and do some preliminary work related to mutations here.
 impl VcfReader {
+    /// Opens a vcf file returning a `Result<VCFReader>`.
+    /// # Arguments
+    ///
+    /// * `path` - the path to the vcf file
+    ///
+    /// # Errors 
+    /// When the file cannot be read by bcf::Reader
     pub fn open_path(path: &str, accept_phased: bool) -> io::Result<VcfReader> {
         match bcf::Reader::from_path(Path::new(path)) {
             Ok(reader) => {
@@ -90,16 +119,19 @@ impl VcfReader {
                 Ok(VcfReader { reader: reader, accept_phased: accept_phased, samples: samples })
             }
             Err(_) => Err(io::Error::last_os_error())
-            // How do errors work? rust_htslib::bcf::BCFError
+            // How do errors work? rust_htslib::bcf::BCFError TODO
         }
     }
 }
 
+/// Returns the encoded sequence for a mutation. 666 for indels, 0-A, 1-C, 2-G, 3-T, 4-N for SNPs.
+/// # Panics
+/// panics if a character outside of ACGTN is found.
 fn get_sequence(seq : &Vec<u8>) -> Vec<u8> {
     let mut res : Vec<u8> = Vec::<u8>::with_capacity(1);
     if seq.iter().map(|x| *x as char).join("") == "<DEL>" {
         return vec![6u8, 6u8, 6u8]; 
-        // Funny me. Marking big deletions as the number of the beast. Their length is needed to mark them as indels.
+        // Funny me. Marking big ins/deletions as the number of the beast. Their length is needed to mark them as indels.
         // iter here and then to match nucleotides to numbers is bad?
     }
     for nuc in seq {
@@ -112,11 +144,10 @@ fn get_sequence(seq : &Vec<u8>) -> Vec<u8> {
             _ => panic!("Vcf with a not allowed char {}", *nuc as char),
         });
     }
-    /*if res.len() > 1 {
-        panic!("Right now we do not handle more than SNPs!");
-    }*/
     res
 }
+
+/// Function used to map 0 and 1 of vcf to a bool. Panics if something different from 0 or 1 is found.
 fn decode_allele(c: char) -> bool {
     match c {
         '0' => false,
@@ -125,6 +156,8 @@ fn decode_allele(c: char) -> bool {
     }
 }
 
+/// Function that decodes a genotype in the format "0/1" of the vcf files to our internal 
+/// representation. Missing data (".") are encoded as the reference.
 fn decode_genotype(geno: String, accept_phased: bool) -> (bool, bool) {
     // this will need a lot of work inside the lib
     // here genotypes[s] is the str (?) 0|0, ok. These are displayable, check their code to understand the inner structure.
@@ -147,6 +180,7 @@ fn decode_genotype(geno: String, accept_phased: bool) -> (bool, bool) {
 impl Iterator for VcfReader {
     type Item = Mutation;
 
+    // We are right now working on single chr and therefore we are not getting real chr names.
     fn next(&mut self) -> Option<Mutation> {
         let mut record : bcf::Record = bcf::Record::new();
         if let Ok(_) = self.reader.read(&mut record) {
@@ -164,7 +198,7 @@ impl Iterator for VcfReader {
                 //println!("allele {}" , allele[1] as char); // this will print the second base if the alt allele is for example AC (C).
             }
             if found_alt != 1 {
-                panic!("Cannot manage multi-allelic SNPs! {:?}", alt) // maybe simply skip?
+                panic!("Cannot manage multi-allelic SNPs! {:?}", alt)
             }
             let mut alte = get_sequence(&alt);
             let mut len = 1;
@@ -172,7 +206,6 @@ impl Iterator for VcfReader {
             let mut end_mod = 1;
             if alte == vec![6u8, 6u8, 6u8] {
                 let info_end = record.info("END".as_bytes()).integer();
-                //let end = match info_end.unwrap_or_else(panic!("VCF with a <DEL> and no END info!")) {let end = match info_end.unwrap_or_else(panic!("VCF with a <DEL> and no END info!")) {
                 let end = match info_end.unwrap() {
                     Some(l) => l,
                     None => panic!("VCF with a <DEL> and an END info not good"),
@@ -182,7 +215,11 @@ impl Iterator for VcfReader {
                 }
                 len = (end[0] as i64 -1) - coord as i64; // minus one to go back to 0 based coords even for this one (I believe that the lib does not fix this).
                 // Following vcf v4.2 specs the length is only "approximate", but it is ok to use end - pos (end is exclusive).
+                // We add 1 to the starting coord because indel are encoded with the first base 
+                // of reference out of the insertion or deletion.
                 coord += 1;
+                // XXX TODO reason about the need to sum 1 before calculating the length. Probably should be the opposite.
+                // FIXME after careful checks on tests and real data.
                 end_mod = len as u64;
             } else if indel {
                 let ref_len = refe.len();

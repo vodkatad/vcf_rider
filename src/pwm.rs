@@ -216,7 +216,8 @@ impl PWMReader {
     /// * `file` - the PWM File
     ///
     /// # Errors 
-    /// When the first file of the file cannot be read, the Error returned by read_line.
+    /// When the first line of the file cannot be read, the Error returned by read_line.
+    /// Or the error returned by `File::open` if the file is not readable.
     pub fn open(file: File) -> io::Result<PWMReader> {
         let mut b = String::new();
         let mut r = BufReader::new(file);
@@ -232,7 +233,8 @@ impl PWMReader {
     /// * `path` - the path to the PWM file
     ///
     /// # Errors 
-    /// When the first file of the file cannot be read, the Error returned by read_line
+    /// When the first line of the file cannot be read, the Error returned by read_line.
+    /// Or the error returned by `File::open` if the file is not readable.
     pub fn open_path(path: &str) -> io::Result<PWMReader> {
         match File::open(path) {
             Ok(file) => PWMReader::open(file),
