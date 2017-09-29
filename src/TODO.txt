@@ -1,7 +1,6 @@
 - docs
 #![warn(missing_docs)]
 
-- mutations.rs
 - rider.rs
 - indel.rs
 - lib.rs

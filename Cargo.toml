@@ -13,3 +13,7 @@ bit-vec = "*"
 [[bin]]
 name = "vcf_rider"
 doc = false
+
+[[bin]]
+name = "gc_counter"
+path = "src/bin/gc_counter.rs"
