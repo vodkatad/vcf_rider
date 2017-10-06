@@ -79,7 +79,7 @@ fn get_next_arg(args: &mut env::Args, error: String, binary_name: &String) -> St
     match args.next() {
         Some(x) => x,
         None => {
-            println!("Usage: {} <fasta_filename> <pwm_filename>", binary_name);
+            println!("Usage: {} <fasta_filename>", binary_name);
             println!("{}", error);
             std::process::exit(1);
         }
