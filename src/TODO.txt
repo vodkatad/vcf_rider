@@ -5,9 +5,13 @@
 - indel.rs
 - lib.rs
 
+- check that the bed are sorted!! 
+
 avoid building other crates doc and automate move to docs/push: https://hoverbear.org/2015/03/07/rust-travis-github-pages/
 
 - tests
+
+- multiple chr
 
 - bed out of chr is not managed:
 data@clo:~/work/vcf_rider$ ./target/debug/vcf_rider examples/phased.vcf examples/one_mat examples/prova.bed examples/f2.fasta

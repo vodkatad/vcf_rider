@@ -7,11 +7,8 @@ use vcf_rider::fasta;
 use vcf_rider::rider::CanScoreSequence;
 use std::collections::hash_map::HashMap;
 
-const A: u8 = 0;
 const C: u8 = 1;
 const G: u8 = 2;
-const T: u8 = 3;
-const N: u8 = 4;
 
 pub struct Counter {
     pub nucleos: HashMap<u8, u64>,
