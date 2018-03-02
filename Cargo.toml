@@ -17,3 +17,7 @@ doc = false
 [[bin]]
 name = "gc_counter"
 path = "src/bin/gc_counter.rs"
+
+[[bin]]
+name = "gc_rider"
+path = "src/bin/gc_rider.rs"
