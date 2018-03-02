@@ -12,5 +12,4 @@ More extensive tests that compare outputs with some manually checked:
 `cd examples; make; make clean;`
 
 ## To build doc in target/doc
-`cargo doc --no-deps`
-`$cp -r target/doc/vcf_rider/ docs/`
+`$ cargo doc --no-deps`

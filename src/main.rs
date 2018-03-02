@@ -22,7 +22,7 @@ fn main() {
     { 
         let mut ap = ArgumentParser::new();
         ap.set_description("Compute TBA on some genomic intervals for the individuals whose mutations are listed in the VCF. Needs a phased vcf. Works on single chromosomes.");
-        ap.refer(& mut vcf_filename).add_option(&["-v", "--vcf"], Store, "A phased vcf for a single chromome").required();
+        ap.refer(& mut vcf_filename).add_option(&["-v", "--vcf"], Store, "A phased vcf for a single chromosome").required();
         ap.refer(& mut pwms_filename).add_option(&["-p", "--pwm"], Store, "PWM file in the format required by matrix rider (name, pos, a, c, g, t), with counts, no zeroes.").required();
         ap.refer(& mut bed_filename).add_option(&["-b", "--bed"], Store, "A bed file representing the desired genomic intervals, on a single chromosome").required();
         ap.refer(& mut ref_filename).add_option(&["-r", "--ref"], Store, "A fasta with the reference sequence for the chromosome of interest").required();
@@ -83,7 +83,7 @@ fn main() {
     // In the end it is not good to print directly results inside the library so it will return an appropriate data structure with results that will be printed here.
     // Right now for our pipelines it is ok to print inside it.
     if let Ok(bed_reader) = bed::Reader::from_file(Path::new(&bed_filename)) {
-        get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename, assoc_file_opt);
+        get_scores(RiderParameters {min_len: min, max_len: max, parameters: &matrixes}, &vcf_filename, bed_reader, &ref_filename, assoc_file_opt, false);
     } else {
         panic!("Could not open bed file!");
     }

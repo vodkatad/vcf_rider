@@ -50,7 +50,7 @@ pub struct RiderParameters<'a, T : CanScoreSequence + 'a> {
 }
 
 // TODO ->
-pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &str, mut bed_reader: bed::Reader<fs::File>, ref_path: &str, associations: Option<String>) {
+pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &str, mut bed_reader: bed::Reader<fs::File>, ref_path: &str, associations: Option<String>, accept_unphased: bool) {
 
     // #[cfg(debug_assertions)]   attributes on non-item statements and expressions are experimental. (see issue #15701)
     //{
@@ -83,7 +83,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
     //println!("Fasta ref {}", referenceseq.id);
     // load vcf -> open file, skip # headers, first real entry
     // We could use a VcfReader similar to others.
-    if let Ok(vcf) = mutations::VcfReader::open_path(vcf_path, false) {
+    if let Ok(vcf) = mutations::VcfReader::open_path(vcf_path, accept_unphased) {
         let mut vcf_reader = vcf;
         /*for sample in & vcf_reader.samples {
             println!("sample {}", sample);
