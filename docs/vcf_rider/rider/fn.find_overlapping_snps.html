@@ -10,8 +10,11 @@
     <title>vcf_rider::rider::find_overlapping_snps - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
+    
+    <link rel="stylesheet" type="text/css" href="../../dark.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css" id="themeStyle">
+    <script src="../../storage.js"></script>
     
 
     
@@ -28,10 +31,18 @@
     
 
     <nav class="sidebar">
+        <div class="sidebar-menu">&#9776;</div>
         
         <p class='location'><a href='../index.html'>vcf_rider</a>::<wbr><a href='index.html'>rider</a></p><script>window.sidebarCurrent = {name: 'find_overlapping_snps', ty: 'fn', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </nav>
 
+    <div class="theme-picker">
+        <button id="theme-picker" aria-label="Pick another theme!">
+            <img src="../../brush.svg" width="18" alt="Pick another theme!">
+        </button>
+        <div id="theme-choices"></div>
+    </div>
+    <script src="../../theme.js"></script>
     <nav class="sub">
         <form class="search-form js-only">
             <div class="search-container">
@@ -51,14 +62,13 @@
                </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#236-296' title='goto source code'>[src]</a></span></h1>
 <pre class='rust fn'>pub fn find_overlapping_snps&lt;I&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;window: &amp;<a class="struct" href="../../vcf_rider/mutations/struct.Coordinate.html" title="struct vcf_rider::mutations::Coordinate">Coordinate</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;reader: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>I, <br>&nbsp;&nbsp;&nbsp;&nbsp;snps_buffer: &amp;mut <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec_deque/struct.VecDeque.html" title="struct alloc::vec_deque::VecDeque">VecDeque</a>&lt;<a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a>&gt;<br>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;I: <a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html" title="trait core::iter::iterator::Iterator">Iterator</a>&lt;Item = <a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a>&gt;,&nbsp;</span></pre><div class='docblock'><p>Function that advances on the VcfReader (Iterator of Mutation) until the first snp that does not overlap with the given window, putting
 in snps_buffer all the overlapping snps and their number and then the first not overlapping snp.</p>
-
-<h1 id='arguments' class='section-header'><a href='#arguments'>Arguments</a></h1>
+<h1 id="arguments" class="section-header"><a href="#arguments">Arguments</a></h1>
 <ul>
 <li><code>window</code> - the window where we search for overlapping SNPs. This function should be called giving them in order.</li>
 <li><code>reader</code> - a mutable reference to an Iterator of Mutation. This will be consumed, it need to store Mutation in order.</li>
 <li><code>snps_buffer</code>- a mutable reference to the VecDeque that is used as a buffer for SNPs. SNPs before the given window will
-             be removed, the overlapping ones will be at positions 0..returned value and the first SNPs after the given window
-             will be the last element.</li>
+be removed, the overlapping ones will be at positions 0..returned value and the first SNPs after the given window
+will be the last element.</li>
 </ul>
 </div></section>
     <section id='search' class="content hidden"></section>
@@ -73,18 +83,22 @@ in snps_buffer all the overlapping snps and their number and then the first not 
                 <h2>Keyboard Shortcuts</h2>
 
                 <dl>
-                    <dt>?</dt>
+                    <dt><kbd>?</kbd></dt>
                     <dd>Show this help dialog</dd>
-                    <dt>S</dt>
+                    <dt><kbd>S</kbd></dt>
                     <dd>Focus the search field</dd>
-                    <dt>&larrb;</dt>
+                    <dt><kbd>↑</kbd></dt>
                     <dd>Move up in search results</dd>
-                    <dt>&rarrb;</dt>
+                    <dt><kbd>↓</kbd></dt>
                     <dd>Move down in search results</dd>
-                    <dt>&#9166;</dt>
+                    <dt><kbd>↹</kbd></dt>
+                    <dd>Switch tab</dd>
+                    <dt><kbd>&#9166;</kbd></dt>
                     <dd>Go to active search result</dd>
-                    <dt>+</dt>
-                    <dd>Collapse/expand all sections</dd>
+                    <dt><kbd>+</kbd></dt>
+                    <dd>Expand all sections</dd>
+                    <dt><kbd>-</kbd></dt>
+                    <dd>Collapse all sections</dd>
                 </dl>
             </div>
 
