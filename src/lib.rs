@@ -5,7 +5,8 @@
 //! be computed on defined and independent windows it is not needed to reconstruct every individual genome and then compute the scores
 //! separatedly. vcf_rider is able to compute scores on windows that are the same for all individuals only once. Even for polimorphic subsequences
 //! it computes the scores only for the number of extant sequences and correctly assigns them to different individuals.
-//! Scores for different windows can be put together in different ways - right now (TODO)
+//! Scores for different windows can be put together in different ways - right now they are only summed but extending the lib to 
+//! perform different actions should be easy via a new configuration in ther RiderParameters struct.
 
 extern crate bio;
 extern crate rust_htslib;
@@ -16,7 +17,7 @@ extern crate bit_vec;
 /// 'out of phase' and force us to divide them in different groups.
 mod indel;
 /// The module used for reading the fasta file representing the genome of interest.
-/// Right now it should contain a single chromosome to be used with `vcf_rider`, but the module can handle also multifasta files.
+/// Right now it should contain a single chromosome to be used with `vcf_rider`.
 /// The id of the fasta should be the same used in the vcf file and with genomic regions represented in the used bed.
 pub mod fasta;
 /// Module representing Positional Weight Matrixes and that is able to compute their score on a given sequence.
