@@ -69,3 +69,121 @@ better to compare whole string or first check the 6mer and then only single posi
 
 Need to consider strand! Only the given one!
 */
+
+use std::io;
+use std::io::prelude::*;
+use std::io::BufReader;
+use std::fs::File;
+use std::iter::Iterator;
+use rider::CanScoreSequence;
+
+
+const A: usize = 0;
+const C: usize = 1;
+const G: usize = 2;
+const T: usize = 3;
+const N: usize = 4;
+
+/// Struct representing a miRNA seed
+#[derive(Debug)]
+pub struct Seed {
+    /// The name of this miRNA family
+    pub name: String,
+    /// A `Vec<u8>` representing this miRNA seed
+    pub sequence: Vec<u8>, // they will always have a length of 8, can we optimize? XXX TODO
+}
+
+// Implementing CanScoreSequence is the only step needed to use vcf_rider. 
+// This is its implementation to count number of miRNA seed found on sequences 
+// (we consider 8mer, 7mer-A1, and 7mer-m8 matches).
+impl CanScoreSequence for Seed {
+    fn get_length(&self) -> usize {
+        self.sequence.len()
+    }
+
+    fn get_name(&self) -> &str {
+        &self.name
+    }
+
+    /// Computes the score for this `Seed` on a given sequence starting at the given pos.
+    /// The returned score is 1 if there is a match for this seed on the given sequence
+    /// (8mer, 7mer-A1, and 7mer-m8 are considere match), 0 otherwise.
+    /// The library only calls get score for sequences with lengths sufficient to host the seed starting at pos.
+    /// # Arguments
+    ///
+    /// * `pos` - the position where we want to score this sequence
+    /// * `sequence` - the score that we want to score
+    fn get_score(&self, pos: usize, sequence: &[u8]) -> f64 {
+        return 0f64;
+        /*if seq == S1,S2,S3,S4,S5,S6,S7,A: 8mer
+        elseif seq start == S1,S2,S3,S4,S5,S6,S7: 7mer-m8
+        elseif seq end == S2,S3,S4,S5,S6,S7,A: 7mer-A1*/
+    }
+}
+
+/// Struct used to read Seed. It will be implement an Iterator of `Seed` structs.
+pub struct SeedReader {
+    reader: BufReader<File>,
+    buffer: String
+}
+
+impl SeedReader {
+    /// Opens a tab delimited file with miRNA seeds file returning a `Result<SeedReader>`.
+    /// # Arguments
+    ///
+    /// * `file` - the File with miRNA information
+    ///
+    /// # Errors 
+    /// When the first line of the file cannot be read, the Error returned by read_line.
+    /// Or the error returned by `File::open` if the file is not readable.
+    pub fn open(file: File) -> io::Result<SeedReader> {
+        let mut b = String::new();
+        let mut r = BufReader::new(file);
+        match r.read_line(&mut b) {
+            Ok(_) => Ok(SeedReader { reader: r, buffer: b }),
+            Err(e) => Err(e)
+        }
+    }
+
+    /// Opens a tab delimited file with miRNA seeds file returning a `Result<SeedReader>`.
+    /// # Arguments
+    ///
+    /// * `path` - the path to the miRNA file
+    ///
+    /// # Errors 
+    /// When the first line of the file cannot be read, the Error returned by read_line.
+    /// Or the error returned by `File::open` if the file is not readable.
+    pub fn open_path(path: &str) -> io::Result<SeedReader> {
+        match File::open(path) {
+            Ok(file) => SeedReader::open(file),
+            Err(e) => Err(e)
+        }
+    }
+}
+
+impl Iterator for SeedReader {
+    type Item = Seed;
+
+    fn next(&mut self) -> Option<Seed> {
+        if self.buffer.is_empty() {
+            return None;
+        }
+        let line = self.buffer.trim_right().to_owned();
+        let mut tokens = line.split("\t");
+        let name = tokens.nth(0).unwrap().to_owned();
+        let mut sequence : Vec<u8> = Vec::with_capacity(8);
+        for nuc in tokens.nth(1).unwrap().to_owned().trim_right().as_bytes() {
+            sequence.push(match *nuc {
+                b'A' => 0u8,
+                b'C' => 1u8,
+                b'G' => 2u8,
+                b'T' => 3u8,
+                b'N' => 4u8,
+                _ => panic!("Seed {} with a not allowed char {}", &name, *nuc as char),
+            });
+        }
+        self.buffer.clear();
+        self.reader.read_line(&mut self.buffer).unwrap();
+        Some(Seed {name: name.to_owned(), sequence: sequence })
+    }
+}
