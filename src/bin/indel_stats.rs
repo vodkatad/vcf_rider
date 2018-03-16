@@ -6,7 +6,6 @@ use vcf_rider::rider::*;
 use std::env;
 use bio::io::bed;
 use std::path::Path;
-//use vcf_rider::fasta;
 use vcf_rider::mutations;
 use std::collections::VecDeque;
 use itertools::Itertools;

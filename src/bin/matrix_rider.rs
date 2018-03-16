@@ -1,13 +1,14 @@
 extern crate vcf_rider;
 
-//use std::io::BufReader;
-//use std::fs::File;
 use std::env;
 use vcf_rider::fasta;
 use vcf_rider::rider::CanScoreSequence;
 use vcf_rider::pwm;
 
-
+// This binary is used to compute TBA on a fasta file, it was just used as a first example
+// to compare the speed of this rust implementation with matrix_rider (C).
+// They proved to be very similar.
+// Warning: this uses a fixed bg defined in fasta.rs.
 fn main() {
     let mut args = env::args();
     let binary_name =  args.nth(0).unwrap();

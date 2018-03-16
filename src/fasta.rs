@@ -94,7 +94,7 @@ impl Iterator for FastaReader {
                 break;
             }
         }
-        // TODO FIXME compute bg. Right now we have hard encoded the one used in all our project (historic hg19 intergenic by Ivan).
+        // Hard coded an intergenic bg for hg19, but our main redefines it with a user defined argument.
         Some(Fasta { id: id, sequence: sequence, background : vec!(0.298947240099661, 0.200854143743417, 0.200941012710477, 0.299257603446445)})
     }
 }

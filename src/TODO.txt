@@ -1,9 +1,14 @@
 - docs
+- link to docs in the doc!
+
+- import gc counter in gc rider and comment it!
+
 #![warn(missing_docs)]
 
 - rider.rs
 - indel.rs
 - lib.rs
+- mutations.rs
 
 - check that the bed are sorted!! 
 
@@ -12,9 +17,17 @@
 cargo doc --no-deps
 cp -r target/doc/vcf_rider/ docs/
 
+- remove indel stats and read vcf_dummy (keep in other branch?)
+
+- several operations on scores?
+
+- avoid printing in the lib?
+
 - tests
 
 - multiple chr
+
+- is really GC content invariant on phasing?
 
 - bed out of chr is not managed:
 data@clo:~/work/vcf_rider$ ./target/debug/vcf_rider examples/phased.vcf examples/one_mat examples/prova.bed examples/f2.fasta
@@ -52,3 +65,5 @@ do we want to do smt better?
 
 
 - how to have +/min/max/mean in RiderParameters and use it
+
+- up to doc rider getScores (no code)

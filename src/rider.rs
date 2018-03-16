@@ -6,7 +6,6 @@ use super::mutations;
 use super::indel;
 use std::collections::VecDeque;
 use std::io::Write;
-//use std::collections::BitVec; ?
 use bit_vec::BitVec;
 
 /// Our vcf_rider main function will receive a Vec<T: CanScoreSequence>
@@ -42,6 +41,11 @@ pub trait CanScoreSequence {
     fn get_name(&self) -> &str;
 }
 
+/// The parameters used to setup vcf_rider are a vector of objects
+/// able to score a sequence and their minimum and maximum lengths.
+/// In the future it will become possible to combine scores for all the subsequences 
+/// not only summing but also for example averaging them, getting the minimum or the 
+/// maximum, etc.
 pub struct RiderParameters<'a, T : CanScoreSequence + 'a> {
     pub min_len: usize,
     pub max_len: usize,
@@ -49,7 +53,24 @@ pub struct RiderParameters<'a, T : CanScoreSequence + 'a> {
     // TODO the operation to be used to manage scores http://doc.rust-lang.org/core/ops/
 }
 
-// TODO ->
+/// The single entry point of our library, right now for ease of use in bioinformatic pipelines it simply prints the results
+/// on standard output.
+///
+/// # Arguments
+///
+/// * `params` - the RiderParameter that will be used to score individual sequences
+/// * `vcf_path` - a path to a vcf file representing mutations on a given chr for some individuals
+/// * `bed_reader` - a bed::Reader representing the genomic interval that we want to consider. They should be on a single chr,
+///                  sorted and not overlapping. They should not fall outside of the given chromosome sequence
+/// * `ref_path` - the path to a fasta file with the reference sequence of the given chr
+/// * `associations` - an optional string, if given this will be the file name where associations between bed and polymorphism will be 
+///                    printed - for bed with at least an overlapping SNPs we will print the ids of the overlapping SNPs (ids are starting coord,
+///                    indel_length and boolean is_indel - note that insertions are represent with a negative length and deletion with a positive one).
+/// * `accept_unphased` - if unphased vcf files will be accepted. Some scores (i.e. TBA) need phased genotypes cause different phases will
+///                       end up in different scores, while other (i.e. GC content) are invariant with respect to phasing.
+///
+/// # Panics 
+/// If the bed defines some intervals out of the given chromosome fasta.
 pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &str, mut bed_reader: bed::Reader<fs::File>, ref_path: &str, associations: Option<String>, accept_unphased: bool) {
 
     // #[cfg(debug_assertions)]   attributes on non-item statements and expressions are experimental. (see issue #15701)
@@ -417,12 +438,3 @@ pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlappin
     }
     chrs
 }
-
-
-
-// Needed structs:
-// return type of get scores with bed info, n of snps, [len of individuals seqs], scores for both alleles for individuals and individual ids
-// vcf entry ?
-
-//s.set_mutation(010011001);
-//s[0] -> base at index 0
