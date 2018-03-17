@@ -9,7 +9,7 @@ Small number of unit tests:
 `$ cargo test --lib`
 
 More extensive tests that compare outputs with some manually checked:
-`cd examples; make; make clean;`
+`cargo build; cd examples; make; make clean;`
 
 ## To build doc in target/doc
 `$ cargo doc --no-deps`

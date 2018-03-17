@@ -18,8 +18,8 @@ fn main() {
     let mut mirna : Vec<mirna::Seed> = Vec::new();
     if let Ok(seed_reader) = mirna::SeedReader::open_path(&mirna_filename) {
         for mir in seed_reader {
+            println!("{}, {:?}", &mir.name, &mir.sequence);
             mirna.push(mir);
-            println!("{}, {:?}", mir.name, mir.sequence);
         }
     }
 /*    if let Ok(reader) = fasta::FastaReader::open_path(&fasta_filename) {

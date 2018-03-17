@@ -26,6 +26,7 @@ pub mod pwm;
 pub mod rider;
 /// Module able to load mutations from a vcf file.
 pub mod mutations; 
+pub mod mirna;
 
 #[cfg(test)]
 mod tests {

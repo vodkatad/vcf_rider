@@ -172,12 +172,12 @@ impl Iterator for SeedReader {
         let mut tokens = line.split("\t");
         let name = tokens.nth(0).unwrap().to_owned();
         let mut sequence : Vec<u8> = Vec::with_capacity(8);
-        for nuc in tokens.nth(1).unwrap().to_owned().trim_right().as_bytes() {
+        for nuc in tokens.nth(0).unwrap().to_owned().as_bytes() {
             sequence.push(match *nuc {
                 b'A' => 0u8,
                 b'C' => 1u8,
                 b'G' => 2u8,
-                b'T' => 3u8,
+                b'U' => 3u8,
                 b'N' => 4u8,
                 _ => panic!("Seed {} with a not allowed char {}", &name, *nuc as char),
             });
