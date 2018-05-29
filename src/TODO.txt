@@ -1,3 +1,5 @@
+- il n. di gruppi che stimo probabilmente e` in eccesso, check.
+
 - docs
 - link to docs in the doc!
 
