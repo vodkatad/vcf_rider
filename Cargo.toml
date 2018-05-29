@@ -22,7 +22,10 @@ path = "src/bin/gc_counter.rs"
 name = "gc_rider"
 path = "src/bin/gc_rider.rs"
 
-
 [[bin]]
 name = "mirna_counter"
 path = "src/bin/mirna_counter.rs"
+
+[[bin]]
+name = "indel_stats"
+path = "src/bin/indel_stats.rs"

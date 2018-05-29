@@ -188,27 +188,22 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     //println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
                     // that encodes its genotype (using only the mutation that needs to be managed here: SNPs but not indels).
+                    // Every SNP status is encoded by 0 (in the BitVec) if it is reference and 1 if it is
+                    // mutated. The first snp in the seq is encoded by the least significant position.
                     let genotypes : Vec<BitVec> = encode_genotypes(&groups_snps_buffer, &overlapping, &chr_samples, n_samples, &samples);
                     //println!("encoded_genotypes {:?} ", genotypes);
                 
                     //println!("trying to allocate {}", 2usize.pow(n_overlapping));
-                    // Obtain all the sequences for this group in this position.
+                    // Obtain all the existing sequences, without repetitions, for this group in this position.
+                    // TODO if we have more than XXX sequences we would break, add a check?
                     //let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
                     let mut seqs : Vec<(BitVec, Vec<u8>)> = Vec::with_capacity(1usize);
                     obtain_seq(& window, & groups_snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs, bed_window.end);
-                    // UPTO HERE
-
-                    // TODO needs updating
-                    // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
-                    // seqs will be ordered in a specific order: the first one is the reference one and the last one
-                    // the one with all mutated alleles.  Every SNP status is encoded by 0 if it is reference and 1 if it is
-                    // mutated. The first snp in the seq is encoded by the least significant position.
-                    // In this way it will be easy to build for each individual chr the indexes linking
-                    // them to their sequences. There will be a vector of tuples (usize,usize) for this.
-                    // obtain seq will return sequences of length params.max_len if possible otherwise shorter
-                    // ones and we will check to call get_score only on the right parameters
-                    // for every p params.parameters call on seq
-
+                    
+                    // UPTO
+                    // seqs will be ordered in a specific order: the first one is the reference one and the last one TODO CHECK
+                    // the one with all mutated alleles. 
+                    
                     for (i, s) in seqs.into_iter() {
                         // if i in indexes genotypes -> function that checks if it's there and fills a vector (idx_for_seq) with the indexes of the individuals that
                         if match_indexes(i, &mut idx_for_seq, &genotypes) {

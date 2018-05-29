@@ -30,7 +30,7 @@ fn main() {
             // We initialize a vector that as indexes has chr_samples ids (chr_M sample 1: 0, chr_P sample 1: n_samples ..) and
             // as values the group id.
             for r in bed_reader.records() {
-                let mut groups : Vec<u32> =  vec![0; n_samples*2]; // Vec::with_capacity(n_samples*2);
+                let mut groups : Vec<usize> =  vec![0; n_samples*2]; // Vec::with_capacity(n_samples*2);
                 let record = r.ok().expect("Error reading record");
                 //println!("bed name: {}", record.name().expect("Error reading name"));
                 // chr check
@@ -41,7 +41,7 @@ fn main() {
                 let n_groups = groups.iter().max().unwrap()+1;
                 let group_structure = groups.into_iter().enumerate().map(|x| 
                                                         format!("{:?}:{}", x.0, x.1)).join(";"); // sample : group ; sample:group.
-                println!("{}\t{}\t{}\t{}\t{}", record.name().expect("Error reading name"), n_overlapping, n_indel, n_groups, group_structure)
+                println!("{}\t{}\t{}\t{}\t{}\t{}\t{}", record.name().expect("Error reading name"), n_overlapping, n_indel, n_groups, group_structure, std::usize::MAX, std::u32::MAX)
             }
         }
     } else {
@@ -49,15 +49,29 @@ fn main() {
     }
 }
 
-fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: usize, groups: &mut Vec<u32>, n_samples: usize) -> u32 {
+
+/// Function that assigns chr samples to different groups depending on their overlapping indel alleles.
+/// chr in the same group have the same alleles of the same indels, i.e. their coords are in sync.
+/// CAUTION: if there are more than 64 indels it will incurr in overflow errors! FIXME TODO
+///
+/// # Arguments
+///
+/// * `snps_buffer`- a mutable reference to the VecDeque that is used as a buffer for SNPs. Should contain the SNPs
+///    overlapping the bed that we are interested in.
+/// * `n_overlapping` - the number of overlapping SNPs, since buffer will have one more.
+/// * `groups` - a mutable reference to a Vec of usize that will be filled with groups info. Indexes: samples id. Elements: groups id.
+/// * `n_sample` - the number of samples (each with two alleles for each SNP) for which we have genotypes.
+///
+pub fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: usize, groups: &mut Vec<usize>, n_samples: usize) -> usize {
     let mut n_indel = 0;    
     for (i_snp, snp) in snps_buffer.iter().enumerate() {
-        if snp.is_indel && i_snp < n_overlapping { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
+        if snp.is_indel && i_snp < n_overlapping as usize { // i >= n_overlapping we have finished the overlapping snps (the last one is just waiting in the buffer)
             n_indel += 1;
             if snp.genotypes.iter().any(|x| x.0 || x.1) {
                 // we have a bisection
                 //n_groups = n_groups * 2;
                 // even groups have no indels at this run.
+                let mut overflow = false;
                 for i_sample in 0 .. n_samples {
                     let allele = snp.genotypes[i_sample];
                     let old_group_0 = groups[i_sample];
@@ -65,40 +79,39 @@ fn count_groups(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: usi
                     groups[i_sample] = match allele.0 {
                         true => match old_group_0 {
                             0 => 1,
-                            _ => 2*old_group_0+1
+                            _ => { let res = 2usize.overflowing_mul(old_group_0+1); 
+                                   overflow = overflow  | res.1;
+                                   res.0 }
                         },
                         false => match old_group_0 {
                             0 => 0,
-                            _ => 2*old_group_0
+                            _ => { let res = 2usize.overflowing_mul(old_group_0); 
+                                   overflow = overflow  | res.1;
+                                   res.0 }
                         }
                     };
                     groups[i_sample+n_samples] = match allele.1 {
                         true => match old_group_1 {
                             0 => 1,
-                            _ => 2*old_group_1+1,
+                            _ => { let res = 2usize.overflowing_mul(old_group_1+1); 
+                                   overflow = overflow  | res.1;
+                                   res.0 }
                         },
                         false => match old_group_1 {
                             0 => 0,
-                            _ => 2*old_group_1
+                            _ => { let res = 2usize.overflowing_mul(old_group_1); 
+                                   overflow = overflow  | res.1;
+                                   res.0 }
                         }
                     };
-                    /*if allele.0 {
-                        groups[i_sample] = 2u32.pow(old_group_0)+1;
-                    } else {
-                        groups[i_sample] = 2u32.pow(old_group_0);
-                    }
-                    if allele.1 { // ouf, bad, debug then refactor
-                        groups[i_sample+n_samples] = 2u32.pow(old_group_1)+1;
-                    } else {
-                        groups[i_sample+n_samples] = 2u32.pow(old_group_1);
-                    }
-                    */
                 }
+                println!("For {} overflow {}", i_snp, overflow);
             }
         }
     }
     n_indel
 }
+
 // TODO: use a meaningful crate for args management.
 fn get_next_arg(args: &mut env::Args, error: &str, binary_name: &str) -> String {
     match args.next() {
