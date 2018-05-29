@@ -2,10 +2,10 @@
     use std::collections::VecDeque;
     use std::collections::HashMap;
     
-    // Used to classify indels and snps in groups: SNPs will be tagged as "Manage" while
-    // indels with Ins or Del (if this group has their alternative allele).
-    // String (Vec<u8>) is the sequence that needs to be inserted for ins, usize is the coord inside the window
-    // and u64 the length of deletions.
+    /// Used to classify indels and snps in groups: SNPs will be tagged as "Manage" while
+    /// indels with Ins or Del (if this group has their alternative allele).
+    /// String (Vec<u8>) is the sequence that needs to be inserted for ins, usize is the coord inside the window
+    /// and u64 the length of deletions.
     #[derive(Eq, PartialEq, Debug)]
     pub enum MutationClass {
         Manage(usize),
@@ -58,7 +58,7 @@
             
         /// Function that assigns chr samples to different groups depending on their overlapping indel alleles.
         /// chr in the same group have the same alleles of the same indels, i.e. their coords are in sync.
-        /// CAUTION: if there are more than 64 indels it will incurr in overflow errors! FIXME
+        /// CAUTION: if there are more than 64 indels it will incurr in overflow errors! FIXME TODO
         ///
         /// # Arguments
         ///

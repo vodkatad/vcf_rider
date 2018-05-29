@@ -10,7 +10,7 @@ use bit_vec::BitVec;
 
 /// Our vcf_rider main function will receive a Vec<T: CanScoreSequence>
 /// and call it for every T on subsequences of the genomes of the samples
-/// doing it only for each variant subsequence once.
+/// doing it only for each existing subsequence once.
 /// This trait will need to be able to compute a score on a given sequence,
 /// represented by a splice of an array of u8 [TODO] starting for a given
 /// position (it is guaranteed by the lib that the used position will be given
@@ -22,7 +22,8 @@ pub trait CanScoreSequence {
     ///
     /// * `self` - the object with trait CanScoreSequence.
     /// * `pos` - the position in the sequence where the score will be calculated.
-    ///           The check that sequence.len() - self.get_length() >= 0 IS NOT DONE HERE.
+    ///           The check that sequence.len() - self.get_length() >= 0 IS NOT DONE HERE, 
+    ///           we always return a score.
     /// * `sequence`- the sequence that needs to be scored, encoded as [ACGTN]-[01234]
     fn get_score(&self, pos: usize, sequence: &[u8]) -> f64;
 
@@ -47,30 +48,38 @@ pub trait CanScoreSequence {
 /// not only summing but also for example averaging them, getting the minimum or the 
 /// maximum, etc.
 pub struct RiderParameters<'a, T : CanScoreSequence + 'a> {
+    /// The minimum length of the sequence that these T objects can score. Not used right now, we get it for 
+    /// possible future optimizations.
     pub min_len: usize,
+    /// The maximum length of the sequence that these T objects can score
     pub max_len: usize,
+    // The vector of T objects that we want do use for scoring
     pub parameters: &'a Vec<T>
     // TODO the operation to be used to manage scores http://doc.rust-lang.org/core/ops/
 }
 
 /// The single entry point of our library, right now for ease of use in bioinformatic pipelines it simply prints the results
-/// on standard output.
+/// on standard output. TODO: return a suitable data structure with results.
 ///
 /// # Arguments
 ///
 /// * `params` - the RiderParameter that will be used to score individual sequences
 /// * `vcf_path` - a path to a vcf file representing mutations on a given chr for some individuals
-/// * `bed_reader` - a bed::Reader representing the genomic interval that we want to consider. They should be on a single chr,
+/// * `bed_reader` - a bed::Reader representing the genomic intervals that we want to consider. They should be on a single chr,
 ///                  sorted and not overlapping. They should not fall outside of the given chromosome sequence
 /// * `ref_path` - the path to a fasta file with the reference sequence of the given chr
-/// * `associations` - an optional string, if given this will be the file name where associations between bed and polymorphism will be 
+/// * `associations` - an optional string, if given this will be the file name where associations between bed ids and polymorphism will be 
 ///                    printed - for bed with at least an overlapping SNPs we will print the ids of the overlapping SNPs (ids are starting coord,
 ///                    indel_length and boolean is_indel - note that insertions are represent with a negative length and deletion with a positive one).
 /// * `accept_unphased` - if unphased vcf files will be accepted. Some scores (i.e. TBA) need phased genotypes cause different phases will
-///                       end up in different scores, while other (i.e. GC content) are invariant with respect to phasing.
+///                       end up in different scores, while other (i.e. GC content) are invariant with respect to phasing and for them
+///                       we will obtain sequences considering even unphased vcf as phased
 ///
 /// # Panics 
 /// If the bed defines some intervals out of the given chromosome fasta.
+/// If the given fasta is empty, it's a multifasta, it's not readable or it's not a fasta.
+/// It it cannot open the given associations file.
+// TODO: fix check of fasta with wrong format.
 pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &str, mut bed_reader: bed::Reader<fs::File>, ref_path: &str, associations: Option<String>, accept_unphased: bool) {
 
     // #[cfg(debug_assertions)]   attributes on non-item statements and expressions are experimental. (see issue #15701)
@@ -78,6 +87,8 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
     //println!("I would use {}", vcf_path);
     //println!("With parameters {} {}", params.min_len, params.max_len);
     //}
+
+    // Load the reference fasta.
     let referenceseq: fasta::Fasta = {
         if let Ok(mut reader) = fasta::FastaReader::open_path(ref_path) {
             let referenceseq = match reader.next() {
@@ -87,7 +98,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
             let other = reader.next(); // Very inefficient to read all of it, we will read two fasta before giving the error.
             match other {
                 None => (),
-                Some(_) => panic!("Right now you can use this only on single chr! You have given either a multifasta")
+                Some(_) => panic!("Right now you can use this only on single chr! Multifasta format is not allowed")
             };
             referenceseq
         } else {
@@ -102,8 +113,8 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
          None => None
     };
     //println!("Fasta ref {}", referenceseq.id);
-    // load vcf -> open file, skip # headers, first real entry
-    // We could use a VcfReader similar to others.
+
+    // Load the vcf.
     if let Ok(vcf) = mutations::VcfReader::open_path(vcf_path, accept_unphased) {
         let mut vcf_reader = vcf;
         /*for sample in & vcf_reader.samples {
@@ -116,14 +127,22 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
         let n_samples = vcf_reader.samples.len();
         let n_pwm = params.parameters.len();
         let mut snps_buffer : VecDeque<mutations::Mutation> = VecDeque::new();
+
+        // We iterate over all our bed records.
         for r in bed_reader.records() {
-            let record = r.ok().expect("Error reading record");
+            let record = r.ok().expect("Error reading bed record");
+            // TODO add check on the bed having ordered and not overlapping records.
             let bed_window = mutations::Coordinate{chr: "".to_owned(), start: record.start(), end: record.end()};
+            // We count the number of overlapping SNPs over this bed, reading the vcf meanwhile.
+            // We put in our snps_buffer all the overlapping ones and the first one outside this bed record.
             let n_overlapping = find_overlapping_snps(& bed_window, &mut vcf_reader, &mut snps_buffer);
+            // We print the information about overlapping snpns in the associations file, if it has been given.
             match assoc_writer {
                 Some(ref mut writer) => { print_overlapping(& snps_buffer, n_overlapping as usize, writer, &record) },
                 None => {}
             }
+            // We need to split the individuals/alleles in groups with uniform coordinates for this bed, i.e. with the
+            // same genotypes for the overlappin gindels.
             let mut indel_manager = indel::IndelRider::new(&snps_buffer, n_overlapping, n_samples);
             // We iterate over different groups, each group is made of single chromosomes of out samples with the same
             // combination of indels genotypes for this bed.
@@ -133,17 +152,20 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 let mut pos = record.start();
                 let mut samples : Vec<usize> = Vec::new();
                 // We need to obtain the samples id for this group (XXX Do in IndelRider?)
+                // chr_samples has the ids of the alleles found in this group, since we index
+                // alleles for individual 1 as 0 and n_samples, for individual 2 as 1 and n_samples+1
                 for allele in chr_samples.iter() {
                     samples.push(allele % n_samples); 
                 }
                 let n_alleles = chr_samples.len();
                 //println!("{} {:?}", n_alleles, samples);
                 // scores will hold the scores computed for this bed/group combination.
+                // Outer vector: n_pwm, i.e. number of objects implementing CanScore that we have.
+                // Inner vectors: index of the allele that has this score.
                 let mut scores : Vec<Vec<f64>> = vec![vec![0f64; n_alleles]; n_pwm];
                 // idx_for_seq will store correspondence between our samples
                 // and the built sequences. Every tuple represent a sample (indexed by usize) 
-                // and if it has the current sequence (current in the final loop done on all the possible sequences).
-                // XXX TODO is this complex structure really needed?
+                // and if it has the current sequence (current in the final loop done on all the possible sequences TODO).
                 let mut idx_for_seq  : Vec<(usize, bool)> = Vec::<(usize, bool)>::with_capacity(n_alleles);
                 while pos < record.end() {  // we do not do pos + params.max_len < r.end to avoid cumbersome management for the last portion
                     let mut wend = pos+params.max_len as u64;
@@ -153,26 +175,28 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     let mut window = mutations::Coordinate{chr: "".to_owned(), start: pos, end: wend};
 
                     // Obtain the information about the mutations that we need to manage for this group
-                    // and the fixed indels.
+                    // and the fixed indels: a vector of their index in groups_snps_buffer and their MutationClass
                     let mut overlapping : Vec<(usize, indel::MutationClass)> = Vec::new(); 
-                    // or is it better to allocate it in eccess with n overlapping capacity?
+                    // TODO or is it better to allocate it in eccess with n overlapping capacity?
                     // This will also modify the window to access the right portion of the reference genome (longer or shorter if necessary due to indels).
                     //println!("The window was {:?}", window);
-                    indel_manager.get_group_info(& mut window, & mut pos, & mut groups_snps_buffer, n_overlapping, & mut overlapping); // He should know the group cause it is iterating on them itself.
+                    indel_manager.get_group_info(& mut window, & mut pos, & mut groups_snps_buffer, n_overlapping, & mut overlapping); 
+                    // the group we are iterating on is known cause indel_manager is an iterator of groups.
                     //println!("And became {:?} next {}", window, pos);
                     //let n_overlapping = overlapping.iter().fold(0, |acc, &x| if x.1 == MutationClass.Manage { acc + 1} else { acc });
                     //println!("for group {:?} in window {} {} n_overlapping {}", chr_samples, window.start, window.end, n_overlapping);
                     //println!("overlapping_info {:?} ", overlapping);
                     // Obtain the encoded indexes of our genotypes, genotypes has an element for each of our samples
-                    // that encodes its genotype (using only the mutation that needs to be managed here, i.e. SNPs).
+                    // that encodes its genotype (using only the mutation that needs to be managed here: SNPs but not indels).
                     let genotypes : Vec<BitVec> = encode_genotypes(&groups_snps_buffer, &overlapping, &chr_samples, n_samples, &samples);
                     //println!("encoded_genotypes {:?} ", genotypes);
+                
                     //println!("trying to allocate {}", 2usize.pow(n_overlapping));
-                    // Obtain all the possible sequences for this group in this position.
+                    // Obtain all the sequences for this group in this position.
                     //let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
                     let mut seqs : Vec<(BitVec, Vec<u8>)> = Vec::with_capacity(1usize);
-                    
                     obtain_seq(& window, & groups_snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs, bed_window.end);
+                    // UPTO HERE
 
                     // TODO needs updating
                     // this will give us 2^n seqs where n in the n of snps found in r.start-r.rstart+params.max_len
@@ -330,7 +354,6 @@ pub fn print_overlapping(snps_buffer: & VecDeque<mutations::Mutation>, n_overlap
 
 pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>,
                   reference: & fasta::Fasta, genotypes : &Vec<BitVec>, seqs : &mut Vec<(BitVec, Vec<u8>)>, bed_end : u64) {
-    // snps_buffer will be empty or contain snps found in the previous window
     // if there are no overlapping snps we get the reference sequence and return only it
     // otherwise we need to build the sequences
     let ref_seq : &[u8];
@@ -339,27 +362,34 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     if e as u64 > bed_end {
         e = bed_end as usize;
     }
-    if e > reference.sequence.len() { //maybe border on bed?
+    if e > reference.sequence.len() {
         e = reference.sequence.len();
     }
     ref_seq = &reference.sequence[s..e];
     seqs.push((BitVec::from_elem(overlapping_info.len(), false), ref_seq.to_owned()));
     //println!("non mutated window.start {} seq {:?}", s, ref_seq);
     let mut regenotypes : Vec<BitVec> = genotypes.to_vec();
+    // Here we sort and dedup to avoid scoring multiple time the same sequence, we will use BitVec to make
+    // samples and sequences correspond so we do not need to care about seqs vector order.
     &regenotypes.sort();
     &regenotypes.dedup();
     for encoded_geno in regenotypes.iter() {
+        // We skip the all false genotype that we do not need to encode twice (already added as the reference sequence in line 368);
         if encoded_geno.none() {
             continue;
         }
         let mut seq_to_mutate = ref_seq.to_owned();
         let mut pos_adjust : isize = 0;
         for (j, &(mut_idx, ref manage)) in overlapping_info.iter().enumerate() {
+            // If this polymorphism is TRUE it is mutated (==alternate allele) for this genotype
+            // otherwise we have a polymorphism which is == to the reference and we do not change the sequence.
             if encoded_geno.get(j).unwrap() {
             //if ((*i) >> j) & 1 == 1 {
                 let this_mut = snps_buffer.get(mut_idx as usize).unwrap();
                 //println!("i {:?} j {} {:?}", encoded_geno, j, this_mut);
                 match *manage {
+                    // SNPs with alternate allele
+                    // TODO break motivate and write: if this SNP was overlapping but...
                     indel::MutationClass::Manage(pos) => {  
                                                     let apos: usize = (pos as isize + pos_adjust) as usize; 
                                                     if apos < seq_to_mutate.len() {
@@ -368,6 +398,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                         break;
                                                     }
                                                     },
+                    // Insertions with alternate allele
                     indel::MutationClass::Ins(ref seq, pos) => {  
                                                 //println!("managing insertion {:?}",seq_to_mutate);
                                                 let apos: usize = (pos as isize + pos_adjust) as usize; 
@@ -382,6 +413,7 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                     break;
                                                 }
                                                 },
+                    // Deletions with alternate allele
                     indel::MutationClass::Del(length, pos) => {
                                                 //println!("managing del {:?}",seq_to_mutate);
                                                 let apos: usize = (pos as isize + pos_adjust) as usize; 
@@ -397,12 +429,14 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                     break;
                                                 }
                                                 },
+                    // Polymorphism that are always == to the reference for this group
                     indel::MutationClass::Reference => { 
                                                 panic!("I found smt annotated as Reference that seems mutated to me! {:?} {} i {:?} j {}", this_mut, mut_idx, encoded_geno, j);
                                                 }
                 }
-            } // it is possible that we will need to manage also the else branch here, because reference indels could need management
-            // to correctly manage window lenghts: done by the IndelRider?
+            } 
+            // The else branch here, with reference indels for this group, do not need management here for the length: this
+            // is done by IndelRider. TODO CHECK.
         }
         //println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
         seqs.push((encoded_geno.clone(), seq_to_mutate));
