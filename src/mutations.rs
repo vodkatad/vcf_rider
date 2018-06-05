@@ -68,7 +68,10 @@ pub struct Mutation {
     /// Right now I was not able to obtain it from rust_htslib therefore it is based on the mutation coordinates.
     pub id: String,
     /// The coordinate of this mutation. Also indels are represented by a one base interval on the genome to safely
-    /// compute overlaps (TODO maybe expand), their length is represented in another field (`indel_len`).
+    /// compute overlaps, their length is represented in another field (`indel_len`).
+    /// To be completely fair insertions are represented as one base intervals from the beginning, while deletions
+    /// starts with end == to the end of the deleted sequence to correctly compute overlaps with the bed entries,
+    /// then are converted to one base intervals cause we want to manage them only in a single window/subsequence.
     pub pos: Coordinate,
     /// The reference sequence
     pub sequence_ref: Vec<u8>,
@@ -79,7 +82,7 @@ pub struct Mutation {
     /// Is this `Mutation` an indel?
     pub is_indel: bool,
     /// Length of this indels, it has no meaning for snps (`is_indel == true`)
-    /// Length is negative for insertions and positive pos deletions.
+    /// Length is negative for insertions and positive for deletions.
     pub indel_len: i64 
 }
 
@@ -94,7 +97,7 @@ impl Clone for Mutation {
 /// If accept_phased is false it will panic if there are any unphased mutations, otherwise it will
 /// accept them, but beware: sequence where the score will be computed for vcf_rider usually needs to
 /// be phased (suppose that two SNPs falls "inside" the same PWM match for the TBA: their phasing will 
-/// influence the computed score XXX check).
+/// influence the computed score).
 pub struct VcfReader {
     reader: bcf::Reader,
     accept_phased: bool, // TODO fire up tests and change to accept_unphased

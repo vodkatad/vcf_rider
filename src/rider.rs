@@ -199,15 +199,12 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                     //let mut seqs : Vec<(usize, Vec<u8>)> = Vec::with_capacity(2usize.pow(n_overlapping));
                     let mut seqs : Vec<(BitVec, Vec<u8>)> = Vec::with_capacity(1usize);
                     obtain_seq(& window, & groups_snps_buffer, & overlapping, & referenceseq, & genotypes, &mut seqs, bed_window.end);
-                    
-                    // UPTO
-                    // seqs will be ordered in a specific order: the first one is the reference one and the last one TODO CHECK
-                    // the one with all mutated alleles. 
-                    
+                
                     for (i, s) in seqs.into_iter() {
-                        // if i in indexes genotypes -> function that checks if it's there and fills a vector (idx_for_seq) with the indexes of the individuals that
+                        // if i in indexes genotypes -> match_indexes checks if it's there and fills a vector (idx_for_seq)
+                        // with the indexes of the individuals that have the sequence that we are looping on.
                         if match_indexes(i, &mut idx_for_seq, &genotypes) {
-                            // needs this score (i, 0|1)
+                            // we want to compute the score for all our pwm/can_score objects on this sequence.
                             for i in 0..n_pwm {
                                 let p = params.parameters.get(i).unwrap();
                                 //println!("pwm name {} {} {}", p.get_name(), p.get_length(), s.len());
@@ -217,8 +214,9 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                                     // iterate over idx_for_seq and sum the right scores.
                                     for j in idx_for_seq.iter() {
                                         // j.0 is the wanted chr / sample index
-                                        if j.1 { // if this individual, j.0, has this seq
-                                            //println!("scoring pwm {} for {}", params.parameters.get(i).unwrap().get_name(), j.0);
+                                        if j.1 { // if this individual [where for individuals we mean a single chr, paternal or maternal, of each sample],
+                                                 // j.0, has this seq
+                                                 //println!("scoring pwm {} for {}", params.parameters.get(i).unwrap().get_name(), j.0);
                                             scores[i][j.0] += score; // i indexes the pwm, j.0 the individual, two chrs are encoded by different ids.
                                         }
                                     }
@@ -227,9 +225,11 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                         }
                         idx_for_seq.clear();
                     }
-                    //pos += 1; // if there are ins inside this window we need to avoid losing their adjacent bases. XXX
+                    //pos += 1; // if there are ins inside this window we need to avoid losing their adjacent bases.
                     // pos is managed inside get_group_info
                 }
+
+                // We print out the results for each bed when we finished processing it.
                 for i in 0..n_pwm {
                     for (j, chr_sample) in chr_samples.iter().enumerate() {
                         //println!("j {} chr_s {} n_samples {}", j, chr_sample, n_samples);
@@ -250,6 +250,15 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
     }*/
 }
 
+/// Function that populates a Vec<(usize, bool)> for a sequence, represented by the given index, telling us for which
+/// individuals/alleles (represented by an usize) have that sequence. Returns true if at least an individual/allele
+/// has this sequence.
+///
+/// # Arguments
+///
+/// * `index` - the index of the sequence that we want to consider
+/// * `idx` - an empty vector to be filled with correspondences
+/// * `genotypes`- a vector of the BitVec indexes of the individuals/alleles that we are studying
 pub fn match_indexes(index: BitVec, idx: &mut Vec<(usize, bool)>, genotypes : &Vec<BitVec>) -> bool {
     let mut res = false;
     for (i, allelic_tuple) in genotypes.iter().enumerate() { //could seek in a smarter way
@@ -264,15 +273,17 @@ pub fn match_indexes(index: BitVec, idx: &mut Vec<(usize, bool)>, genotypes : &V
 }
 
 /// Function that advances on the VcfReader (Iterator of Mutation) until the first snp that does not overlap with the given window, putting
-/// in snps_buffer all the overlapping snps and their number and then the first not overlapping snp.
+/// in snps_buffer all the overlapping snps and their number and then the first not overlapping snp. It uses SNPs in snps_buffer to manage
+/// overlapping (always sorted on their starting coord!) bed entries. b3_e < b2_e TODO is managed/test?
 ///
 /// # Arguments
 ///
-/// * `window` - the window where we search for overlapping SNPs. This function should be called giving them in order.
-/// * `reader` - a mutable reference to an Iterator of Mutation. This will be consumed, it need to store Mutation in order.
+/// * `window` - the window where we search for overlapping SNPs. This function should be called giving them in order with 
+///              respect to genomic coords
+/// * `reader` - a mutable reference to an Iterator of Mutation. This will be consumed, it needs to store Mutation objects in order
 /// * `snps_buffer`- a mutable reference to the VecDeque that is used as a buffer for SNPs. SNPs before the given window will
 ///                  be removed, the overlapping ones will be at positions 0..returned value and the first SNPs after the given window
-///                  will be the last element.
+///                  will be the last element
 pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I, snps_buffer: &mut VecDeque<mutations::Mutation>) -> usize
     where I: Iterator<Item=mutations::Mutation> {
     // We assume to receive ordered vcf and bed therefore we can skip vcf entries < r.start
@@ -316,6 +327,9 @@ pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I,
         match window.relative_position(& next_mut.pos) {
             mutations::Position::Overlapping => {
                 overlapping_snps += 1;
+                // Deletions have positive lengths and we set their end as start+1 
+                // cause we do not want to get overlaps for large deletions over multiple windows
+                // after this step. Our deletion will overlap a single window and be completely managed there.
                 if next_mut.indel_len > 0   {
                     next_mut.pos.end = next_mut.pos.start+1;
                 }
@@ -323,6 +337,11 @@ pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I,
             },
             mutations::Position::After => {},
             mutations::Position::Before => {
+                // Deletions have positive lengths and we set their end as start+1 
+                // cause we do not want to get overlaps for large deletions over multiple windows
+                // after this step. Our deletion will overlap a single window and be completely managed there.
+                // TODO big indels starting before our bed are managed FIXME
+                // TODO possible bug for deletions covering two nearby beds?
                 if next_mut.indel_len > 0   {
                     next_mut.pos.end = next_mut.pos.start+1;
                 }
@@ -335,6 +354,16 @@ pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I,
     overlapping_snps
 }
 
+
+/// Function that prints information about the overlapping SNPs in the given writer. This is only an output function that does not compute anything
+///
+/// # Arguments
+///
+/// * `snps_buffer`- a mutable reference to the VecDeque that is used as a buffer for SNPs. We will prints all SNPs listed there save the last one
+/// * `n_overlapping` - the number of SNPs in snps_buffer that overlap with our bed_record
+/// * `writer` - where information about overlaps will be printed, tab delimited, as: bed name, bed start, bed end, snp_id
+///    (snp_ids are starting coord, indel_length and boolean is_indel - note that insertions are represent with a negative length and deletion with a positive one)
+/// * `bed_record` - the bed record whose overlaps will be printed
 pub fn print_overlapping(snps_buffer: & VecDeque<mutations::Mutation>, n_overlapping: usize, writer: & mut Write, bed_record: & bed::Record) {
     if n_overlapping != 0 {
         write!(writer, "{}\t{}\t{}\t", bed_record.name().expect("Error reading name"), bed_record.start(), bed_record.end()).expect("Error writing to the associations file!");
@@ -347,6 +376,18 @@ pub fn print_overlapping(snps_buffer: & VecDeque<mutations::Mutation>, n_overlap
     }
 }
 
+/// Function that populates a vector of sequences, given a genomic window, a buffer of SNPs overlapping with it alongside their indel status information
+/// for the samples groups, the reference sequence, the genotypes encoded for our individuals and the end of the bed that we are considering.
+/// The filled vector is a vector of tuples of BitVec, representing the sequences indexes, and Vec<u8>, representing the sequences itself. 
+/// At this stage we will remove duplicated sequences, storing only once the ones that are the same in different individual/alleles.
+
+/// # Arguments
+/// UPTO
+/// * `snps_buffer`- a mutable reference to the VecDeque that is used as a buffer for SNPs. We will prints all SNPs listed there save the last one
+/// * `n_overlapping` - the number of SNPs in snps_buffer that overlap with our bed_record
+/// * `writer` - where information about overlaps will be printed, tab delimited, as: bed name, bed start, bed end, snp_id
+///    (snp_ids are starting coord, indel_length and boolean is_indel - note that insertions are represent with a negative length and deletion with a positive one)
+/// * `bed_record` - the bed record whose overlaps will be printed
 pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>,
                   reference: & fasta::Fasta, genotypes : &Vec<BitVec>, seqs : &mut Vec<(BitVec, Vec<u8>)>, bed_end : u64) {
     // if there are no overlapping snps we get the reference sequence and return only it
