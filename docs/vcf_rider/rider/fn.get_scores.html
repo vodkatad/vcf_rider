@@ -59,8 +59,28 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#53-211' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub fn get_scores&lt;T:&nbsp;<a class="trait" href="../../vcf_rider/rider/trait.CanScoreSequence.html" title="trait vcf_rider::rider::CanScoreSequence">CanScoreSequence</a>&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;params: <a class="struct" href="../../vcf_rider/rider/struct.RiderParameters.html" title="struct vcf_rider::rider::RiderParameters">RiderParameters</a>&lt;T&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;vcf_path: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;bed_reader: <a class="struct" href="../../bio/io/bed/struct.Reader.html" title="struct bio::io::bed::Reader">Reader</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html" title="struct std::fs::File">File</a>&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;ref_path: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;associations: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;<br>)</pre></section>
+               </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#83-251' title='goto source code'>[src]</a></span></h1>
+<pre class='rust fn'>pub fn get_scores&lt;T:&nbsp;<a class="trait" href="../../vcf_rider/rider/trait.CanScoreSequence.html" title="trait vcf_rider::rider::CanScoreSequence">CanScoreSequence</a>&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;params: <a class="struct" href="../../vcf_rider/rider/struct.RiderParameters.html" title="struct vcf_rider::rider::RiderParameters">RiderParameters</a>&lt;T&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;vcf_path: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;bed_reader: Reader&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html" title="struct std::fs::File">File</a>&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;ref_path: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;associations: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;accept_unphased: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><br>)</pre><div class='docblock'><p>The single entry point of our library, right now for ease of use in bioinformatic pipelines it simply prints the results
+on standard output. TODO: return a suitable data structure with results.</p>
+<h1 id="arguments" class="section-header"><a href="#arguments">Arguments</a></h1>
+<ul>
+<li><code>params</code> - the RiderParameter that will be used to score individual sequences</li>
+<li><code>vcf_path</code> - a path to a vcf file representing mutations on a given chr for some individuals</li>
+<li><code>bed_reader</code> - a bed::Reader representing the genomic intervals that we want to consider. They should be on a single chr,
+sorted and not overlapping. They should not fall outside of the given chromosome sequence</li>
+<li><code>ref_path</code> - the path to a fasta file with the reference sequence of the given chr</li>
+<li><code>associations</code> - an optional string, if given this will be the file name where associations between bed ids and polymorphism will be
+printed - for bed with at least an overlapping SNPs we will print the ids of the overlapping SNPs (ids are starting coord,
+indel_length and boolean is_indel - note that insertions are represent with a negative length and deletion with a positive one).</li>
+<li><code>accept_unphased</code> - if unphased vcf files will be accepted. Some scores (i.e. TBA) need phased genotypes cause different phases will
+end up in different scores, while other (i.e. GC content) are invariant with respect to phasing and for them
+we will obtain sequences considering even unphased vcf as phased</li>
+</ul>
+<h1 id="panics" class="section-header"><a href="#panics">Panics</a></h1>
+<p>If the bed defines some intervals out of the given chromosome fasta.
+If the given fasta is empty, it's a multifasta, it's not readable or it's not a fasta.
+It it cannot open the given associations file.</p>
+</div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>

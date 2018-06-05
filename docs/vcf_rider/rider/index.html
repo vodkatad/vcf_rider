@@ -59,7 +59,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#1-419' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#1-510' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Main module of vcf_rider, its function <code>get_scores</code> is the entry point of the whole analysis.</p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
@@ -67,7 +67,12 @@
                            <td><a class="struct" href="struct.RiderParameters.html"
                                   title='struct vcf_rider::rider::RiderParameters'>RiderParameters</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>The parameters used to setup vcf_rider are a vector of objects
+able to score a sequence and their minimum and maximum lengths.
+In the future it will become possible to combine scores for all the subsequences
+not only summing but also for example averaging them, getting the minimum or the
+maximum, etc.</p>
+
                            </td>
                        </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
 <table>
@@ -77,7 +82,7 @@
                            <td class='docblock-short'>
                                 <p>Our vcf_rider main function will receive a Vec&lt;T: CanScoreSequence&gt;
 and call it for every T on subsequences of the genomes of the samples
-doing it only for each variant subsequence once.
+doing it only for each existing subsequence once.
 This trait will need to be able to compute a score on a given sequence,
 represented by a splice of an array of u8 [TODO] starting for a given
 position (it is guaranteed by the lib that the used position will be given
@@ -98,7 +103,8 @@ inside the sequence, i.e. sequence.len() - self.get_length() &gt;= 0).</p>
                                   title='fn vcf_rider::rider::find_overlapping_snps'>find_overlapping_snps</a></td>
                            <td class='docblock-short'>
                                 <p>Function that advances on the VcfReader (Iterator of Mutation) until the first snp that does not overlap with the given window, putting
-in snps_buffer all the overlapping snps and their number and then the first not overlapping snp.</p>
+in snps_buffer all the overlapping snps and their number and then the first not overlapping snp. It uses SNPs in snps_buffer to manage
+overlapping (always sorted on their starting coord!) bed entries. b3_e &lt; b2_e TODO is managed/test?</p>
 
                            </td>
                        </tr>
@@ -106,28 +112,38 @@ in snps_buffer all the overlapping snps and their number and then the first not 
                            <td><a class="fn" href="fn.get_scores.html"
                                   title='fn vcf_rider::rider::get_scores'>get_scores</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>The single entry point of our library, right now for ease of use in bioinformatic pipelines it simply prints the results
+on standard output. TODO: return a suitable data structure with results.</p>
+
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class="fn" href="fn.match_indexes.html"
                                   title='fn vcf_rider::rider::match_indexes'>match_indexes</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>Function that populates a Vec&lt;(usize, bool)&gt; for a sequence, represented by the given index, telling us for which
+individuals/alleles (represented by an usize) have that sequence. Returns true if at least an individual/allele
+has this sequence.</p>
+
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class="fn" href="fn.obtain_seq.html"
                                   title='fn vcf_rider::rider::obtain_seq'>obtain_seq</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>Function that populates a vector of sequences, given a genomic window, a buffer of SNPs overlapping with it alongside their indel status information
+for the samples groups, the reference sequence, the genotypes encoded for our individuals and the end of the bed that we are considering.
+The filled vector is a vector of tuples of BitVec, representing the sequences indexes, and Vec<u8>, representing the sequences itself.
+At this stage we will remove duplicated sequences, storing only once the ones that are the same in different individual/alleles.</p>
+
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class="fn" href="fn.print_overlapping.html"
                                   title='fn vcf_rider::rider::print_overlapping'>print_overlapping</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>Function that prints information about the overlapping SNPs in the given writer. This is only an output function that does not compute anything</p>
+
                            </td>
                        </tr></table></section>
     <section id='search' class="content hidden"></section>

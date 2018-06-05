@@ -59,8 +59,17 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#298-308' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub fn print_overlapping(<br>&nbsp;&nbsp;&nbsp;&nbsp;snps_buffer: &amp;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec_deque/struct.VecDeque.html" title="struct alloc::vec_deque::VecDeque">VecDeque</a>&lt;<a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a>&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;n_overlapping: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;writer: &amp;mut <a class="trait" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html" title="trait std::io::Write">Write</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;bed_record: &amp;<a class="struct" href="../../bio/io/bed/struct.Record.html" title="struct bio::io::bed::Record">Record</a><br>)</pre></section>
+               </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#367-377' title='goto source code'>[src]</a></span></h1>
+<pre class='rust fn'>pub fn print_overlapping(<br>&nbsp;&nbsp;&nbsp;&nbsp;snps_buffer: &amp;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec_deque/struct.VecDeque.html" title="struct alloc::vec_deque::VecDeque">VecDeque</a>&lt;<a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a>&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;n_overlapping: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;writer: &amp;mut <a class="trait" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html" title="trait std::io::Write">Write</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;bed_record: &amp;Record<br>)</pre><div class='docblock'><p>Function that prints information about the overlapping SNPs in the given writer. This is only an output function that does not compute anything</p>
+<h1 id="arguments" class="section-header"><a href="#arguments">Arguments</a></h1>
+<ul>
+<li><code>snps_buffer</code>- a mutable reference to the VecDeque that is used as a buffer for SNPs. We will prints all SNPs listed there save the last one</li>
+<li><code>n_overlapping</code> - the number of SNPs in snps_buffer that overlap with our bed_record</li>
+<li><code>writer</code> - where information about overlaps will be printed, tab delimited, as: bed name, bed start, bed end, snp_id
+(snp_ids are starting coord, indel_length and boolean is_indel - note that insertions are represent with a negative length and deletion with a positive one)</li>
+<li><code>bed_record</code> - the bed record whose overlaps will be printed</li>
+</ul>
+</div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>

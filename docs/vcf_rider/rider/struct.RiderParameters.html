@@ -59,21 +59,29 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#45-50' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#50-59' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct RiderParameters&lt;'a, T:&nbsp;<a class="trait" href="../../vcf_rider/rider/trait.CanScoreSequence.html" title="trait vcf_rider::rider::CanScoreSequence">CanScoreSequence</a> + 'a&gt; {
     pub min_len: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     pub max_len: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     pub parameters: &amp;'a <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;T&gt;,
-}</pre><h2 id='fields' class='fields small-section-header'>
+}</pre><div class='docblock'><p>The parameters used to setup vcf_rider are a vector of objects
+able to score a sequence and their minimum and maximum lengths.
+In the future it will become possible to combine scores for all the subsequences
+not only summing but also for example averaging them, getting the minimum or the
+maximum, etc.</p>
+</div><h2 id='fields' class='fields small-section-header'>
                        Fields<a href='#fields' class='anchor'></a></h2><span id="structfield.min_len" class="structfield small-section-header">
                            <a href="#structfield.min_len" class="anchor field"></a>
                            <span id="min_len.v" class='invisible'>
                            <code>min_len: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a></code>
-                           </span></span><span id="structfield.max_len" class="structfield small-section-header">
+                           </span></span><div class='docblock'><p>The minimum length of the sequence that these T objects can score. Not used right now, we get it for
+possible future optimizations.</p>
+</div><span id="structfield.max_len" class="structfield small-section-header">
                            <a href="#structfield.max_len" class="anchor field"></a>
                            <span id="max_len.v" class='invisible'>
                            <code>max_len: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a></code>
-                           </span></span><span id="structfield.parameters" class="structfield small-section-header">
+                           </span></span><div class='docblock'><p>The maximum length of the sequence that these T objects can score</p>
+</div><span id="structfield.parameters" class="structfield small-section-header">
                            <a href="#structfield.parameters" class="anchor field"></a>
                            <span id="parameters.v" class='invisible'>
                            <code>parameters: &amp;'a <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;T&gt;</code>
