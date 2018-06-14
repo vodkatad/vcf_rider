@@ -3,7 +3,7 @@
 //! The idea behind vcf_rider is to exploit the fact that polymorphisms are rare. If one needs to compute
 //! a sequence based score (i.e. CpG/CG content, number of PWM hits, number of miRNA seeds, Total Binding Affinity) that can
 //! be computed on defined and independent windows it is not needed to reconstruct every individual genome and then compute the scores
-//! separatedly. vcf_rider is able to compute scores on windows that are the same for all individuals only once. Even for polimorphic subsequences
+//! separatedly. vcf_rider is able to compute scores on windows that are the same for all individuals only once. Even for polymorphic subsequences
 //! it computes the scores only for the number of extant sequences and correctly assigns them to different individuals.
 //! Scores for different windows can be put together in different ways - right now they are only summed but extending the lib to 
 //! perform different actions should be easy via a new configuration in ther RiderParameters struct.
@@ -28,6 +28,8 @@ pub mod rider;
 pub mod mutations; 
 pub mod mirna;
 
+
+// TODO moar tests!
 #[cfg(test)]
 mod tests {
     use mutations::Coordinate;

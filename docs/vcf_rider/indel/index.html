@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `fasta` mod in crate `vcf_rider`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, fasta">
+    <meta name="description" content="API documentation for the Rust `indel` mod in crate `vcf_rider`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, indel">
 
-    <title>vcf_rider::fasta - Rust</title>
+    <title>vcf_rider::indel - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
     <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
@@ -33,7 +33,7 @@
     <nav class="sidebar">
         <div class="sidebar-menu">&#9776;</div>
         
-        <p class='location'>Module fasta</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#structs">Structs</a></li></ul></div><p class='location'><a href='../index.html'>vcf_rider</a></p><script>window.sidebarCurrent = {name: 'fasta', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div>
+        <p class='location'>Module indel</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div><p class='location'><a href='../index.html'>vcf_rider</a></p><script>window.sidebarCurrent = {name: 'indel', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div>
     </nav>
 
     <div class="theme-picker">
@@ -55,33 +55,32 @@
     </nav>
 
     <section id='main' class="content">
-<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>vcf_rider</a>::<wbr><a class="mod" href=''>fasta</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>vcf_rider</a>::<wbr><a class="mod" href=''>indel</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/vcf_rider/fasta.rs.html#1-100' title='goto source code'>[src]</a></span></h1>
-<div class='docblock'><p>The module used for reading the fasta file representing the genome of interest.
-Right now it should contain a single chromosome to be used with <code>vcf_rider</code>.
-The id of the fasta should be the same used in the vcf file and with genomic regions represented in the used bed.</p>
+               </span><a class='srclink' href='../../src/vcf_rider/indel.rs.html#1-238' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Module needed to correctly manage indels when computing scores. Indels represent a problem because they make genomes of different individuals
+'out of phase' and force us to divide them in different groups.</p>
 </div><h2 id='reexports' class='section-header'><a href="#reexports">Re-exports</a></h2>
-<table><tr><td><code>use std::<a class="mod" href="https://doc.rust-lang.org/nightly/std/io/index.html" title="mod std::io">io</a>;</code></td></tr><tr><td><code>use std::io::<a class="mod" href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html" title="mod std::io::prelude">prelude</a>::*;</code></td></tr><tr><td><code>use std::io::<a class="struct" href="https://doc.rust-lang.org/nightly/std/io/buffered/struct.BufReader.html" title="struct std::io::buffered::BufReader">BufReader</a>;</code></td></tr><tr><td><code>use std::fs::<a class="struct" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html" title="struct std::fs::File">File</a>;</code></td></tr><tr><td><code>use std::iter::<a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html" title="trait core::iter::iterator::Iterator">Iterator</a>;</code></td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table><tr><td><code>use super::<a class="mod" href="../../vcf_rider/mutations/index.html" title="mod vcf_rider::mutations">mutations</a>;</code></td></tr><tr><td><code>use std::collections::<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec_deque/struct.VecDeque.html" title="struct alloc::vec_deque::VecDeque">VecDeque</a>;</code></td></tr><tr><td><code>use std::collections::<a class="struct" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html" title="struct std::collections::hash::map::HashMap">HashMap</a>;</code></td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                        <tr class=' module-item'>
-                           <td><a class="struct" href="struct.Fasta.html"
-                                  title='struct vcf_rider::fasta::Fasta'>Fasta</a></td>
+                           <td><a class="struct" href="struct.IndelRider.html"
+                                  title='struct vcf_rider::indel::IndelRider'>IndelRider</a></td>
                            <td class='docblock-short'>
-                                <p>Struct representing a fasta: its id, then the sequence (encoded by a vector of u8, with ACGTN -&gt; 01234) and the background frequencies of nucleotides (needed
-to compute TBA values)</p>
-
+                                
                            </td>
-                       </tr>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
                        <tr class=' module-item'>
-                           <td><a class="struct" href="struct.FastaReader.html"
-                                  title='struct vcf_rider::fasta::FastaReader'>FastaReader</a></td>
+                           <td><a class="enum" href="enum.MutationClass.html"
+                                  title='enum vcf_rider::indel::MutationClass'>MutationClass</a></td>
                            <td class='docblock-short'>
-                                <p>Struct used to read fasta files. It will be implement an Iterator of <code>Fasta</code> structs.
-The String buffer is used to get characters from the <code>BufReader</code> one by one and convert
-them to our internal <code>Vec&lt;u8&gt;</code> representation.</p>
+                                <p>Used to classify indels and snps in groups: SNPs will be tagged as &quot;Manage&quot; while
+indels with Ins or Del (if this group has their alternative allele).
+String (Vec<u8>) is the sequence that needs to be inserted for ins, usize is the coord inside the window
+and u64 the length of deletions.</p>
 
                            </td>
                        </tr></table></section>

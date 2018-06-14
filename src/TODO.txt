@@ -7,10 +7,9 @@
 
 #![warn(missing_docs)]
 
-- rider.rs
-- indel.rs
-- lib.rs
-- mutations.rs
+- indel.rs: need code flow, docs are ok
+- lib.rs: doc ok, do we make pwm/mutations and fasta not public?
+- mutations.rs: need rustdoc format
 
 - check that the bed are sorted!! 
 
@@ -18,6 +17,12 @@
 
 cargo doc --no-deps
 cp -r target/doc/vcf_rider/ docs/
+
+rustdoc --crate-name vcf_rider src/lib.rs -o /home/data/work/mbc/vcf_rider/target/doc -L dependency=/home/data/work/mbc/vcf_rider/target/debug/deps --extern itertools=/home/data/work/mbc/vcf_rider/target/debug/deps/libitertools-bc48f5f6eafa1e4f.rlib --extern argparse=/home/data/work/mbc/vcf_rider/target/debug/deps/libargparse-03d7ed75a39d617b.rlib --extern rust_htslib=/home/data/work/mbc/vcf_rider/target/debug/deps/librust_htslib-79422d7bc4720572.rlib --extern bit_vec=/home/data/work/mbc/vcf_rider/target/debug/deps/libbit_vec-ffaf2b7c4f52f7a6.rlib --extern bio=/home/data/work/mbc/vcf_rider/target/debug/deps/libbio-f869f09fa1a2a66a.rlib
+
+rustdoc --crate-name vcf_rider src/lib.rs -o /home/data/work/mbc/vcf_rider/target/doc --document-private-items
+
+data@clo:~/work/mbc/vcf_rider$ rustdoc --crate-name vcf_rider src/lib.rs -o /home/data/work/mbc/vcf_rider/target/doc --document-private-items -L dependency=/home/data/work/mbc/vcf_rider/target/debug/deps --extern itertools=/home/data/work/mbc/vcf_rider/target/debug/deps/libitertools-bc48f5f6eafa1e4f.rlib --extern argparse=/home/data/work/mbc/vcf_rider/target/debug/deps/libargparse-03d7ed75a39d617b.rlib --extern rust_htslib=/home/data/work/mbc/vcf_rider/target/debug/deps/librust_htslib-79422d7bc4720572.rlib --extern bit_vec=/home/data/work/mbc/vcf_rider/target/debug/deps/libbit_vec-ffaf2b7c4f52f7a6.rlib --extern bio=/home/data/work/mbc/vcf_rider/target/debug/deps/libbio-f869f09fa1a2a66a.rlib
 
 - remove indel stats and read vcf_dummy (keep in other branch?)
 

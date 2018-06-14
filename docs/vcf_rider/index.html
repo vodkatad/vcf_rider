@@ -33,7 +33,7 @@
     <nav class="sidebar">
         <div class="sidebar-menu">&#9776;</div>
         
-        <p class='location'>Crate vcf_rider</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#modules">Modules</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'vcf_rider', ty: 'mod', relpath: '../'};</script></div>
+        <p class='location'>Crate vcf_rider</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'vcf_rider', ty: 'mod', relpath: '../'};</script></div>
     </nav>
 
     <div class="theme-picker">
@@ -59,16 +59,17 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../src/vcf_rider/lib.rs.html#1-336' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../src/vcf_rider/lib.rs.html#1-338' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>vcf_rider: a library to efficiently compute score on individual genomes starting from vcf files</p>
 <p>The idea behind vcf_rider is to exploit the fact that polymorphisms are rare. If one needs to compute
 a sequence based score (i.e. CpG/CG content, number of PWM hits, number of miRNA seeds, Total Binding Affinity) that can
 be computed on defined and independent windows it is not needed to reconstruct every individual genome and then compute the scores
-separatedly. vcf_rider is able to compute scores on windows that are the same for all individuals only once. Even for polimorphic subsequences
+separatedly. vcf_rider is able to compute scores on windows that are the same for all individuals only once. Even for polymorphic subsequences
 it computes the scores only for the number of extant sequences and correctly assigns them to different individuals.
 Scores for different windows can be put together in different ways - right now they are only summed but extending the lib to
 perform different actions should be easy via a new configuration in ther RiderParameters struct.</p>
-</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+</div><h2 id='reexports' class='section-header'><a href="#reexports">Re-exports</a></h2>
+<table><tr><td><code>extern crate <a class="mod" href="https://doc.rust-lang.org/nightly/std/index.html" title="mod std">std</a> as std;</code></td></tr><tr><td><code>extern crate bio;</code></td></tr><tr><td><code>extern crate rust_htslib;</code></td></tr><tr><td><code>extern crate <a class="mod" href="https://docs.rs/itertools/itertools/index.html" title="mod itertools">itertools</a>;</code></td></tr><tr><td><code>extern crate bit_vec;</code></td></tr><tr><td><code>use std::prelude::v1::*;</code></td></tr></table><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
                        <tr class=' module-item'>
                            <td><a class="mod" href="fasta/index.html"
@@ -77,6 +78,15 @@ perform different actions should be easy via a new configuration in ther RiderPa
                                 <p>The module used for reading the fasta file representing the genome of interest.
 Right now it should contain a single chromosome to be used with <code>vcf_rider</code>.
 The id of the fasta should be the same used in the vcf file and with genomic regions represented in the used bed.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="indel/index.html"
+                                  title='mod vcf_rider::indel'>indel</a></td>
+                           <td class='docblock-short'>
+                                <p>Module needed to correctly manage indels when computing scores. Indels represent a problem because they make genomes of different individuals
+'out of phase' and force us to divide them in different groups.</p>
 
                            </td>
                        </tr>

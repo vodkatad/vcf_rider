@@ -33,7 +33,7 @@
     <nav class="sidebar">
         <div class="sidebar-menu">&#9776;</div>
         
-        <p class='location'>Struct VcfReader</p><div class="sidebar-elems"><div class="block items"><a class="sidebar-title" href="#fields">Fields</a><div class="sidebar-links"><a href="#structfield.samples">samples</a></div><a class="sidebar-title" href="#methods">Methods</a><div class="sidebar-links"><a href="#method.open_path">open_path</a></div><a class="sidebar-title" href="#implementations">Trait Implementations</a><div class="sidebar-links"><a href="#impl-Iterator">Iterator</a></div><a class="sidebar-title" href="#synthetic-implementations">Auto Trait Implementations</a><div class="sidebar-links"><a href="#impl-Send">Send</a><a href="#impl-Sync">!Sync</a></div></div><p class='location'><a href='../index.html'>vcf_rider</a>::<wbr><a href='index.html'>mutations</a></p><script>window.sidebarCurrent = {name: 'VcfReader', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script></div>
+        <p class='location'>Struct VcfReader</p><div class="sidebar-elems"><div class="block items"><a class="sidebar-title" href="#fields">Fields</a><div class="sidebar-links"><a href="#structfield.reader">reader</a><a href="#structfield.accept_phased">accept_phased</a><a href="#structfield.samples">samples</a></div><a class="sidebar-title" href="#methods">Methods</a><div class="sidebar-links"><a href="#method.open_path">open_path</a></div><a class="sidebar-title" href="#implementations">Trait Implementations</a><div class="sidebar-links"><a href="#impl-Iterator">Iterator</a></div><a class="sidebar-title" href="#synthetic-implementations">Auto Trait Implementations</a><div class="sidebar-links"><a href="#impl-Send">Send</a><a href="#impl-Sync">!Sync</a></div></div><p class='location'><a href='../index.html'>vcf_rider</a>::<wbr><a href='index.html'>mutations</a></p><script>window.sidebarCurrent = {name: 'VcfReader', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script></div>
     </nav>
 
     <div class="theme-picker">
@@ -61,15 +61,24 @@
                    </a>
                </span><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#101-106' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct VcfReader {
+    reader: Reader,
+    accept_phased: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     pub samples: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;,
-    // some fields omitted
 }</pre><div class='docblock'><p>Struct used to load vcf, it will be used as an <code>Iterator&lt;Mutation&gt;</code>.
 If accept_phased is false it will panic if there are any unphased mutations, otherwise it will
 accept them, but beware: sequence where the score will be computed for vcf_rider usually needs to
 be phased (suppose that two SNPs falls &quot;inside&quot; the same PWM match for the TBA: their phasing will
 influence the computed score).</p>
 </div><h2 id='fields' class='fields small-section-header'>
-                       Fields<a href='#fields' class='anchor'></a></h2><span id="structfield.samples" class="structfield small-section-header">
+                       Fields<a href='#fields' class='anchor'></a></h2><span id="structfield.reader" class="structfield small-section-header">
+                           <a href="#structfield.reader" class="anchor field"></a>
+                           <span id="reader.v" class='invisible'>
+                           <code>reader: Reader</code>
+                           </span></span><span id="structfield.accept_phased" class="structfield small-section-header">
+                           <a href="#structfield.accept_phased" class="anchor field"></a>
+                           <span id="accept_phased.v" class='invisible'>
+                           <code>accept_phased: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a></code>
+                           </span></span><span id="structfield.samples" class="structfield small-section-header">
                            <a href="#structfield.samples" class="anchor field"></a>
                            <span id="samples.v" class='invisible'>
                            <code>samples: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;</code>

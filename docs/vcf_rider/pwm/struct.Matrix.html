@@ -33,7 +33,7 @@
     <nav class="sidebar">
         <div class="sidebar-menu">&#9776;</div>
         
-        <p class='location'>Struct Matrix</p><div class="sidebar-elems"><div class="block items"><a class="sidebar-title" href="#methods">Methods</a><div class="sidebar-links"><a href="#method.new">new</a><a href="#method.with_capacity">with_capacity</a><a href="#method.len">len</a><a href="#method.push_row_4">push_row_4</a><a href="#method.push_row_5">push_row_5</a><a href="#method.get">get</a></div><a class="sidebar-title" href="#implementations">Trait Implementations</a><div class="sidebar-links"><a href="#impl-Debug">Debug</a></div><a class="sidebar-title" href="#synthetic-implementations">Auto Trait Implementations</a><div class="sidebar-links"><a href="#impl-Send">Send</a><a href="#impl-Sync">Sync</a></div></div><p class='location'><a href='../index.html'>vcf_rider</a>::<wbr><a href='index.html'>pwm</a></p><script>window.sidebarCurrent = {name: 'Matrix', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script></div>
+        <p class='location'>Struct Matrix</p><div class="sidebar-elems"><div class="block items"><a class="sidebar-title" href="#fields">Fields</a><div class="sidebar-links"><a href="#structfield.rows">rows</a><a href="#structfield.ncols">ncols</a></div><a class="sidebar-title" href="#methods">Methods</a><div class="sidebar-links"><a href="#method.new">new</a><a href="#method.with_capacity">with_capacity</a><a href="#method.len">len</a><a href="#method.push_row_4">push_row_4</a><a href="#method.push_row_5">push_row_5</a><a href="#method.get">get</a></div><a class="sidebar-title" href="#implementations">Trait Implementations</a><div class="sidebar-links"><a href="#impl-Debug">Debug</a></div><a class="sidebar-title" href="#synthetic-implementations">Auto Trait Implementations</a><div class="sidebar-links"><a href="#impl-Send">Send</a><a href="#impl-Sync">Sync</a></div></div><p class='location'><a href='../index.html'>vcf_rider</a>::<wbr><a href='index.html'>pwm</a></p><script>window.sidebarCurrent = {name: 'Matrix', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script></div>
     </nav>
 
     <div class="theme-picker">
@@ -60,9 +60,23 @@
                        [<span class='inner'>&#x2212;</span>]
                    </a>
                </span><a class='srclink' href='../../src/vcf_rider/pwm.rs.html#20-28' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct Matrix { /* fields omitted */ }</pre><div class='docblock'><p>Struct used to represent PWM likelihoods/nucleotide frequencies.
+<pre class='rust struct'>pub struct Matrix {
+    rows: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt;,
+    ncols: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+}</pre><div class='docblock'><p>Struct used to represent PWM likelihoods/nucleotide frequencies.
 ncols is used to be able to represent 4 and 5 nucleotides PWMs (to manage N in sequences).
 No consistency checks are performed for get/set operations for efficiency.</p>
+</div><h2 id='fields' class='fields small-section-header'>
+                       Fields<a href='#fields' class='anchor'></a></h2><span id="structfield.rows" class="structfield small-section-header">
+                           <a href="#structfield.rows" class="anchor field"></a>
+                           <span id="rows.v" class='invisible'>
+                           <code>rows: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt;</code>
+                           </span></span><div class='docblock'><p>Vector that contains the linearized values of the matrix, row by row.</p>
+</div><span id="structfield.ncols" class="structfield small-section-header">
+                           <a href="#structfield.ncols" class="anchor field"></a>
+                           <span id="ncols.v" class='invisible'>
+                           <code>ncols: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a></code>
+                           </span></span><div class='docblock'><p>Number of columns of this <code>Matrix</code></p>
 </div>
                     <h2 id='methods' class='small-section-header'>
                       Methods<a href='#methods' class='anchor'></a>

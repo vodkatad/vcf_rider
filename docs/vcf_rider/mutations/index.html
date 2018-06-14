@@ -33,7 +33,7 @@
     <nav class="sidebar">
         <div class="sidebar-menu">&#9776;</div>
         
-        <p class='location'>Module mutations</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div><p class='location'><a href='../index.html'>vcf_rider</a></p><script>window.sidebarCurrent = {name: 'mutations', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div>
+        <p class='location'>Module mutations</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li></ul></div><p class='location'><a href='../index.html'>vcf_rider</a></p><script>window.sidebarCurrent = {name: 'mutations', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div>
     </nav>
 
     <div class="theme-picker">
@@ -61,7 +61,8 @@
                    </a>
                </span><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#1-257' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Module able to load mutations from a vcf file.</p>
-</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+</div><h2 id='reexports' class='section-header'><a href="#reexports">Re-exports</a></h2>
+<table><tr><td><code>use rust_htslib::bcf;</code></td></tr><tr><td><code>use std::<a class="mod" href="https://doc.rust-lang.org/nightly/std/io/index.html" title="mod std::io">io</a>;</code></td></tr><tr><td><code>use itertools::<a class="trait" href="https://docs.rs/itertools/itertools/trait.Itertools.html" title="trait itertools::Itertools">Itertools</a>;</code></td></tr><tr><td><code>use std::path::<a class="struct" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html" title="struct std::path::Path">Path</a>;</code></td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                        <tr class=' module-item'>
                            <td><a class="struct" href="struct.Coordinate.html"
@@ -97,6 +98,32 @@ influence the computed score).</p>
                                   title='enum vcf_rider::mutations::Position'>Position</a></td>
                            <td class='docblock-short'>
                                 <p>Enum used to represent the relative position of two <code>Coordinate</code>.</p>
+
+                           </td>
+                       </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.decode_allele.html"
+                                  title='fn vcf_rider::mutations::decode_allele'>decode_allele</a></td>
+                           <td class='docblock-short'>
+                                <p>Function used to map 0 and 1 of vcf to a bool. Panics if something different from 0 or 1 is found.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.decode_genotype.html"
+                                  title='fn vcf_rider::mutations::decode_genotype'>decode_genotype</a></td>
+                           <td class='docblock-short'>
+                                <p>Function that decodes a genotype in the format &quot;0/1&quot; of the vcf files to our internal
+representation. Missing data (&quot;.&quot;) are encoded as the reference.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.get_sequence.html"
+                                  title='fn vcf_rider::mutations::get_sequence'>get_sequence</a></td>
+                           <td class='docblock-short'>
+                                <p>Returns the encoded sequence for a mutation. 666 for indels, 0-A, 1-C, 2-G, 3-T, 4-N for SNPs.</p>
 
                            </td>
                        </tr></table></section>
