@@ -151,7 +151,7 @@ pub fn get_scores<T : CanScoreSequence>(params: RiderParameters<T>, vcf_path: &s
                 //println!("working on group {:?}", chr_samples);
                 let mut pos = record.start();
                 let mut samples : Vec<usize> = Vec::new();
-                // We need to obtain the samples id for this group (XXX Do in IndelRider?)
+                // We need to obtain the samples id for this group
                 // chr_samples has the ids of the alleles found in this group, since we index
                 // alleles for individual 1 as 0 and n_samples, for individual 2 as 1 and n_samples+1
                 for allele in chr_samples.iter() {
@@ -360,7 +360,7 @@ pub fn find_overlapping_snps<I>(window: & mutations::Coordinate, reader: &mut I,
 /// # Arguments
 ///
 /// * `snps_buffer`- a mutable reference to the VecDeque that is used as a buffer for SNPs. We will prints all SNPs listed there save the last one
-/// * `n_overlapping` - the number of SNPs in snps_buffer that overlap with our bed_record
+/// * `n_overlapping` - the number+1 of SNPs in snps_buffer that overlap with our bed_record
 /// * `writer` - where information about overlaps will be printed, tab delimited, as: bed name, bed start, bed end, snp_id
 ///    (snp_ids are starting coord, indel_length and boolean is_indel - note that insertions are represent with a negative length and deletion with a positive one)
 /// * `bed_record` - the bed record whose overlaps will be printed
@@ -380,27 +380,31 @@ pub fn print_overlapping(snps_buffer: & VecDeque<mutations::Mutation>, n_overlap
 /// for the samples groups, the reference sequence, the genotypes encoded for our individuals and the end of the bed that we are considering.
 /// The filled vector is a vector of tuples of BitVec, representing the sequences indexes, and Vec<u8>, representing the sequences itself. 
 /// At this stage we will remove duplicated sequences, storing only once the ones that are the same in different individual/alleles.
-
+///
 /// # Arguments
-/// UPTO
-/// * `snps_buffer`- a mutable reference to the VecDeque that is used as a buffer for SNPs. We will prints all SNPs listed there save the last one
-/// * `n_overlapping` - the number of SNPs in snps_buffer that overlap with our bed_record
-/// * `writer` - where information about overlaps will be printed, tab delimited, as: bed name, bed start, bed end, snp_id
-///    (snp_ids are starting coord, indel_length and boolean is_indel - note that insertions are represent with a negative length and deletion with a positive one)
-/// * `bed_record` - the bed record whose overlaps will be printed
+/// 
+/// * `window`- the genomic coordinates of the window whose sequences we want to obtain
+/// * `snps_buffer`- a mutable reference to the VecDeque that is used as a buffer for SNPs
+/// * `overlapping_info` - informations about the mutations overlapping with this window
+/// * `reference` - the reference genome sequence for the chr where this window falls
+/// * `genotypes`- a vector of the BitVec indexes of the individuals/alleles that we are studying
+/// * `seqs` - the vector that we will fill with the obtained window sequences
+/// * `bed_end` - the end coordinate of the bed that we are studying, needed to trim the window end if it falls outside of the bed
 pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>,
                   reference: & fasta::Fasta, genotypes : &Vec<BitVec>, seqs : &mut Vec<(BitVec, Vec<u8>)>, bed_end : u64) {
-    // if there are no overlapping snps we get the reference sequence and return only it
-    // otherwise we need to build the sequences
+    // If there are no overlapping snps we get the reference sequence and return only it,
+    // otherwise we need to build the sequences.
     let ref_seq : &[u8];
     let s = window.start as usize;
     let mut e = window.end as usize;
+    // Trim our window to bed and / chr end.
     if e as u64 > bed_end {
         e = bed_end as usize;
     }
     if e > reference.sequence.len() {
         e = reference.sequence.len();
     }
+    // Add the reference sequence.
     ref_seq = &reference.sequence[s..e];
     seqs.push((BitVec::from_elem(overlapping_info.len(), false), ref_seq.to_owned()));
     //println!("non mutated window.start {} seq {:?}", s, ref_seq);
@@ -410,22 +414,33 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
     &regenotypes.sort();
     &regenotypes.dedup();
     for encoded_geno in regenotypes.iter() {
-        // We skip the all false genotype that we do not need to encode twice (already added as the reference sequence in line 368);
+        // We skip the all false genotype that we do not need to encode twice (already added as the reference sequence before the loop on genotypes);
         if encoded_geno.none() {
             continue;
         }
         let mut seq_to_mutate = ref_seq.to_owned();
+        // pos_adjust is needed to keep track of how indels modify coordinates.
         let mut pos_adjust : isize = 0;
+        // We iterate on the information on the overlappint mutations.
         for (j, &(mut_idx, ref manage)) in overlapping_info.iter().enumerate() {
             // If this polymorphism is TRUE it is mutated (==alternate allele) for this genotype
             // otherwise we have a polymorphism which is == to the reference and we do not change the sequence.
             if encoded_geno.get(j).unwrap() {
             //if ((*i) >> j) & 1 == 1 {
+                // We get the info on the current mutation from snps_buffer - probably we could simply use manage if
+                // we add SNPs sequence info in MutationClass TODO.
                 let this_mut = snps_buffer.get(mut_idx as usize).unwrap();
                 //println!("i {:?} j {} {:?}", encoded_geno, j, this_mut);
                 match *manage {
-                    // SNPs with alternate allele
-                    // TODO break motivate and write: if this SNP was overlapping but...
+                    // We put alternate allele sequence in apos inside seq_to_mutate. apos is pos + the correction needed 
+                    // for other indels found in this window. pos is the indel agnostic position for a mutation inside a window.
+                    // If the final position of a muation is pushed out of this window due to the
+                    // length of found deletions we stop: they will be managed in the next window where they
+                    // really occurr for the individuals of this group.
+                    // SNPs with alternate allele.
+                    // < and not <= for SNPS because in vcf files SNPs report reference-alternate single base
+                    // while insertions and deletions starts with a first reference base 
+                    // (i.e. TC - T for a 1 base deletion and A - AC for a 1 base insertion). TODO CHECK.
                     indel::MutationClass::Manage(pos) => {  
                                                     let apos: usize = (pos as isize + pos_adjust) as usize; 
                                                     if apos < seq_to_mutate.len() {
@@ -465,22 +480,34 @@ pub fn obtain_seq(window: & mutations::Coordinate, snps_buffer: & VecDeque<mutat
                                                     break;
                                                 }
                                                 },
-                    // Polymorphism that are always == to the reference for this group
+                    // Polymorphism that are always == to the reference for this group, the raised panic is a check of correspondence of our MutationClass info and snps_buffer.
                     indel::MutationClass::Reference => { 
                                                 panic!("I found smt annotated as Reference that seems mutated to me! {:?} {} i {:?} j {}", this_mut, mut_idx, encoded_geno, j);
                                                 }
                 }
             } 
-            // The else branch here, with reference indels for this group, do not need management here for the length: this
-            // is done by IndelRider. TODO CHECK.
+            // The else branch here, with reference indels for this group, do not need management here.
         }
         //println!("encoded {}  window.start {} seq {:?}", i, s, seq_to_mutate);
         seqs.push((encoded_geno.clone(), seq_to_mutate));
     }
 }
 
+/// Function that encode the genotypes of our individuals as BitVec given the list of the overlapping mutations, the information on their indel status
+/// obtained from IndelRider, the indexes of this group individuals/alleleles, the total number of individuals that we are studying and
+/// a vector of all their ids.
+///
+/// # Arguments
+/// 
+/// * `snps_buffer`- a mutable reference to the VecDeque that is used as a buffer for SNPs
+/// * `overlapping_info` - informations about the mutations overlapping with this window/// * `reference` - the reference genome sequence for the chr where this window falls
+/// * `group`- the ids of the individuals/alleles of this group
+/// * `n_samples` - the total number of individuals in our vcf, needed to distinguish maternal and paternal alleles
+/// * `id_samples` - a vector to map from allele indexes to individual indexes (in genotypes we have the two alleles in tuples .0/.1, while we want to flatten
+///                  them to our indexes: For individual 1 the two alleles are 0 and n_samples, for individual 2 1 and n_samples+1)
 pub fn encode_genotypes(snps_buffer: & VecDeque<mutations::Mutation>, overlapping_info: & Vec<(usize, indel::MutationClass)>, group: &Vec<usize>, n_samples: usize, id_samples: & Vec<usize>) -> Vec<BitVec> {
-    //let mut chrs : Vec<usize> = vec![0; group.len()];
+    // We start with a vector representing all reference sequence individuals and we plug 
+    // in mutations iterating on the overlapping mutations.
     let mut chrs : Vec<BitVec> = vec![BitVec::from_elem(overlapping_info.len(), false); group.len()]; // from_elem is unstable RFC509?
     let mut bit_index = 0;
     for &(i_snp, _) in overlapping_info.iter() {

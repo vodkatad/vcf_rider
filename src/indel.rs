@@ -219,6 +219,7 @@
                                                                     // del length should be changed if they are across the window
                                                                     res_mutclass = MutationClass::Del(ov_len_modifier, pos);
                                                                 } else if res_mutclass != MutationClass::Reference {
+                                                                    // For SNPS we put their coord inside the window, agnostic with regard to indels.
                                                                     res_mutclass = MutationClass::Manage(pos);
                                                                     last_del_start_win = false;
                                                                 }

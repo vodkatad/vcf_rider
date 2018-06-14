@@ -59,7 +59,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#66-84' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#66-87' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct Mutation {
     pub id: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>,
     pub pos: <a class="struct" href="../../vcf_rider/mutations/struct.Coordinate.html" title="struct vcf_rider::mutations::Coordinate">Coordinate</a>,
@@ -81,7 +81,10 @@ Right now I was not able to obtain it from rust_htslib therefore it is based on 
                            <span id="pos.v" class='invisible'>
                            <code>pos: <a class="struct" href="../../vcf_rider/mutations/struct.Coordinate.html" title="struct vcf_rider::mutations::Coordinate">Coordinate</a></code>
                            </span></span><div class='docblock'><p>The coordinate of this mutation. Also indels are represented by a one base interval on the genome to safely
-compute overlaps (TODO maybe expand), their length is represented in another field (<code>indel_len</code>).</p>
+compute overlaps, their length is represented in another field (<code>indel_len</code>).
+To be completely fair insertions are represented as one base intervals from the beginning, while deletions
+starts with end == to the end of the deleted sequence to correctly compute overlaps with the bed entries,
+then are converted to one base intervals cause we want to manage them only in a single window/subsequence.</p>
 </div><span id="structfield.sequence_ref" class="structfield small-section-header">
                            <a href="#structfield.sequence_ref" class="anchor field"></a>
                            <span id="sequence_ref.v" class='invisible'>
@@ -107,7 +110,7 @@ compute overlaps (TODO maybe expand), their length is represented in another fie
                            <span id="indel_len.v" class='invisible'>
                            <code>indel_len: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a></code>
                            </span></span><div class='docblock'><p>Length of this indels, it has no meaning for snps (<code>is_indel == true</code>)
-Length is negative for insertions and positive pos deletions.</p>
+Length is negative for insertions and positive for deletions.</p>
 </div>
             <h2 id='implementations' class='small-section-header'>
               Trait Implementations<a href='#implementations' class='anchor'></a>
@@ -116,8 +119,8 @@ Length is negative for insertions and positive pos deletions.</p>
         <h3 id='impl-Debug' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> for <a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a></code><a href='#impl-Debug' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#65' title='goto source code'>[src]</a></span></h3>
 <div class='impl-items'><h4 id='method.fmt' class="method"><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class="struct" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#65' title='goto source code'>[src]</a></span></h4>
 <div class='docblock'><p>Formats the value using the given formatter. <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt">Read more</a></p>
-</div></div><h3 id='impl-Clone' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> for <a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a></code><a href='#impl-Clone' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#86-91' title='goto source code'>[src]</a></span></h3>
-<div class='impl-items'><h4 id='method.clone' class="method"><span id='clone.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#87-90' title='goto source code'>[src]</a></span></h4>
+</div></div><h3 id='impl-Clone' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> for <a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a></code><a href='#impl-Clone' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#89-94' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class="method"><span id='clone.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#90-93' title='goto source code'>[src]</a></span></h4>
 <div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
 </div><h4 id='method.clone_from' class="method"><span id='clone_from.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;</a>Self)</code></span><span class='out-of-band'><div class='ghost'></div><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div><a class='srclink' href='https://doc.rust-lang.org/nightly/src/core/clone.rs.html#112-114' title='goto source code'>[src]</a></span></h4>
 <div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>

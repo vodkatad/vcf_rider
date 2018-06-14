@@ -59,7 +59,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#1-510' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#1-537' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Main module of vcf_rider, its function <code>get_scores</code> is the entry point of the whole analysis.</p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
@@ -95,7 +95,10 @@ inside the sequence, i.e. sequence.len() - self.get_length() &gt;= 0).</p>
                            <td><a class="fn" href="fn.encode_genotypes.html"
                                   title='fn vcf_rider::rider::encode_genotypes'>encode_genotypes</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>Function that encode the genotypes of our individuals as BitVec given the list of the overlapping mutations, the information on their indel status
+obtained from IndelRider, the indexes of this group individuals/alleleles, the total number of individuals that we are studying and
+a vector of all their ids.</p>
+
                            </td>
                        </tr>
                        <tr class=' module-item'>

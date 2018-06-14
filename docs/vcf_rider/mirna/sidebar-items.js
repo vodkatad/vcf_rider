@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Seed","Struct representing a miRNA seed"],["SeedReader","Struct used to read Seed. It will be implement an Iterator of `Seed` structs."]]});

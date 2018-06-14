@@ -64,7 +64,7 @@
 <h1 id="arguments" class="section-header"><a href="#arguments">Arguments</a></h1>
 <ul>
 <li><code>snps_buffer</code>- a mutable reference to the VecDeque that is used as a buffer for SNPs. We will prints all SNPs listed there save the last one</li>
-<li><code>n_overlapping</code> - the number of SNPs in snps_buffer that overlap with our bed_record</li>
+<li><code>n_overlapping</code> - the number+1 of SNPs in snps_buffer that overlap with our bed_record</li>
 <li><code>writer</code> - where information about overlaps will be printed, tab delimited, as: bed name, bed start, bed end, snp_id
 (snp_ids are starting coord, indel_length and boolean is_indel - note that insertions are represent with a negative length and deletion with a positive one)</li>
 <li><code>bed_record</code> - the bed record whose overlaps will be printed</li>

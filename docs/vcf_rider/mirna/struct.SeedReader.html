@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `VcfReader` struct in crate `vcf_rider`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, VcfReader">
+    <meta name="description" content="API documentation for the Rust `SeedReader` struct in crate `vcf_rider`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, SeedReader">
 
-    <title>vcf_rider::mutations::VcfReader - Rust</title>
+    <title>vcf_rider::mirna::SeedReader - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
     <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
@@ -33,7 +33,7 @@
     <nav class="sidebar">
         <div class="sidebar-menu">&#9776;</div>
         
-        <p class='location'>Struct VcfReader</p><div class="sidebar-elems"><div class="block items"><a class="sidebar-title" href="#fields">Fields</a><div class="sidebar-links"><a href="#structfield.samples">samples</a></div><a class="sidebar-title" href="#methods">Methods</a><div class="sidebar-links"><a href="#method.open_path">open_path</a></div><a class="sidebar-title" href="#implementations">Trait Implementations</a><div class="sidebar-links"><a href="#impl-Iterator">Iterator</a></div><a class="sidebar-title" href="#synthetic-implementations">Auto Trait Implementations</a><div class="sidebar-links"><a href="#impl-Send">Send</a><a href="#impl-Sync">!Sync</a></div></div><p class='location'><a href='../index.html'>vcf_rider</a>::<wbr><a href='index.html'>mutations</a></p><script>window.sidebarCurrent = {name: 'VcfReader', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script></div>
+        <p class='location'>Struct SeedReader</p><div class="sidebar-elems"><div class="block items"><a class="sidebar-title" href="#methods">Methods</a><div class="sidebar-links"><a href="#method.open">open</a><a href="#method.open_path">open_path</a></div><a class="sidebar-title" href="#implementations">Trait Implementations</a><div class="sidebar-links"><a href="#impl-Iterator">Iterator</a></div><a class="sidebar-title" href="#synthetic-implementations">Auto Trait Implementations</a><div class="sidebar-links"><a href="#impl-Send">Send</a><a href="#impl-Sync">Sync</a></div></div><p class='location'><a href='../index.html'>vcf_rider</a>::<wbr><a href='index.html'>mirna</a></p><script>window.sidebarCurrent = {name: 'SeedReader', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script></div>
     </nav>
 
     <div class="theme-picker">
@@ -55,47 +55,44 @@
     </nav>
 
     <section id='main' class="content">
-<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>vcf_rider</a>::<wbr><a href='index.html'>mutations</a>::<wbr><a class="struct" href=''>VcfReader</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>vcf_rider</a>::<wbr><a href='index.html'>mirna</a>::<wbr><a class="struct" href=''>SeedReader</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#101-106' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct VcfReader {
-    pub samples: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;,
-    // some fields omitted
-}</pre><div class='docblock'><p>Struct used to load vcf, it will be used as an <code>Iterator&lt;Mutation&gt;</code>.
-If accept_phased is false it will panic if there are any unphased mutations, otherwise it will
-accept them, but beware: sequence where the score will be computed for vcf_rider usually needs to
-be phased (suppose that two SNPs falls &quot;inside&quot; the same PWM match for the TBA: their phasing will
-influence the computed score).</p>
-</div><h2 id='fields' class='fields small-section-header'>
-                       Fields<a href='#fields' class='anchor'></a></h2><span id="structfield.samples" class="structfield small-section-header">
-                           <a href="#structfield.samples" class="anchor field"></a>
-                           <span id="samples.v" class='invisible'>
-                           <code>samples: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;</code>
-                           </span></span><div class='docblock'><p>A vector of the individual/samples ids whose genotype is represented in this VcfReader</p>
+               </span><a class='srclink' href='../../src/vcf_rider/mirna.rs.html#125-128' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct SeedReader { /* fields omitted */ }</pre><div class='docblock'><p>Struct used to read Seed. It will be implement an Iterator of <code>Seed</code> structs.</p>
 </div>
                     <h2 id='methods' class='small-section-header'>
                       Methods<a href='#methods' class='anchor'></a>
                     </h2>
-                <h3 id='impl' class='impl'><span class='in-band'><code>impl <a class="struct" href="../../vcf_rider/mutations/struct.VcfReader.html" title="struct vcf_rider::mutations::VcfReader">VcfReader</a></code><a href='#impl' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#110-128' title='goto source code'>[src]</a></span></h3>
-<div class='impl-items'><h4 id='method.open_path' class="method"><span id='open_path.v' class='invisible'><code>pub fn <a href='#method.open_path' class='fnname'>open_path</a>(path: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, accept_phased: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/std/io/error/type.Result.html" title="type std::io::error::Result">Result</a>&lt;<a class="struct" href="../../vcf_rider/mutations/struct.VcfReader.html" title="struct vcf_rider::mutations::VcfReader">VcfReader</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#118-127' title='goto source code'>[src]</a></span></h4>
-<div class='docblock'><p>Opens a vcf file returning a <code>Result&lt;VCFReader&gt;</code>.</p>
+                <h3 id='impl' class='impl'><span class='in-band'><code>impl <a class="struct" href="../../vcf_rider/mirna/struct.SeedReader.html" title="struct vcf_rider::mirna::SeedReader">SeedReader</a></code><a href='#impl' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mirna.rs.html#130-162' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.open' class="method"><span id='open.v' class='invisible'><code>pub fn <a href='#method.open' class='fnname'>open</a>(file: <a class="struct" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html" title="struct std::fs::File">File</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/std/io/error/type.Result.html" title="type std::io::error::Result">Result</a>&lt;<a class="struct" href="../../vcf_rider/mirna/struct.SeedReader.html" title="struct vcf_rider::mirna::SeedReader">SeedReader</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mirna.rs.html#139-146' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Opens a tab delimited file with miRNA seeds file returning a <code>Result&lt;SeedReader&gt;</code>.</p>
 <h1 id="arguments" class="section-header"><a href="#arguments">Arguments</a></h1>
 <ul>
-<li><code>path</code> - the path to the vcf file</li>
+<li><code>file</code> - the File with miRNA information</li>
 </ul>
 <h1 id="errors" class="section-header"><a href="#errors">Errors</a></h1>
-<p>When the file cannot be read by bcf::Reader</p>
+<p>When the first line of the file cannot be read, the Error returned by read_line.
+Or the error returned by <code>File::open</code> if the file is not readable.</p>
+</div><h4 id='method.open_path' class="method"><span id='open_path.v' class='invisible'><code>pub fn <a href='#method.open_path' class='fnname'>open_path</a>(path: &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/std/io/error/type.Result.html" title="type std::io::error::Result">Result</a>&lt;<a class="struct" href="../../vcf_rider/mirna/struct.SeedReader.html" title="struct vcf_rider::mirna::SeedReader">SeedReader</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mirna.rs.html#156-161' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Opens a tab delimited file with miRNA seeds file returning a <code>Result&lt;SeedReader&gt;</code>.</p>
+<h1 id="arguments-1" class="section-header"><a href="#arguments-1">Arguments</a></h1>
+<ul>
+<li><code>path</code> - the path to the miRNA file</li>
+</ul>
+<h1 id="errors-1" class="section-header"><a href="#errors-1">Errors</a></h1>
+<p>When the first line of the file cannot be read, the Error returned by read_line.
+Or the error returned by <code>File::open</code> if the file is not readable.</p>
 </div></div>
             <h2 id='implementations' class='small-section-header'>
               Trait Implementations<a href='#implementations' class='anchor'></a>
             </h2>
             <div id='implementations-list'>
-        <h3 id='impl-Iterator' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html" title="trait core::iter::iterator::Iterator">Iterator</a> for <a class="struct" href="../../vcf_rider/mutations/struct.VcfReader.html" title="struct vcf_rider::mutations::VcfReader">VcfReader</a></code><a href='#impl-Iterator' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#183-257' title='goto source code'>[src]</a></span></h3>
-<div class='impl-items'><h4 id='associatedtype.Item' class="type"><span id='Item.t' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html#associatedtype.Item' class="type">Item</a> = <a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a></code></span></h4>
+        <h3 id='impl-Iterator' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html" title="trait core::iter::iterator::Iterator">Iterator</a> for <a class="struct" href="../../vcf_rider/mirna/struct.SeedReader.html" title="struct vcf_rider::mirna::SeedReader">SeedReader</a></code><a href='#impl-Iterator' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mirna.rs.html#164-189' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Item' class="type"><span id='Item.t' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html#associatedtype.Item' class="type">Item</a> = <a class="struct" href="../../vcf_rider/mirna/struct.Seed.html" title="struct vcf_rider::mirna::Seed">Seed</a></code></span></h4>
 <div class='docblock'><p>The type of the elements being iterated over.</p>
-</div><h4 id='method.next' class="method"><span id='next.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html#tymethod.next' class='fnname'>next</a>(&amp;mut self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#187-256' title='goto source code'>[src]</a></span></h4>
+</div><h4 id='method.next' class="method"><span id='next.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html#tymethod.next' class='fnname'>next</a>(&amp;mut self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../vcf_rider/mirna/struct.Seed.html" title="struct vcf_rider::mirna::Seed">Seed</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/vcf_rider/mirna.rs.html#167-188' title='goto source code'>[src]</a></span></h4>
 <div class='docblock'><p>Advances the iterator and returns the next value. <a href="https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html#tymethod.next">Read more</a></p>
 </div><h4 id='method.size_hint' class="method"><span id='size_hint.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html#method.size_hint' class='fnname'>size_hint</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">(</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">)</a></code></span><span class='out-of-band'><div class='ghost'></div><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div><a class='srclink' href='https://doc.rust-lang.org/nightly/src/core/iter/iterator.rs.html#149' title='goto source code'>[src]</a></span></h4>
 <div class='docblock'><p>Returns the bounds on the remaining length of the iterator. <a href="https://doc.rust-lang.org/nightly/core/iter/iterator/trait.Iterator.html#method.size_hint">Read more</a></p>
@@ -209,8 +206,8 @@ influence the computed score).</p>
               Auto Trait Implementations<a href='#synthetic-implementations' class='anchor'></a>
             </h2>
             <div id='synthetic-implementations-list'>
-        <h3 id='impl-Send' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> for <a class="struct" href="../../vcf_rider/mutations/struct.VcfReader.html" title="struct vcf_rider::mutations::VcfReader">VcfReader</a></code><a href='#impl-Send' class='anchor'></a></span><span class='out-of-band'></span></h3>
-<div class='impl-items'></div><h3 id='impl-Sync' class='impl'><span class='in-band'><code>impl !<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> for <a class="struct" href="../../vcf_rider/mutations/struct.VcfReader.html" title="struct vcf_rider::mutations::VcfReader">VcfReader</a></code><a href='#impl-Sync' class='anchor'></a></span><span class='out-of-band'></span></h3>
+        <h3 id='impl-Send' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> for <a class="struct" href="../../vcf_rider/mirna/struct.SeedReader.html" title="struct vcf_rider::mirna::SeedReader">SeedReader</a></code><a href='#impl-Send' class='anchor'></a></span><span class='out-of-band'></span></h3>
+<div class='impl-items'></div><h3 id='impl-Sync' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> for <a class="struct" href="../../vcf_rider/mirna/struct.SeedReader.html" title="struct vcf_rider::mirna::SeedReader">SeedReader</a></code><a href='#impl-Sync' class='anchor'></a></span><span class='out-of-band'></span></h3>
 <div class='impl-items'></div></div></section>
     <section id='search' class="content hidden"></section>
 

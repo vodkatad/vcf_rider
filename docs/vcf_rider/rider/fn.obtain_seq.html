@@ -59,19 +59,20 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#391-480' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../../src/vcf_rider/rider.rs.html#393-494' title='goto source code'>[src]</a></span></h1>
 <pre class='rust fn'>pub fn obtain_seq(<br>&nbsp;&nbsp;&nbsp;&nbsp;window: &amp;<a class="struct" href="../../vcf_rider/mutations/struct.Coordinate.html" title="struct vcf_rider::mutations::Coordinate">Coordinate</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;snps_buffer: &amp;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec_deque/struct.VecDeque.html" title="struct alloc::vec_deque::VecDeque">VecDeque</a>&lt;<a class="struct" href="../../vcf_rider/mutations/struct.Mutation.html" title="struct vcf_rider::mutations::Mutation">Mutation</a>&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;overlapping_info: &amp;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">(</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, MutationClass<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">)</a>&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;reference: &amp;<a class="struct" href="../../vcf_rider/fasta/struct.Fasta.html" title="struct vcf_rider::fasta::Fasta">Fasta</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;genotypes: &amp;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;BitVec&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;seqs: &amp;mut <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">(</a>BitVec, <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">)</a>&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;bed_end: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><br>)</pre><div class='docblock'><p>Function that populates a vector of sequences, given a genomic window, a buffer of SNPs overlapping with it alongside their indel status information
 for the samples groups, the reference sequence, the genotypes encoded for our individuals and the end of the bed that we are considering.
 The filled vector is a vector of tuples of BitVec, representing the sequences indexes, and Vec<u8>, representing the sequences itself.
 At this stage we will remove duplicated sequences, storing only once the ones that are the same in different individual/alleles.</p>
 <h1 id="arguments" class="section-header"><a href="#arguments">Arguments</a></h1>
-<p>UPTO</p>
 <ul>
-<li><code>snps_buffer</code>- a mutable reference to the VecDeque that is used as a buffer for SNPs. We will prints all SNPs listed there save the last one</li>
-<li><code>n_overlapping</code> - the number of SNPs in snps_buffer that overlap with our bed_record</li>
-<li><code>writer</code> - where information about overlaps will be printed, tab delimited, as: bed name, bed start, bed end, snp_id
-(snp_ids are starting coord, indel_length and boolean is_indel - note that insertions are represent with a negative length and deletion with a positive one)</li>
-<li><code>bed_record</code> - the bed record whose overlaps will be printed</li>
+<li><code>window</code>- the genomic coordinates of the window whose sequences we want to obtain</li>
+<li><code>snps_buffer</code>- a mutable reference to the VecDeque that is used as a buffer for SNPs</li>
+<li><code>overlapping_info</code> - informations about the mutations overlapping with this window</li>
+<li><code>reference</code> - the reference genome sequence for the chr where this window falls</li>
+<li><code>genotypes</code>- a vector of the BitVec indexes of the individuals/alleles that we are studying</li>
+<li><code>seqs</code> - the vector that we will fill with the obtained window sequences</li>
+<li><code>bed_end</code> - the end coordinate of the bed that we are studying, needed to trim the window end if it falls outside of the bed</li>
 </ul>
 </div></section>
     <section id='search' class="content hidden"></section>

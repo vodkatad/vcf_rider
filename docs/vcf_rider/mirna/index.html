@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `mutations` mod in crate `vcf_rider`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, mutations">
+    <meta name="description" content="API documentation for the Rust `mirna` mod in crate `vcf_rider`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, mirna">
 
-    <title>vcf_rider::mutations - Rust</title>
+    <title>vcf_rider::mirna - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
     <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
@@ -33,7 +33,7 @@
     <nav class="sidebar">
         <div class="sidebar-menu">&#9776;</div>
         
-        <p class='location'>Module mutations</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div><p class='location'><a href='../index.html'>vcf_rider</a></p><script>window.sidebarCurrent = {name: 'mutations', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div>
+        <p class='location'>Module mirna</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li></ul></div><p class='location'><a href='../index.html'>vcf_rider</a></p><script>window.sidebarCurrent = {name: 'mirna', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div>
     </nav>
 
     <div class="theme-picker">
@@ -55,48 +55,26 @@
     </nav>
 
     <section id='main' class="content">
-<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>vcf_rider</a>::<wbr><a class="mod" href=''>mutations</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>vcf_rider</a>::<wbr><a class="mod" href=''>mirna</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../../src/vcf_rider/mutations.rs.html#1-257' title='goto source code'>[src]</a></span></h1>
-<div class='docblock'><p>Module able to load mutations from a vcf file.</p>
-</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+               </span><a class='srclink' href='../../src/vcf_rider/mirna.rs.html#73-189' title='goto source code'>[src]</a></span></h1>
+<h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                        <tr class=' module-item'>
-                           <td><a class="struct" href="struct.Coordinate.html"
-                                  title='struct vcf_rider::mutations::Coordinate'>Coordinate</a></td>
+                           <td><a class="struct" href="struct.Seed.html"
+                                  title='struct vcf_rider::mirna::Seed'>Seed</a></td>
                            <td class='docblock-short'>
-                                <p>Struct to represent genomic coordinates.  0 based, end exclusive.</p>
+                                <p>Struct representing a miRNA seed</p>
 
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="struct" href="struct.Mutation.html"
-                                  title='struct vcf_rider::mutations::Mutation'>Mutation</a></td>
+                           <td><a class="struct" href="struct.SeedReader.html"
+                                  title='struct vcf_rider::mirna::SeedReader'>SeedReader</a></td>
                            <td class='docblock-short'>
-                                <p>Struct used to represent SNPs and indels loaded from vcf files. Suitable only for biallelic polymorphisms.</p>
-
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="struct" href="struct.VcfReader.html"
-                                  title='struct vcf_rider::mutations::VcfReader'>VcfReader</a></td>
-                           <td class='docblock-short'>
-                                <p>Struct used to load vcf, it will be used as an <code>Iterator&lt;Mutation&gt;</code>.
-If accept_phased is false it will panic if there are any unphased mutations, otherwise it will
-accept them, but beware: sequence where the score will be computed for vcf_rider usually needs to
-be phased (suppose that two SNPs falls &quot;inside&quot; the same PWM match for the TBA: their phasing will
-influence the computed score).</p>
-
-                           </td>
-                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
-<table>
-                       <tr class=' module-item'>
-                           <td><a class="enum" href="enum.Position.html"
-                                  title='enum vcf_rider::mutations::Position'>Position</a></td>
-                           <td class='docblock-short'>
-                                <p>Enum used to represent the relative position of two <code>Coordinate</code>.</p>
+                                <p>Struct used to read Seed. It will be implement an Iterator of <code>Seed</code> structs.</p>
 
                            </td>
                        </tr></table></section>
