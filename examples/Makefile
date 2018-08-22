@@ -1,5 +1,5 @@
 SHELL = /bin/bash
-EXE=../target/debug/vcf_rider
+EXE=../target/release/vcf_rider
 
 OBJ=single_snp small_del small_ins adj_dels overlapping_bed bigdel_before
 
