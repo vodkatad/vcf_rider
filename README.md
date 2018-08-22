@@ -8,11 +8,12 @@ https://vodkatad.github.io/vcf_rider/vcf_rider/index.html
 
 ## Install Rust (stable toolchain)
 
-$ curl https://sh.rustup.rs -sSf | sh
+`$ curl https://sh.rustup.rs -sSf | sh`
+
 (choose option 1 to install the stable toolchain by default)
 
 Configure PATH variables in your shell without needing a new login:
-$ $HOME/.cargo/env
+`$ $HOME/.cargo/env`
 
 ## Clone vcf_rider repository and build all binaries
 
