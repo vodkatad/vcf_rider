@@ -13,14 +13,17 @@ https://vodkatad.github.io/vcf_rider/vcf_rider/index.html
 (choose option 1 to install the stable toolchain by default)
 
 Configure PATH variables in your shell without needing a new login:
+
 `$ $HOME/.cargo/env`
 
 ## Clone vcf_rider repository and build all binaries
 
-`$ clone https://github.com/vodkatad/vcf_rider.git`
+`$ git clone https://github.com/vodkatad/vcf_rider.git`
+
 `$ cd vcf_rider`
 
 Build the package in release mode:
+
 `$ cargo build --release`
 
 Binaries than can be found in ./target/release/:
@@ -32,9 +35,11 @@ Binaries than can be found in ./target/release/:
 ## Test your installation
 
 Small number of unit tests:
+
 `$ cargo test --lib`
 
 More extensive tests that compare outputs with some manually checked:
+
 `cargo build; cd examples; make; make clean;`
 
 ## To build doc in target/doc
