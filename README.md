@@ -47,11 +47,11 @@ More extensive tests that compare outputs with some manually checked:
 
 ## Build indel stats to check if you have regions with too many mutated indels
 
-`cargo build --release --bin indel_stats`
+`$ cargo build --release --bin indel_stats`
 
 Then:
 
-`./target/release/indel_stats  your_vcf.vcf your_bed.bed`
+`$ ./target/release/indel_stats  your_vcf.vcf your_bed.bed`
 
 will result in a tab delimited file with information about the overlap between regions
 and mutations of the given bed and vcf, respectively. The sixth column will have true for all the regions
