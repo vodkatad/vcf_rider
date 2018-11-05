@@ -44,3 +44,16 @@ More extensive tests that compare outputs with some manually checked:
 
 ## To build doc in target/doc
 `$ cargo doc --no-deps`
+
+## Build indel stats to check if you have regions with too many mutated indels
+
+`cargo build --release --bin indel_stats`
+
+Then:
+
+`./target/release/indel_stats  your_vcf.vcf your_bed.bed`
+
+will result in a tab delimited file with information about the overlap between regions
+and mutations of the given bed and vcf, respectively. The sixth column will have true for all the regions
+that right now are not correctly managed by vcf_rider, due to a huge number of indels, and should be removed
+from your analyses cause they will be given incorrect scores. Future releases will fix this limitation.
